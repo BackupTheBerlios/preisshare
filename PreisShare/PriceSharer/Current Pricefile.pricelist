@@ -1,0 +1,42 @@
+<?ComputerGrid.net(tm) Version#=2.0 encoding&="UTF-8" LangID&="EN">
+<PriceList>
+  <Vendor Information>
+    Country_Code&="AU"
+    ZIP_Postcode&="2566"
+    State_Region&="NSW"
+    Suburb_Town&="St Andrews"
+    Address_Line_2&=""
+    Address_Line_1&="9 Blairgowrie Cct"
+    Organisation_Name&="Global TradeDesk Pty Limited"
+    Our_GTL&="global tradedesk@darling harbour(nsw-au)"
+  </Vendor Information>
+  <Product Information>
+    <Product Group>
+      Group_Description&="Motherboards"
+      <Product Items>
+        <Product Item>
+          Your_Price$=180
+          List_Price$=199
+          OnSpecial_Flag?=False
+          Name&="300Mhz Motherboard"
+        </Product Item>
+        <Product Item>
+          Your_Price$=149
+          List_Price$=165
+          OnSpecial_Flag?=False
+          Name&="350Mhz Motherboard"
+        </Product Item>
+      </Product Items>
+    </Product Group>
+    <Product Group>
+      Group_Description&="Printers"
+      <Product Items>
+        <Product Item>
+          Your_Price$=18
+          OnSpecial_Flag?=False
+          Name&="HP Laserjet 4"
+        </Product Item>
+      </Product Items>
+    </Product Group>
+  </Product Information>
+</PriceList>
