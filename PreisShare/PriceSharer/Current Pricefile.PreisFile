@@ -1,0 +1,43 @@
+<?PreisMarkup(tm) Version#=2.0 encoding&="UTF-8" LangID&="EN">
+<PriceList>
+  <Vendor Information>
+    Country_Code&="AU"
+    ZIP_Postcode&="2566"
+    State_Region&="NSW"
+    Suburb_Town&="St Andrews"
+    Address_Line_2&=""
+    Address_Line_1&="9 Blairgowrie Cct"
+    Organisation_Name&="Global TradeDesk Pty Limited"
+    Our_GTL&="global tradedesk@darling harbour(nsw-au)"
+  </Vendor Information>
+  <Product Information>
+    <Product Group>
+      Group_Description&="Mobile Phones"
+      <Product Items>
+        <Product Item>
+          Thumbnail&="P4060006.JPG"
+          List_Price$=18
+          Name&="MySim"
+          OnSpecial_Flag?=False
+        </Product Item>
+        <Product Item>
+          Product_ID&="A2010"
+          List_Price$=25
+          Name&="Sundial"
+          OnSpecial_Flag?=False
+        </Product Item>
+      </Product Items>
+    </Product Group>
+    <Product Group>
+      Group_Description&="Memory Cards"
+      <Product Items>
+        <Product Item>
+          List_Price$=79
+          Name&="256MB Memory Card"
+          OnSpecial_Flag?=False
+        </Product Item>
+      </Product Items>
+    </Product Group>
+  </Product Information>
+</PriceList>
+
