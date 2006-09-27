@@ -1,0 +1,133 @@
+object frmSearch: TfrmSearch
+  Left = 201
+  Top = 107
+  AutoScroll = False
+  BorderIcons = []
+  Caption = 'Supplier Product Search'
+  ClientHeight = 516
+  ClientWidth = 519
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Label1: TLabel
+    Left = 160
+    Top = 16
+    Width = 146
+    Height = 29
+    Caption = 'PreisShare'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clGray
+    Font.Height = -24
+    Font.Name = 'Verdana'
+    Font.Style = [fsBold, fsItalic]
+    ParentFont = False
+    Transparent = True
+  end
+  object Label2: TLabel
+    Left = 236
+    Top = 44
+    Width = 154
+    Height = 16
+    Caption = 'Product Database Search'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clGray
+    Font.Height = -13
+    Font.Name = 'Arial'
+    Font.Style = [fsBold, fsItalic]
+    ParentFont = False
+    Transparent = True
+  end
+  object Label3: TLabel
+    Left = 158
+    Top = 14
+    Width = 146
+    Height = 29
+    Caption = 'PreisShare'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWhite
+    Font.Height = -24
+    Font.Name = 'Verdana'
+    Font.Style = [fsBold, fsItalic]
+    ParentFont = False
+    Transparent = True
+  end
+  object bsSkinButton1: TbsSkinButton
+    Left = 424
+    Top = 464
+    Width = 75
+    Height = 25
+    TabOrder = 0
+    SkinDataName = 'button'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    RepeatMode = False
+    RepeatInterval = 100
+    AllowAllUp = False
+    TabStop = True
+    CanFocused = True
+    Down = False
+    GroupIndex = 0
+    Caption = 'Close'
+    NumGlyphs = 1
+    Spacing = 1
+    OnClick = bsSkinButton1Click
+  end
+  object bsBusinessSkinForm1: TbsBusinessSkinForm
+    ClientWidth = 0
+    ClientHeight = 0
+    HideCaptionButtons = False
+    AlwaysShowInTray = False
+    LogoBitMapTransparent = False
+    AlwaysMinimizeToTray = False
+    UseSkinFontInMenu = True
+    ShowIcon = False
+    MaximizeOnFullScreen = False
+    AlphaBlend = False
+    AlphaBlendAnimation = False
+    AlphaBlendValue = 200
+    ShowObjectHint = False
+    MenusAlphaBlend = False
+    MenusAlphaBlendAnimation = False
+    MenusAlphaBlendValue = 200
+    DefCaptionFont.Charset = DEFAULT_CHARSET
+    DefCaptionFont.Color = clBtnText
+    DefCaptionFont.Height = 14
+    DefCaptionFont.Name = 'Arial'
+    DefCaptionFont.Style = [fsBold]
+    DefInActiveCaptionFont.Charset = DEFAULT_CHARSET
+    DefInActiveCaptionFont.Color = clBtnShadow
+    DefInActiveCaptionFont.Height = 14
+    DefInActiveCaptionFont.Name = 'Arial'
+    DefInActiveCaptionFont.Style = [fsBold]
+    DefMenuItemHeight = 20
+    DefMenuItemFont.Charset = DEFAULT_CHARSET
+    DefMenuItemFont.Color = clWindowText
+    DefMenuItemFont.Height = 14
+    DefMenuItemFont.Name = 'Arial'
+    DefMenuItemFont.Style = []
+    UseDefaultSysMenu = True
+    SkinData = frmMain.bsSkinData1
+    MinHeight = 0
+    MinWidth = 0
+    Magnetic = False
+    MagneticSize = 5
+    BorderIcons = [biSystemMenu, biMinimize, biMaximize, biRollUp]
+    Left = 32
+    Top = 16
+  end
+end
