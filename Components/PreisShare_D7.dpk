@@ -1,0 +1,54 @@
+package PreisShare_D7;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$IMPLICITBUILD ON}
+
+requires
+  vcl,
+  vclx,
+  vcljpg,
+  bdertl,
+  vcldb,
+  IcsDel70,
+  indy,
+  BSFD7,
+  dclaxserver,
+  rtl,
+  vclactnband,
+  dbrtl,
+  designide;
+
+contains
+  GTDBizDocs in 'GTDBizDocs.pas',
+  CustomerLinks in 'CustomerLinks.pas',
+  GTDBizLinks in 'GTDBizLinks.pas',
+  DocumentNavigator in 'DocumentNavigator.pas' {RegistryNavigator: TFrame},
+  ProductLister in 'ProductLister.pas',
+  GTDGeoView in 'GTDGeoView.pas',
+  GTDBizCategoryViewer in 'GTDBizCategoryViewer.pas',
+  GTDSearchTextHandler in 'GTDSearchTextHandler.pas' {SearchTextHandler: TFrame},
+  GTDColorButtonList in 'GTDColorButtonList.pas',
+  DosCommand in 'DosCommand.pas';
+
+end.
