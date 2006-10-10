@@ -1,0 +1,20 @@
+object frmMain: TfrmMain
+  Left = 64
+  Height = 581
+  Top = 111
+  Width = 590
+  HorzScrollBar.Page = 589
+  VertScrollBar.Page = 580
+  BorderIcons = []
+  Caption = 'Pricelist Search'
+  ClientHeight = 581
+  ClientWidth = 590
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poDesktopCenter
+  object DataSource1: TDatasource
+    left = 412
+    top = 372
+  end
+end
