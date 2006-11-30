@@ -1,0 +1,43 @@
+<?PreisMarkup(tm) Version#=2.0 encoding&="UTF-8" LangID&="EN">
+<PriceList>
+  <Vendor Information>
+    Country_Code&="AU"
+    ZIP_Postcode&="2566"
+    State_Region&="NSW"
+    Suburb_Town&="St Andrews"
+    Address_Line_2&=""
+    Address_Line_1&="9 Blairgowrie Cct"
+    Organisation_Name&="Global Tradedesk Technology Pty Limited"
+    PreisShare_ID&="ii"
+  </Vendor Information>
+  <Product Information>
+    <Product Group>
+      Group_Description&="DFG"
+      <Product Items>
+        <Product Item>
+          OnSpecial_Flag?=False
+          Product_ID&="QQ"
+          Name&="Somthint"
+          Description&=""
+          Your_Price$=34
+        </Product Item>
+        <Product Item>
+          Product_ID&="A33"
+          Name&="Tea cup"
+          Description&="These are nice"
+          Unit&="Each"
+          Your_Price$=65
+          OnSpecial_Flag?=False
+        </Product Item>
+        <Product Item>
+          OnSpecial_Flag?=False
+          Product_ID&="222"
+          Unit&="Each"
+          Description&="A very nice peice of pottery"
+          Your_Price$=18
+          Name&="Pottery"
+        </Product Item>
+      </Product Items>
+    </Product Group>
+  </Product Information>
+</PriceList>
