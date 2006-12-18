@@ -9,11 +9,15 @@ uses
   {$ELSE}
 	Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
 	StdCtrls, ToolWin, ComCtrls, FileCtrl, Db, DbTables, BDE, ShlObj,
-	ShellAPI,ComObj,
+	ShellAPI,
 	{$IFNDEF HW_SIMPLE} jpeg ,GTDColorButtonList, {$ENDIF}
 	extctrls, HCMngr, DiffUnit,
   {$ENDIF}
-  GTDBizDocs;
+  GTDBizDocs,
+  {Sinu added for vtkExport}
+  BIFF8_Types, vteExcel, vteExcelTypes, vteWriters
+  {Sinu}
+  ;
 
 const
     // -- These constants function as bit flags
@@ -23,25 +27,6 @@ const
     PL_ITEM_RISEN = 4;
     PL_ITEM_FALLEN = 8;
     PL_ITEM_DETAILS = 16;
-
-    //    <Pricelist Delivery>
-    //  Requires_Own_Pricelist?=True
-    PL_DELIV_FORMAT = 'Delivery_Format';    //  Delivery_Format&="CSV"
-      PL_DELIV_CSV    = 'CSV';
-      PL_DELIV_XML    = 'XML';
-      PL_DELIV_HTML   = 'HTML';
-      PL_DELIV_XLS    = 'XLS';
-      
-    PL_DELIV_REQUIRED = 'Delivery_Required';//  Delivery_Required&="When Changed"
-    //  Delivery_Method&="ftp"
-    //  Last_Sent@=
-    // </Pricelist Delivery>
-
-    PL_OUTPUT_STD_COLUMNS = GTD_PL_ELE_PRODUCT_PLU + ';' +
-                            GTD_PL_ELE_PRODUCT_NAME+ ';' +
-                            GTD_PL_ELE_PRODUCT_LIST+ ';' +
-                            GTD_PL_ELE_PRODUCT_ACTUAL;
-
 
 type
   //-- Pricelist - This is an abstraction of a pricelist
@@ -70,7 +55,7 @@ type
       procedure ExportAsXML(aFilename,columnList : String);
 
       // -- Excel Output
-      procedure ExportAsStandardXLS(aFilename,columnList : String);
+      procedure ExportAsStandardXLS(aFilename, columnList : String); {Sinu}
       procedure ExportAsCustomerSpecifiedXLS(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
 
       // -- PDF Output
@@ -83,11 +68,16 @@ type
 
 	private
       iteratorLineNumber : Integer;
+
+      {Sinu}
+      procedure WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
+      function GetColumnCount(AColumns:String):Integer;
+      {Sinu}
 	published
   end;
 
 implementation
-uses FastStrings,MSXML_TLB;
+
 // ----------------------------------------------------------------------------
 
 //-- Pricelist - This is an abstraction of a pricelist
@@ -204,27 +194,37 @@ procedure GTDPricelist.LoadAllItemsToList(aStringList : TStringList);
 var
     xc,gc : Integer;
     gn : String;
-    ProductInfoNode : GTDNode;
+    ProductGroupNode : GTDNode;
 begin
 
-    ProductInfoNode := GTDNode.Create;
+    ProductGroupNode := GTDNode.Create;
 
     // -- Initialise our string list
     aStringList.Clear;
 
+    // -- This will loop through all level 1 groups
+    gc := Self.NodeCount(GTD_PL_PRODUCTINFO_NODE+GTD_PL_PRODUCTGROUP_NODE);
+//     gc := Self.NodeCount(GTD_PL_PRODUCTINFO_NODE+'/Product Item');  //sinu
+
+//    gc := 1;
+    showmessage(inttostr(gc));
     // -- For every major product group
-    gn := GTD_PL_PRODUCTINFO_NODE;
+    for xc := 1 to gc do
+    begin
+        // -- Calculate the nodepath
+        gn := GTD_PL_PRODUCTINFO_NODE+GTD_PL_PRODUCTGROUP_NODE + '[' + IntToStr(xc) + ']';
 
         // -- Now load in all the items
-    if ProductInfoNode.LoadFromDocument(Self,gn,False) then
-    begin
-        // -- Reset to the start
-        ProductInfoNode.GotoStart;
+        if ProductGroupNode.LoadFromDocument(Self,gn,False) then
+        begin
+            // -- Reset to the start
+            ProductGroupNode.GotoStart;
 
-        LoadItemsFromNodeToList(ProductInfoNode,aStringList,'');
+            LoadItemsFromNodeToList(ProductGroupNode,aStringList,ProductGroupNode.ReadStringField(GTD_PL_ELE_GROUP_NAME));
+        end;
     end;
 
-    ProductInfoNode.Destroy;
+    ProductGroupNode.Destroy;
 end;
 
 procedure GTDPricelist.StartItemIterator;
@@ -298,10 +298,50 @@ begin
     ItemList.SaveToFile(aFilename);
 end;
 
-
 // -- Excel Output
 procedure GTDPricelist.ExportAsStandardXLS(aFilename,columnList : String);
+var
+  iRow,iCol, fc : Integer;
+  sColumns,sField,sFieldValue : String;
+  tmpProduct : GTDNode;
+  sXLSFile  : TStringList;
+  tmpWorkBook : TvteXLSWorkbook;
+  tmpWorkSheet : TvteXLSWorksheet;
 begin
+  tmpProduct    := GTDNode.Create;
+  sXLSFile      := TStringList.Create;
+  tmpWorkBook   := TvteXLSWorkbook.Create;
+  tmpWorkSheet  := tmpWorkBook.AddSheet;
+  try
+    ReStartItemIterator;
+    WriteHeader(tmpWorkSheet,ColumnList);
+    iRow        := 5;
+
+    while NextItemIteration(tmpProduct) do
+    begin
+      // -- Reload the columnlist for every item
+      sColumns  := ColumnList;
+      iCol      := 0;
+      repeat
+        // -- Extract the next field name
+        sField := Parse(sColumns,';');
+
+        // -- Now extract the value of that field
+        if (sField[1] <> '<') then
+        begin
+          sFieldValue := tmpProduct.ReadStringField(sField);
+          tmpWorkSheet.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
+          Inc(iCol);
+        end;
+      until (sColumns = '');
+
+      Inc(iRow);
+    end;
+    tmpWorkBook.SaveAsXLSToFile(aFilename);
+  finally
+    tmpProduct.Destroy;
+    FreeAndNil(tmpWorkBook);
+  end;
 end;
 
 procedure GTDPricelist.ExportAsCustomerSpecifiedXLS(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
@@ -323,74 +363,7 @@ end;
 
 // -- Output the pricelist in XML format
 procedure GTDPricelist.ExportAsXML(aFilename,columnList : String);
-
-    function GetSpecialField(sf :String):String;
-    begin
-        Result := '';
-    end;
-var
-    i,fc : Integer;
-    s,f,v,l : String;
-    thisProduct : GTDNode;
-    xml : String;
-    doc : IXMLDOMDocument;
-    root, child, child1 : IXMLDomElement;
-    text1, text2        : IXMLDOMText;
-
 begin
-    try
-        thisproduct := GTDNode.Create;
-
-        i := 0;
-
-        // Progressbar1.step:=round(1/bsSkinListView1.Items.count );
-        // comapring data of list view with selected table
-        ReStartItemIterator;
-
-    	// barProgress.MaxValue := Pricelist.ItemList.count;
-
-        // -- Set the root name of the xml file
-        xml  := 'Pricelist';
-        doc  := CreateOleObject('Microsoft.XMLDOM') as IXMLDomDocument;
-
-        root := doc.createElement(xml);
-        doc.appendchild(root);
-
-        while NextItemIteration(thisproduct) do
-        begin
-
-            // -- Reload the columnlist for every item
-            s := columnList;
-            l := '';
-
-            // -- Add the first level children records
-            child:= doc.createElement('Product_Items');
-            root.appendchild(child);
-
-            repeat
-                // -- Extract the next field name
-                f := Parse(s,';');
-
-                // -- Now extract the value of that field
-                if (f[1] <> '<') then
-                    v := thisProduct.ReadStringField(f)
-                else
-                    v := GetSpecialField(f);
-
-                child1 := doc.createElement(f);
-                child.appendchild(child1);
-                //Check field types
-                child1.appendChild(doc.createTextNode(v));
-
-            until (s = '');
-
-        end;
-
-        doc.save(xml+'.xml');
-
-    finally
-        thisProduct.Destroy;
-    end;
 end;
 
 // -- CSV Output
@@ -405,10 +378,6 @@ var
     s,f,v,l : String;
     thisProduct : GTDNode;
     csvFile : TStringList;
-    doc                 : IXMLDOMDocument;
-    root, child, child1 : IXMLDomElement;
-    text1, text2        : IXMLDOMText;
-
 begin
     try
         thisproduct := GTDNode.Create;
@@ -438,7 +407,7 @@ begin
                     v := GetSpecialField(f);
 
                 // -- Build the line
-                l := l + '"' + v + '",';
+                l := l + '"' + v + '","';
 
             until (s = '');
         end;
@@ -460,17 +429,12 @@ begin
                 else
                     v := GetSpecialField(f);
 
-                // -- Double-quote all quotes
-                v := FastReplace(v,'"','""');
-
                 // -- Build the line
-                l := l + '"' + v + '",';
+                l := l + '"' + v + '","';
 
             until (s = '');
 
             // -- Chop off the last comma
-            if Length(l) <> 0 then
-                l := Copy(l,1,Length(l)-1);
 
             // -- Add it to the list
             csvFile.Add(l);
@@ -485,5 +449,65 @@ begin
     end;
 end;
 
+procedure GTDPricelist.WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
+var
+  iColCount, iCol : Integer;
+  sCol : String;
+begin
+  if Not Assigned(AWorkSheet) then
+    Exit;
+
+  iColCount := GetColumnCount(AColumns)-1;
+  //AWorkSheet.Title := 'PriceList';
+
+  {Company name}
+  AWorkSheet.Ranges[0,1,iColCount,1].FillPattern                := vtefpSolid;
+  AWorkSheet.Ranges[0,1,iColCount,1].ForegroundFillPatternColor := clYellow;
+  AWorkSheet.Ranges[0,1,iColCount,1].Value      := 'My Sample Company';
+  AWorkSheet.Ranges[0,1,iColCount,1].HorizontalAlignment := vtexlHAlignCenter;
+  AWorkSheet.Ranges[0,1,iColCount,1].Font.Size  := 16;
+
+  {Company address}
+  AWorkSheet.Ranges[0,2,iColCount,2].FillPattern                := vtefpSolid;
+  AWorkSheet.Ranges[0,2,iColCount,2].ForegroundFillPatternColor := clYellow;
+  AWorkSheet.Ranges[0,2,iColCount,2].Value      := '3,Frog Rock Road, Sydney';
+  AWorkSheet.Ranges[0,2,iColCount,2].HorizontalAlignment := vtexlHAlignCenter;
+  AWorkSheet.Ranges[0,2,iColCount,2].Font.Size  := 10;
+
+  {columnn headers}
+  iCol := 0;
+  Repeat
+    sCol := Parse(AColumns,';');
+
+    if (sCol[1] <> '<') then
+    begin
+      AWorkSheet.Ranges[iCol,4,iCol,4].Value                       := sCol;
+      AWorkSheet.Cols[iCol].Width                                  := 5000; 
+      AWorkSheet.Ranges[iCol,4,iCol,4].FillPattern                 := vtefpSolid;
+      AWorkSheet.Ranges[iCol,4,iCol,4].ForegroundFillPatternColor  := clBlue;
+
+      Inc(iCol);
+    end;
+
+  until (AColumns = '');
+end;
+
+function GTDPricelist.GetColumnCount(AColumns:String): Integer;
+var
+  sCol, sTemp : String;
+  iIndex , iCount: Integer;
+begin
+  iCount := 0;
+
+  Repeat
+    sCol := Parse(AColumns,';');
+
+    if (sCol[1] <> '<') then
+      Inc(iCount);
+
+  until (AColumns = '');
+
+  Result := iCount;
+end;
 
 end.
