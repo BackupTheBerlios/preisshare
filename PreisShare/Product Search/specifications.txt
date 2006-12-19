@@ -1,8 +1,0 @@
-plsearch
-
-This is a command line utility that will
-search pricelists for product information.
-
-
-
-
