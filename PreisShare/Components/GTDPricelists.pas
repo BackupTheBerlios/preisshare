@@ -316,21 +316,72 @@ procedure GTDPricelist.ExportAsStandardXLS(aFilename,columnList : String);
 var
   iRow,iCol, fc : Integer;
   sColumns,sField,sFieldValue : String;
+  fFloatField : Double;
   tmpProduct : GTDNode;
-  sXLSFile  : TStringList;
-  tmpWorkBook : TvteXLSWorkbook;
-  tmpWorkSheet : TvteXLSWorksheet;
+  wb : TvteXLSWorkbook;
+  sh : TvteXLSWorksheet;
+  Writer : TvteCustomWriter;
+
+        procedure AddNumberFormatsSheet;
+        var
+          y : integer;
+          sh : TvteXLSWorksheet;
+
+          procedure af(number : double; const format : string);
+          begin
+          sh.Ranges[0,y,0,y].Value := number;
+          sh.Ranges[1,y,1,y].Value := number;
+          sh.Ranges[1,y,1,y].Format := format;
+          sh.Ranges[2,y,2,y].Value := format;
+          sh.Ranges[2,y,2,y].HorizontalAlignment := vtexlHAlignRight;
+          Inc(y);
+          end;
+
+        begin
+          sh := wb.AddSheet;
+          sh.Title := 'NumberFormats';
+
+          sh.Ranges[0,0,0,0].Value := 'Number';
+          sh.Ranges[0,0,0,0].FillPattern := vtefpSolid;
+          sh.Ranges[0,0,0,0].BackgroundFillPatternColor := clWhite;
+          sh.Ranges[0,0,0,0].ForegroundFillPatternColor := $00FF00;
+          sh.Cols[0].Width := 10*256;
+
+          sh.Ranges[1,0,1,0].Value := 'Format';
+          sh.Ranges[1,0,1,0].FillPattern := vtefpSolid;
+          sh.Ranges[1,0,1,0].BackgroundFillPatternColor := clWhite;
+          sh.Ranges[1,0,1,0].ForegroundFillPatternColor := $00FF00;
+          sh.Cols[1].Width := 10*256;
+
+          sh.Ranges[2,0,2,0].Value := 'Formatted number';
+          sh.Ranges[2,0,2,0].FillPattern := vtefpSolid;
+          sh.Ranges[2,0,2,0].BackgroundFillPatternColor := clWhite;
+          sh.Ranges[2,0,2,0].ForegroundFillPatternColor := $00FF00;
+          sh.Cols[2].Width := 20*256;
+
+          y := 1;
+          af(10123.456,'# ##0.00');
+          af(10123.456,'#,##0.00 "€"');
+          af(10123.456,'#,0.00');
+          af(10123.456,'0');
+        end;
+
 begin
   tmpProduct    := GTDNode.Create;
-  sXLSFile      := TStringList.Create;
-  tmpWorkBook   := TvteXLSWorkbook.Create;
-  tmpWorkSheet  := tmpWorkBook.AddSheet;
+  wb            := TvteXLSWorkbook.Create;
+
+  wb.Clear;
+
+  // -- Create a new worksheet and name it
+  sh  := wb.AddSheet;
+  sh.Title := 'Prices';
 
   try
     ReStartItemIterator;
 
-    WriteHeader(tmpWorkSheet,ColumnList);
-    iRow        := 5;
+    WriteHeader(sh,ColumnList);
+
+    iRow := 5;
 
     while NextItemIteration(tmpProduct) do
     begin
@@ -342,20 +393,43 @@ begin
         sField := Parse(sColumns,';');
 
         // -- Now extract the value of that field
+
         if (sField[1] <> '<') then
         begin
-          sFieldValue := tmpProduct.ReadStringField(sField);
-          tmpWorkSheet.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
+          if (sField = GTD_PL_ELE_PRODUCT_LIST) or (sField = GTD_PL_ELE_PRODUCT_ACTUAL) then
+          begin
+              sh.Ranges[iCol,iRow,iCol,iRow].Format := '#,0.00';
+              fFloatField := tmpProduct.ReadNumberField(sField,0);
+              sh.Ranges[iCol,iRow,iCol,iRow].Value := fFloatField;
+          end
+          else begin
+              // -- All non-price fields get stored as strings
+              sFieldValue := tmpProduct.ReadStringField(sField);
+              sh.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
+          end;
+
           Inc(iCol);
-        end;
+        end
+
+
       until (sColumns = '');
 
       Inc(iRow);
     end;
-    tmpWorkBook.SaveAsXLSToFile(aFilename);
+
+    AddNumberFormatsSheet;
+
+    // -- Create the writer
+    Writer := TvteExcelWriter.Create;
+    try
+        Writer.Save(wb,aFilename);
+    finally
+        Writer.Free;
+    end;
+
   finally
     tmpProduct.Destroy;
-    FreeAndNil(tmpWorkBook);
+    FreeAndNil(wb);
   end;
 end;
 
@@ -500,6 +574,17 @@ begin
       AWorkSheet.Cols[iCol].Width                                  := 5000; 
       AWorkSheet.Ranges[iCol,4,iCol,4].FillPattern                 := vtefpSolid;
       AWorkSheet.Ranges[iCol,4,iCol,4].ForegroundFillPatternColor  := clBlue;
+      AWorkSheet.Ranges[iCol,4,iCol,4].Font.Color                  := clWhite;
+
+      // -- Make the product name wider if it is encountered
+      if sCol = GTD_PL_ELE_PRODUCT_PLU then
+      begin
+        AWorkSheet.Cols[iCol].Width := 15 * 256;
+      end
+      else if sCol = GTD_PL_ELE_PRODUCT_NAME then
+      begin
+        AWorkSheet.Cols[iCol].Width := 60 * 256;
+      end;
 
       Inc(iCol);
     end;
