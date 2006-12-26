@@ -65,11 +65,20 @@ type
   end;
 
   const
+    PL_DELIV_NODE = '/Pricelist Delivery';
     PL_DELIV_FORMAT = 'Delivery_Format';
     PL_DELIV_CSV = 'CSV';
     PL_DELIV_XLS = 'XLS';
     PL_DELIV_XML = 'XML';
-    PL_OUTPUT_STD_COLUMNS = '';
+    PL_OUTPUT_STD_COLUMNS = GTD_PL_ELE_PRODUCT_PLU + ';' + GTD_PL_ELE_PRODUCT_NAME + ';'
+                            + GTD_PL_ELE_PRODUCT_LIST + ';' + GTD_PL_ELE_PRODUCT_ACTUAL; 
+
+    PL_DELIV_FREQUENCY = 'Update_Frequency';
+    PL_DELIV_FREQ_INSTANT = 'Instant';
+    PL_DELIV_FREQ_DAILY = 'Daily';
+    PL_DELIV_FREQ_WEEKLY = 'Weekly';
+    PL_DELIV_FREQ_FORTNIGHT = 'Fortnightly';
+    PL_DELIV_FREQ_MONTHLY = 'Monthly';
 
 implementation
 
