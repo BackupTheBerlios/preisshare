@@ -746,6 +746,7 @@ const
 
 	ECML_STRING_SUFFIX          = '&';
 	ECML_CURRENCY_SUFFIX        = '$';
+    ECML_EURO_SUFFIX            = '€';
 	ECML_INTEGER_SUFFIX         = '!';
 	ECML_NUMBER_SUFFIX          = '#';
 	ECML_DATE_SUFFIX            = '@';
@@ -1023,6 +1024,8 @@ const
 	GTD_DB_COL_COUNTRYCODE      = 'Country_Code';
 	GTD_DB_COL_TELEPHONE        = 'Telephone_1';
 	GTD_DB_COL_TELEPHONE2       = 'Telephone_2';
+  	GTD_DB_COL_CONTACT          = 'Contact_Name';
+
 	GTD_DB_COL_EMAILADDRESS     = 'Email';
 	GTD_DB_COL_RELATIONSHIP     = 'Trading_Relationship';
 		// -- Values for Trader_Documents.Trading_Relationship
