@@ -549,6 +549,10 @@ published
 		function GetPostcode:String;
 		function GetCountryCode:String;
 
+        // -- Multi-lingual multicountry address line build
+        procedure BuildSingleAddressLine(var Line : String);
+        procedure BuildDoubleAddressLine(var Line1 : String; var Line2 : String);
+
 		// -- Configuration functions.
 		//    why here? the DocumentRegistry has access to the database
 		//    and these gunctions read/write to the sysvals table.
@@ -6046,6 +6050,52 @@ var
 begin
 	if GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_COUNTRYCODE,s) then
 		Result := s;
+end;
+// ----------------------------------------------------------------------------
+procedure GTDDocumentRegistry.BuildSingleAddressLine(var Line : String);
+var
+    cc : String;
+begin
+    cc := Self.GetCountryCode;
+    if (cc = 'DE') then
+    begin
+        Line := GetAddress1 + ', ';
+        if GetAddress2 <> '' then
+            Line := Line + GetAddress2 + ', ';
+        if GetCity <> '' then
+            Line := Line + GetCity + ', ';
+        if GetPostcode <> '' then
+            Line := Line + GetPostcode;
+        // if GetState <> '' then
+        //    Line := Line + GetState + ', ';
+    end
+    else if (cc = 'FR') then
+    begin
+        Line := GetAddress1 + ', ';
+        if GetAddress2 <> '' then
+            Line := Line + GetAddress2 + ', ';
+        if GetCity <> '' then
+            Line := Line + GetCity + ', ';
+        if GetPostcode <> '' then
+            Line := Line + GetPostcode;
+    end
+    else begin
+        // -- All other countries
+        Line := GetAddress1 + ', ';
+        if GetAddress2 <> '' then
+            Line := Line + GetAddress2 + ', ';
+        if GetCity <> '' then
+            Line := Line + GetCity + ', ';
+        if GetState <> '' then
+            Line := Line + GetState + ', ';
+        if GetPostcode <> '' then
+            Line := Line + GetPostcode;
+
+    end;
+end;
+// ----------------------------------------------------------------------------
+procedure GTDDocumentRegistry.BuildDoubleAddressLine(var Line1 : String; var Line2 : String);
+begin
 end;
 // ----------------------------------------------------------------------------
 function GTDDocumentRegistry.GetLatestPriceList(var PriceList : GTDBizDoc):Boolean;

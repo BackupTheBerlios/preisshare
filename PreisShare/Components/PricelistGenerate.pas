@@ -7,7 +7,7 @@ uses
   StdCtrls, bsSkinData,bsSkinBoxCtrls, bsSkinCtrls, ComCtrls, Db, DBTables, GTDBizDocs,
   SmtpProt, bsSkinGrids, bsDBGrids, bsMessages,ShellAPI,
   GTDBuildPricelistFromDBRun,GTDBuildPricelistFromDBConfig,GTDPricelists,
-  Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls ;
+  Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings ;
 
 type
   TPricelistGenerator = class(TFrame)
@@ -60,7 +60,7 @@ type
     function CreateHTMLEmailfromTemplate(TemplateFileName : String):Boolean;
     function EmailFileSetToCustomer:Boolean;
 
-    function SendEmail(AFileName,AEmailId,delivFormat : String; PricelistRef : GTDPricelist):Boolean; 
+    function SendEmail(AFileName,AEmailId,delivFormat : String; PricelistRef : GTDPricelist):Boolean;
 
     procedure MoveProgressBar;
   public
@@ -79,9 +79,18 @@ const
   PL_DELIV_FORMAT       = 'Delivery_Format';
   PL_DELIV_CSV          = 'CSV';
   PL_DELIV_XLS          = 'XLS';
+  PL_DELIV_XML          = 'XML';
   PL_OUTPUT_STD_COLUMNS = GTD_PL_ELE_PRODUCT_PLU + ';' + GTD_PL_ELE_PRODUCT_NAME + ';' + GTD_PL_ELE_PRODUCT_ACTUAL;
   PL_PRICELIST_FILENAME = 'PriceList';
-  
+
+  PL_DELIV_NODE         = '/Pricelist Delivery';
+
+  PL_DELIV_FREQUENCY    = 'Update_Frequency';
+  PL_DELIV_FREQ_INSTANT = 'When Changed';
+  PL_DELIV_FREQ_DAILY   = 'Daily';
+  PL_DELIV_FREQ_WEEKLY  = 'Weekly';
+  PL_DELIV_FREQ_FORTNIGHT = 'Fortnightly';
+
 implementation
 
 {$R *.DFM}
@@ -473,7 +482,7 @@ begin
     MoveProgressBar;
 
     {Now see what format they want it in }
-    fDocRegistry.GetTraderSettingString('/Pricelist Delivery',PL_DELIV_FORMAT,sFormat);
+    fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_FORMAT,sFormat);
     iColCount := 0;
     MoveProgressBar;    if (sFormat = PL_DELIV_CSV) then
       fDocRegistry.GetTraderSettingInt('/CSV OutputFormat','Column_Count',iColCount)
@@ -501,8 +510,14 @@ begin
     // -- Check whether the trader name is empty or not.
     if Trim(fDocRegistry.Trader_Name) = '' then
       sFileName := PL_PRICELIST_FILENAME
-    else
-      sFileName := Trim(fDocRegistry.Trader_Name);
+    else begin
+      // -- Retrieve our company name
+      sFileName := Trim(fDocRegistry.GetCompanyName);
+
+      // -- We need to remove all '.'
+      if (FastCharPos(sFileName,'.',1) <> 0) then
+          sFileName := FastReplace(sFileName,'.','');
+    end;
 
     // -- Now output the file
     if (sFormat = PL_DELIV_CSV) then
@@ -518,7 +533,8 @@ begin
       sFileName := sFileName + '.xls';
 
       // -- Save the price list in xls format
-      pl.ExportAsStandardXLS(sFileName,sColumns);
+      pl.ExportAsStandardXLS(fDocRegistry, sFileName,sColumns);
+      
       MoveProgressBar;
 
     end;
@@ -543,19 +559,33 @@ function TPricelistGenerator.SendEmail(AFileName,AEmailId,delivFormat : String; 
       else
         SmtpEmail.MailMessage.Add('Hi ' + Parse(s,' ') + ',');
 
+      SmtpEmail.MailMessage.Add('');
+      SmtpEmail.MailMessage.Add('Please find our latest Pricelist');
+
       // -- Build the message
       SmtpEmail.MailMessage.Add('');
-      SmtpEmail.MailMessage.Add('Please find our latest Pricelist.');
-      SmtpEmail.MailMessage.Add('');
+//    SmtpEmail.MailMessage.Add('  Items  : ' + IntToStr(PricelistRef.xml.Count));
       SmtpEmail.MailMessage.Add('  Date   : ' + DateTimeToStr(Now));
-      SmtpEmail.MailMessage.Add('  Items  : ' + IntToStr(PricelistRef.xml.Count));
       SmtpEmail.MailMessage.Add('  Format : ' + UpperCase(delivFormat));
+//    SmtpEmail.MailMessage.Add('  Frequency : ' + IntToStr(PricelistRef.xml.Count));
 
     end;
 
+var
+  s : String;
+
 begin
+  if not Assigned(fDocRegistry) then
+    Exit;
+
   SmtpEmail.HdrTo      := AEmailId;
-  SmtpEmail.HdrSubject := 'Latest Price List';
+
+  // -- Build the message subject
+  if fDocRegistry.GetCompanyName <> '' then
+    s := 'Latest Pricelist from ' + fDocRegistry.GetCompanyName
+  else
+    s := 'Latest Price List';
+  SmtpEmail.HdrSubject := s;
 
   {Attach the attachments}
   SmtpEmail.EmailFiles.Clear;

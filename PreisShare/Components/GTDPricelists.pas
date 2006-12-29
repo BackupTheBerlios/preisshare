@@ -52,14 +52,15 @@ type
 
       procedure SaveItemsToFile(aFilename : String);
 
-      procedure ExportAsXML(aFilename,columnList : String);
+      // -- XML Output
+      procedure ExportAsXML(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
 
       // -- Excel Output
-      procedure ExportAsStandardXLS(aFilename, columnList : String); {Sinu}
+      procedure ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFilename, columnList : String); {Sinu}
       procedure ExportAsCustomerSpecifiedXLS(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
 
       // -- PDF Output
-      procedure ExportAsStandardPDF(aFilename,columnList : String);
+      procedure ExportAsStandardPDF(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
       procedure ExportAsCustomerSpecifiedPDF(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
 
       // -- CSV Output
@@ -69,7 +70,6 @@ type
 	private
       iteratorLineNumber : Integer;
 
-      procedure WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
       function GetColumnCount(AColumns:String):Integer;
 
 	published
@@ -312,7 +312,63 @@ begin
 end;
 
 // -- Excel Output
-procedure GTDPricelist.ExportAsStandardXLS(aFilename,columnList : String);
+procedure GTDPricelist.ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
+
+    procedure WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
+    var
+      iColCount, iCol : Integer;
+      sCol,s : String;
+    begin
+      if Not Assigned(AWorkSheet) then
+        Exit;
+
+      iColCount := GetColumnCount(AColumns)-1;
+      //AWorkSheet.Title := 'PriceList';
+
+      // -- Company name
+      AWorkSheet.Ranges[0,1,iColCount,1].FillPattern                := vtefpSolid;
+      AWorkSheet.Ranges[0,1,iColCount,1].ForegroundFillPatternColor := clYellow;
+      AWorkSheet.Ranges[0,1,iColCount,1].Value      := aRegistry.GetCompanyName;
+      AWorkSheet.Ranges[0,1,iColCount,1].HorizontalAlignment := vtexlHAlignCenter;
+      AWorkSheet.Ranges[0,1,iColCount,1].Font.Size  := 16;
+
+      // -- Company address
+      AWorkSheet.Ranges[0,2,iColCount,2].FillPattern                := vtefpSolid;
+      AWorkSheet.Ranges[0,2,iColCount,2].ForegroundFillPatternColor := clYellow;
+      aRegistry.BuildSingleAddressLine(s);
+      AWorkSheet.Ranges[0,2,iColCount,2].Value      := s;
+      AWorkSheet.Ranges[0,2,iColCount,2].HorizontalAlignment := vtexlHAlignCenter;
+      AWorkSheet.Ranges[0,2,iColCount,2].Font.Size  := 10;
+
+      // -- Columnn headers
+      iCol := 0;
+      Repeat
+        sCol := Parse(AColumns,';');
+
+        if (sCol[1] <> '<') then
+        begin
+          AWorkSheet.Ranges[iCol,4,iCol,4].Value                       := sCol;
+          AWorkSheet.Cols[iCol].Width                                  := 5000;
+          AWorkSheet.Ranges[iCol,4,iCol,4].FillPattern                 := vtefpSolid;
+          AWorkSheet.Ranges[iCol,4,iCol,4].ForegroundFillPatternColor  := clBlue;
+          AWorkSheet.Ranges[iCol,4,iCol,4].Font.Color                  := clWhite;
+
+          // -- Make the product name wider if it is encountered
+          if sCol = GTD_PL_ELE_PRODUCT_PLU then
+          begin
+            AWorkSheet.Cols[iCol].Width := 15 * 256;
+          end
+          else if sCol = GTD_PL_ELE_PRODUCT_NAME then
+          begin
+            AWorkSheet.Cols[iCol].Width := 60 * 256;
+          end;
+
+          Inc(iCol);
+        end;
+
+      until (AColumns = '');
+    end;
+
 var
   iRow,iCol, fc : Integer;
   sColumns,sField,sFieldValue : String;
@@ -393,7 +449,6 @@ begin
         sField := Parse(sColumns,';');
 
         // -- Now extract the value of that field
-
         if (sField[1] <> '<') then
         begin
           if (sField = GTD_PL_ELE_PRODUCT_LIST) or (sField = GTD_PL_ELE_PRODUCT_ACTUAL) then
@@ -417,7 +472,7 @@ begin
       Inc(iRow);
     end;
 
-    AddNumberFormatsSheet;
+//    AddNumberFormatsSheet;
 
     // -- Create the writer
     Writer := TvteExcelWriter.Create;
@@ -438,7 +493,7 @@ begin
 end;
 
 // -- PDF Output
-procedure GTDPricelist.ExportAsStandardPDF(aFilename,columnList : String);
+procedure GTDPricelist.ExportAsStandardPDF(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
 begin
 end;
 
@@ -451,7 +506,7 @@ begin
 end;
 
 // -- Output the pricelist in XML format
-procedure GTDPricelist.ExportAsXML(aFilename,columnList : String);
+procedure GTDPricelist.ExportAsXML(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
 begin
 end;
 
@@ -538,59 +593,6 @@ begin
     end;
 end;
 
-procedure GTDPricelist.WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
-var
-  iColCount, iCol : Integer;
-  sCol : String;
-begin
-  if Not Assigned(AWorkSheet) then
-    Exit;
-
-  iColCount := GetColumnCount(AColumns)-1;
-  //AWorkSheet.Title := 'PriceList';
-
-  // -- Company name
-  AWorkSheet.Ranges[0,1,iColCount,1].FillPattern                := vtefpSolid;
-  AWorkSheet.Ranges[0,1,iColCount,1].ForegroundFillPatternColor := clYellow;
-  AWorkSheet.Ranges[0,1,iColCount,1].Value      := 'My Sample Company';
-  AWorkSheet.Ranges[0,1,iColCount,1].HorizontalAlignment := vtexlHAlignCenter;
-  AWorkSheet.Ranges[0,1,iColCount,1].Font.Size  := 16;
-
-  // -- Company address
-  AWorkSheet.Ranges[0,2,iColCount,2].FillPattern                := vtefpSolid;
-  AWorkSheet.Ranges[0,2,iColCount,2].ForegroundFillPatternColor := clYellow;
-  AWorkSheet.Ranges[0,2,iColCount,2].Value      := '3,Frog Rock Road, Sydney';
-  AWorkSheet.Ranges[0,2,iColCount,2].HorizontalAlignment := vtexlHAlignCenter;
-  AWorkSheet.Ranges[0,2,iColCount,2].Font.Size  := 10;
-
-  // -- Columnn headers
-  iCol := 0;
-  Repeat
-    sCol := Parse(AColumns,';');
-
-    if (sCol[1] <> '<') then
-    begin
-      AWorkSheet.Ranges[iCol,4,iCol,4].Value                       := sCol;
-      AWorkSheet.Cols[iCol].Width                                  := 5000; 
-      AWorkSheet.Ranges[iCol,4,iCol,4].FillPattern                 := vtefpSolid;
-      AWorkSheet.Ranges[iCol,4,iCol,4].ForegroundFillPatternColor  := clBlue;
-      AWorkSheet.Ranges[iCol,4,iCol,4].Font.Color                  := clWhite;
-
-      // -- Make the product name wider if it is encountered
-      if sCol = GTD_PL_ELE_PRODUCT_PLU then
-      begin
-        AWorkSheet.Cols[iCol].Width := 15 * 256;
-      end
-      else if sCol = GTD_PL_ELE_PRODUCT_NAME then
-      begin
-        AWorkSheet.Cols[iCol].Width := 60 * 256;
-      end;
-
-      Inc(iCol);
-    end;
-
-  until (AColumns = '');
-end;
 
 function GTDPricelist.GetColumnCount(AColumns:String): Integer;
 var
