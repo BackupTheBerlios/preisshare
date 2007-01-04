@@ -90,6 +90,7 @@ const
   PL_DELIV_FREQ_DAILY   = 'Daily';
   PL_DELIV_FREQ_WEEKLY  = 'Weekly';
   PL_DELIV_FREQ_FORTNIGHT = 'Fortnightly';
+  PL_DELIV_LAST_RUN     = 'Last_Run';
 
 implementation
 
