@@ -55,9 +55,10 @@ type
     function Run:Boolean;
 
     // -- Loads the map for a particular customer
-    function LoadCustomerPricelistMap(Trader_ID : Integer):Boolean;
+    function RunCustomerPricelist(Trader_ID : Integer):Boolean;
 
     function ChooseProfileThenRun:Boolean;
+    function ChooseTraderProfileThenRun:Boolean;
 
     procedure Report(const MsgType, Msg : String);
   published
@@ -68,6 +69,8 @@ type
   end;
 
 implementation
+uses
+    PricelistGenerate,GTDBuildPricelistFromDBSelect;
 const
     newline = chr(13) + Chr(10);
 
@@ -187,7 +190,8 @@ begin
 
                     // -- Output it, now
                     fOutputPricelist.XML.Add(g);
-                    mmoOutput.Lines.Add(g);
+                    if btnShowPricelist.Checked then
+                        mmoOutput.Lines.Add(g)
 
                 end;
             end
@@ -249,7 +253,8 @@ begin
 
     // -- Now add the lines to the output
     fOutputPricelist.XML.Add(s);
-    mmoOutput.Lines.Add(S);
+    if btnShowPricelist.Checked then
+        mmoOutput.Lines.Add(S);
 end;
 //---------------------------------------------------------------------------
 function TBuildPricelistFromDBRun.Run:Boolean;
@@ -326,9 +331,6 @@ begin
             fOutputPricelist.XML.Add('    </' + GTD_PL_PRODUCTGROUP_TAG + '>');
             fOutputPricelist.XML.Add('  </' + GTD_PL_PRODUCTINFO_TAG + '>');
             fOutputPricelist.XML.Add('</' + GTD_PL_PRICELIST_TAG + '>');
-
-            // -- Save the file
-            fOutputPricelist.XML.SaveToFile(GTD_CURRENT_PRICELIST);
 
             ggeProgress.Value := 100;
             Report('Show','Complete');
@@ -459,13 +461,116 @@ begin
         Load(s);
 
         LoadFromConfig;
-        
+
         Run;
     end;
 end;
+//---------------------------------------------------------------------------
+function TBuildPricelistFromDBRun.ChooseTraderProfileThenRun:Boolean;
 
-function TBuildPricelistFromDBRun.LoadCustomerPricelistMap(Trader_ID : Integer):Boolean;
+    procedure LoadCustomerList(CustList : TStringlist);
+    var
+        myList : TStringList;
+        xc,tid : Integer;
+        s,k : String;
+    begin
+        myList := TStringList.Create;
+        try
+
+            CustList.Clear;
+
+            // -- Read a list of all the Customers in
+            fDocRegistry.GetSettingItemList(BldCustomplfrmDbKey,myList);
+
+            k := 'Trader#=';
+
+            // -- Scan through all the entries
+            for xc := 1 to myList.Count do
+            begin
+
+                s := myList[xc-1];
+
+                if Pos(k,s) <> 0 then
+                begin
+                    // -- Retrieve the trader number
+                    tid := StrToInt(Copy(s,9,Length(s)-8));
+
+                    // -- Open this Trader
+                    if fDocRegistry.OpenForTraderNumber(tid) then
+                    begin
+                        // -- Now add the Customer name into the list
+                        CustList.AddObject(fDocRegistry.Trader_Name,TObject(tid));
+
+                    end;
+                end;
+
+            end;
+
+        finally
+            myList.Destroy;
+        end;
+
+    end;
+
+var
+    r : Integer;
+    s : String;
+    CustList : TStringList;
 begin
+    dlgSelectProfile.SelectValues.Clear;
+
+    if not Assigned(fDocRegistry) then
+        Exit;
+
+    try
+        CustList := TStringList.Create;
+
+        // -- Load up the names and ids of customers with special pricelists
+        LoadCustomerList(CustList);
+
+        // -- Copy over names to the dialog box
+        dlgSelectProfile.SelectValues.Assign(CustList);
+
+        // -- Pop the dialog
+        if dlgSelectProfile.Execute('Pricelist Build','Select Customer ',r) then
+        begin
+            // -- Get the trader number
+            fTrader_ID := Integer(CustList.Objects[r]);
+
+            RunCustomerPricelist(fTrader_ID);
+        end;
+
+    finally
+        CustList.Destroy;
+    end;
+end;
+//---------------------------------------------------------------------------
+function TBuildPricelistFromDBRun.RunCustomerPricelist(Trader_ID : Integer):Boolean;
+var
+    s : String;
+begin
+    s := 'Trader#='+IntToStr(Trader_ID);
+
+    // -- Here we read everything from the file
+    if Load(s) then
+    begin
+
+        LoadFromConfig;
+
+        if Run then
+        begin
+            // -- Open the registry on this trader
+            fDocRegistry.OpenForTraderNumber(Trader_ID);
+
+            // -- Set ownership properties
+            fOutputPricelist.Owned_By := 0;
+            fOutputPricelist.Shared_With := Trader_ID;
+
+            // -- Now save this pricelist
+            fDocRegistry.SaveAsLatestPriceList(fOutputPricelist,Now,s);
+        end;
+
+    end;
 end;
 
 end.

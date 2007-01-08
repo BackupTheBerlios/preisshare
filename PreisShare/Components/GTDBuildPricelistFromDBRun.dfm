@@ -1,8 +1,8 @@
 object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
   Left = 0
   Top = 0
-  Width = 364
-  Height = 426
+  Width = 396
+  Height = 445
   TabOrder = 0
   object bsSkinStdLabel2: TbsSkinStdLabel
     Left = 116
@@ -51,8 +51,8 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
   object pnlBackground: TbsSkinPanel
     Left = 0
     Top = 0
-    Width = 364
-    Height = 426
+    Width = 396
+    Height = 445
     TabOrder = 1
     SkinDataName = 'panel'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -80,7 +80,7 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
     object lblHeading: TbsSkinStdLabel
       Left = 32
       Top = 24
-      Width = 269
+      Width = 301
       Height = 13
       UseSkinFont = True
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -96,7 +96,7 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
     object lblDescription: TbsSkinStdLabel
       Left = 32
       Top = 44
-      Width = 269
+      Width = 297
       Height = 13
       UseSkinFont = True
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -110,7 +110,7 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
       Caption = 'lblDescription'
     end
     object bsSkinButton1: TbsSkinButton
-      Left = 128
+      Left = 144
       Top = 116
       Width = 75
       Height = 25
@@ -140,7 +140,7 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
     object mmoOutput: TbsSkinMemo2
       Left = 8
       Top = 188
-      Width = 345
+      Width = 381
       Height = 233
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -187,7 +187,7 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
   object ggeProgress: TbsSkinGauge
     Left = 32
     Top = 72
-    Width = 269
+    Width = 297
     Height = 20
     TabOrder = 0
     Visible = False
