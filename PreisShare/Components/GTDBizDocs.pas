@@ -5993,7 +5993,9 @@ var
 	s : String;
 begin
 	if GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_GTL,s) then
-		Result := s;
+		Result := s
+    else
+        Result := '<None>';
 end;
 // ----------------------------------------------------------------------------
 function GTDDocumentRegistry.GetCompanyName:String;
@@ -6316,8 +6318,11 @@ var
 			begin
                 SQL.Add('delete from Trader_Documents');
                 SQL.Add('where');
-				SQL.Add(' (Owned_By=' + IntToStr(fRemoteTraderID) + ')');
-                SQL.Add(' and (Shared_With=0)');
+				SQL.Add(' ((Owned_By=' + IntToStr(fRemoteTraderID) + ')');
+                SQL.Add('  and (Shared_With=0))');
+                SQL.Add(' or ');
+				SQL.Add(' ((Owned_By=0)');
+                SQL.Add('  and (Shared_With=' + IntToStr(fRemoteTraderID) + '))');
                 SQL.Add(' and (Document_Name="' + GTD_PRICELIST_TYPE + '")');
                 ExecSQL;
             end
@@ -6459,11 +6464,12 @@ begin
 
             PriceDiffs := TStringList.Create;
 
-            lastPriceList.XML.SaveToFile('1.txt');
-            Pricelist.XML.SaveToFile('2.txt');
-
             // -- Build a diff for it
             if fDoingPricelistPatches then
+            begin
+                lastPriceList.XML.SaveToFile('old.txt');
+                Pricelist.XML.SaveToFile('new.txt');
+
                 if (Pricelist.BuildPatch(lastPriceList.XML,PriceDiffs,dtUnified)) then
                 begin
 
@@ -6495,13 +6501,14 @@ begin
                         LogText := LogText + 'Pricelist updated.' + #13;
                     end;
                 end;
-
-    		PurgeOldPricelists;
+            end;
 
             PriceDiffs.Destroy;
 
         end;
         lastPricelist.Destroy;
+
+   		PurgeOldPricelists;
 
         // -- This saves the pricelist into the document table
         with fDocTbl do
@@ -6511,8 +6518,15 @@ begin
             aMemo := TMemoField(FieldByName(GTD_BodyFieldname));
 
             Append;
-            FieldByName(GTD_DB_DOC_OWNER).AsInteger := fRemoteTraderID;
-            FieldByName(GTD_DB_DOC_USER).AsInteger := 0;
+            if (Pricelist.Owned_By = 0) and (Pricelist.Shared_With <> 0) then
+            begin
+                FieldByName(GTD_DB_DOC_OWNER).AsInteger := 0;
+                FieldByName(GTD_DB_DOC_USER).AsInteger := fRemoteTraderID;
+            end
+            else begin
+                FieldByName(GTD_DB_DOC_OWNER).AsInteger := fRemoteTraderID;
+                FieldByName(GTD_DB_DOC_USER).AsInteger := 0;
+            end;
             FieldByName(GTD_DB_DOC_TYPE).AsString := GTD_PRICELIST_TYPE;
             FieldByName(GTD_DB_DOC_REFERENCE).AsString := 'Pricelist stored ' + FormatDateTime('c',Date);
             FieldByName(GTD_DB_DOC_SYSTEM).AsString := 'STANDARD';
@@ -6531,10 +6545,13 @@ begin
 
         // -- Now we have to possibly update all the trader details with those
         //    found in the catalog
-        UpdateTraderDetails;
+        if (Pricelist.Owned_By <> 0) then
+        begin
+            // -- Update the database from the pricelist details
+            UpdateTraderDetails;
 
-        UpdateTraderCategories(Pricelist.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_SELL_CATEGORIES));
-
+            UpdateTraderCategories(Pricelist.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_SELL_CATEGORIES));
+        end;
 		// -- Finally, update the categories with those found in the pricelist
 
     {$ENDIF} // Windows
@@ -8373,7 +8390,9 @@ begin
             fTraderTbl.Active := True;
 	    end;
 
-        fTraderTbl.FindKey([TraderNumber]);
+        // -- Lookup the trader by Trader_ID
+        if fTraderTbl.FindKey([TraderNumber]) then
+            Result := True;
         
     except
 		// -- Obviously it didn't work that well
@@ -8980,9 +8999,11 @@ function GTDDocumentRegistry.GetLatestPriceListDateTime:TDateTime;
 
 				SQL.Add('select * from Trader_Documents ');
 				SQL.Add('where');
-				SQL.Add('(' + GTD_DB_DOC_USER + '=0) and');
-				SQL.Add('(' + GTD_DB_DOC_OWNER + '=' + IntToStr(Trader_ID) + ') and ');
-				SQL.Add('(' + GTD_DB_DOC_TYPE + '="' + GTD_PRICELIST_TYPE + '")');
+				SQL.Add('((' + GTD_DB_DOC_USER + '=0) and');
+				SQL.Add(' (' + GTD_DB_DOC_OWNER + '=' + IntToStr(Trader_ID) + ')) ');
+				SQL.Add('or ((' + GTD_DB_DOC_USER + '=' + IntToStr(Trader_ID) + ') and');
+				SQL.Add(' (' + GTD_DB_DOC_OWNER + '=0))' );
+				SQL.Add('and (' + GTD_DB_DOC_TYPE + '="' + GTD_PRICELIST_TYPE + '")');
 				// Add these also onedeay + GTD_DB_UPDDOCFLAG_DIRTYHDR + GTD_DB_UPDDOCFLAG_DIRTYBODY + GTD_DB_UPDDOCFLAG_DIRTYALL
 
 				Open;
@@ -11721,8 +11742,8 @@ end;
 //---------------------------------------------------------------------------
 procedure Register;
 begin
-	 RegisterComponents('Tradalogs', [GTDBizDoc]);
-	 RegisterComponents('Tradalogs', [GTDDocumentRegistry]);
+	 RegisterComponents('PreisShare', [GTDBizDoc]);
+	 RegisterComponents('PreisShare', [GTDDocumentRegistry]);
 end;
 //---------------------------------------------------------------------------
 Initialization
