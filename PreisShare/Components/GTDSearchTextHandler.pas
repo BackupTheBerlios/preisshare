@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  OleServer, StdCtrls, Excel97, bsSkinCtrls, bsSkinBoxCtrls, bsSkinData,
+  OleServer, StdCtrls, bsSkinCtrls, bsSkinBoxCtrls, bsSkinData,
   bsSkinShellCtrls,GTDTextToPricefile, GTDBizDocs,
   Mask, bsDialogs, ComCtrls, bsSkinTabs, WSocket, GTDBizLinks;
 
@@ -19,7 +19,6 @@ type
     bsSkinScrollBar1: TbsSkinScrollBar;
     bsSkinListView1: TbsSkinListView;
     bsSkinStdLabel2: TbsSkinStdLabel;
-    gtdLANPoint1: gtdLANPoint;
   private
     { Private declarations }
 	fSkinData: TbsSkinData;

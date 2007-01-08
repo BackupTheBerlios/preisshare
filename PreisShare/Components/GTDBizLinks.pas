@@ -4034,7 +4034,7 @@ begin
         ChangeState(gtsRecvPricelist);
 
         // -- Build the command for http
-        c := 'http://www.tradalogs.com/tradalogs/' + urlencode(GTL) + '.pricelist';
+//      c := 'http://www.tradalogs.com/tradalogs/' + urlencode(GTL) + '.pricelist';
 
         {$IFNDEF BCP_EVALI}
             // -- Normal execution goes through here
@@ -6478,12 +6478,12 @@ end;
 //---------------------------------------------------------------------------
 procedure Register;
 begin
-  RegisterComponents('Tradalogs', [gtSessionLink]);
-  RegisterComponents('Tradalogs', [gtTradingLink]);
-  RegisterComponents('Tradalogs', [gtCommunityLink]);
-  RegisterComponents('Tradalogs', [GTDConnectionList]);
-  RegisterComponents('Tradalogs', [GTDLANServerPoint]);
-  RegisterComponents('Tradalogs', [gtdLANPoint]);
+  RegisterComponents('PreisShare', [gtSessionLink]);
+  RegisterComponents('PreisShare', [gtTradingLink]);
+  RegisterComponents('PreisShare', [gtCommunityLink]);
+  RegisterComponents('PreisShare', [GTDConnectionList]);
+  RegisterComponents('PreisShare', [GTDLANServerPoint]);
+  RegisterComponents('PreisShare', [gtdLANPoint]);
 end;
 
 procedure gtSessionLink.HttpCli1DocEnd(Sender: TObject);

@@ -24,7 +24,7 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents('Tradalogs', [TIdupnpClient]);
+  RegisterComponents('PreisShare', [TIdupnpClient]);
 end;
 
 end.

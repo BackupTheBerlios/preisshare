@@ -1,13 +1,13 @@
 object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
   Left = 0
   Top = 0
-  Width = 373
+  Width = 393
   Height = 421
   TabOrder = 0
   object pnlBackground: TbsSkinPanel
     Left = 0
     Top = 0
-    Width = 373
+    Width = 393
     Height = 421
     TabOrder = 3
     SkinDataName = 'panel'
@@ -37,8 +37,8 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
   object pnlQueryParameters: TbsSkinGroupBox
     Left = 8
     Top = 104
-    Width = 333
-    Height = 305
+    Width = 365
+    Height = 313
     TabOrder = 0
     SkinDataName = 'groupbox'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -107,8 +107,8 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
       OnClick = btnLoadClick
     end
     object btnSaveData: TbsSkinSpeedButton
-      Left = 272
-      Top = 272
+      Left = 304
+      Top = 280
       Width = 49
       Height = 25
       SkinDataName = 'toolbutton'
@@ -139,7 +139,7 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
     object mmoQry: TbsSkinMemo
       Left = 8
       Top = 52
-      Width = 317
+      Width = 345
       Height = 45
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -162,7 +162,7 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
     object lsvFieldList: TbsSkinListView
       Left = 8
       Top = 108
-      Width = 313
+      Width = 345
       Height = 81
       Columns = <
         item
@@ -198,8 +198,8 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
     object bsSkinDBGrid1: TbsSkinDBGrid
       Left = 8
       Top = 196
-      Width = 313
-      Height = 72
+      Width = 345
+      Height = 81
       TabOrder = 2
       SkinDataName = 'grid'
       UseSkinFont = True
@@ -241,7 +241,7 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
   object pnlDBConnection: TbsSkinGroupBox
     Left = 8
     Top = 8
-    Width = 333
+    Width = 365
     Height = 85
     TabOrder = 2
     SkinDataName = 'groupbox'
@@ -283,7 +283,7 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
     object bsSkinStdLabel6: TbsSkinStdLabel
       Left = 8
       Top = 32
-      Width = 54
+      Width = 44
       Height = 13
       UseSkinFont = True
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -292,7 +292,7 @@ object BuildPricelistFromDBConfig: TBuildPricelistFromDBConfig
       DefaultFont.Name = 'MS Sans Serif'
       DefaultFont.Style = []
       SkinDataName = 'stdlabel'
-      Caption = 'Connection'
+      Caption = 'Customer'
     end
     object cbxConnectionList: TbsSkinComboBox
       Left = 100

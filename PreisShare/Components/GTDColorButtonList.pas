@@ -125,7 +125,7 @@ const
 
 procedure Register;
 begin
-  RegisterComponents('Tradalogs', [hColorButtonList]);
+  RegisterComponents('PreisShare', [hColorButtonList]);
 end;
 
 function hColorButtonList.DoubleAmpersand(s : String):String;

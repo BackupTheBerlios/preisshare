@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  OleServer, StdCtrls, Excel97, bsSkinCtrls, bsSkinBoxCtrls, bsSkinData,
+  OleServer, StdCtrls, bsSkinCtrls, bsSkinBoxCtrls, bsSkinData,
   bsSkinShellCtrls,GTDTextToPricefile, GTDBizDocs, GTDTraderSelectPanel, Mask, bsDialogs, ComCtrls,
   bsSkinTabs, Buttons, ExcelXP, Variants,
   GTDUpdateSummary, GTDProductDBUpdate, PricelistExport, jpeg, ExtCtrls;

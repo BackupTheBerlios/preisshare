@@ -293,7 +293,7 @@ var
 
 procedure Register;
 begin
-  RegisterComponents('Tradalogs', [hRAS]);
+  RegisterComponents('PreisShare', [hRAS]);
 end;
 
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}

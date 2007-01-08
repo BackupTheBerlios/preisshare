@@ -312,7 +312,7 @@ begin
 end;
 
 // -- Excel Output
-procedure GTDPricelist.ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
+procedure GTDPricelist.ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFilename, columnList : String);
 
     procedure WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
     var

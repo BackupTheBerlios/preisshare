@@ -125,7 +125,7 @@ implementation
 
 procedure Register;
 begin
-	RegisterComponents('Tradalogs', [hBizCategory]);
+	RegisterComponents('PreisShare', [hBizCategory]);
 end;
 
 function hBizCategory.LoadUserList(aList : TStrings):Boolean;

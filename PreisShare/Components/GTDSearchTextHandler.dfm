@@ -242,8 +242,4 @@ object SearchTextHandler: TSearchTextHandler
       DefaultColor = clWindow
     end
   end
-  object gtdLANPoint1: gtdLANPoint
-    Left = 228
-    Top = 8
-  end
 end

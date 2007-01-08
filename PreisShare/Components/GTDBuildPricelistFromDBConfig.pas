@@ -41,10 +41,13 @@ type
     procedure cbxConnectionListCloseUp(Sender: TObject);
   private
     { Private declarations }
+    fCustomerID : Integer;
+
     fDocRegistry : GTDDocumentRegistry;
 	fSkinData: TbsSkinData;
 
     procedure SetSkinData(Value: TbsSkinData);
+
 
   public
     { Public declarations }
@@ -54,14 +57,17 @@ type
     function SaveMapping(MapName : String):Boolean;
 
     // -- These are dedicated customer mappings
-    function LoadCustomerMapping(Trader_ID : Integer):Boolean;
-    function SaveCustomerMapping(Trader_ID : Integer):Boolean;
+    function LoadCustomerMapping(aTrader_ID : Integer):Boolean;
+    function SaveCustomerMapping(aTrader_ID : Integer):Boolean;
 
     procedure Initialise;
 
   published
+    property Trader_ID : Integer read fCustomerID write fCustomerID;
+
 	property SkinData: TbsSkinData read fSkinData write SetSkinData;
     property DocRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
+
   end;
 
 const
@@ -77,6 +83,8 @@ implementation
 //---------------------------------------------------------------------------
 procedure TBuildPricelistFromDBConfig.Initialise;
 begin
+    fCustomerID := -1;
+
     bsSkinSelectValueDialog1.SelectValues.Add(not_assigned);
 
     bsSkinSelectValueDialog1.SelectValues.Add(l1_group);
@@ -163,7 +171,7 @@ begin
 
         fDocRegistry.GetSettingMemoString('/Database','Driver',s);
         fDocRegistry.GetSettingMemoString('/Database','ConnectionString',s); txtConnectionString.Text := s;
-        fDocRegistry.GetSettingMemoString('/Recordset','SQL_QueryText',s); mmoQry.Text := s; 
+        fDocRegistry.GetSettingMemoString('/Recordset','SQL_QueryText',s); mmoQry.Text := s;
 
         if fDocRegistry.GetSettingMemoInt('/Mappings','Count',xd) then
         begin
@@ -244,14 +252,21 @@ procedure TBuildPricelistFromDBConfig.btnSaveDataClick(Sender: TObject);
 var
     s : String;
 begin
-    // -- Use the currently selected name if any
-    if cbxConnectionList.ItemIndex <> -1 then
-        s := cbxConnectionList.Text;
-
-    if bsSkinInputDialog1.InputQuery('Save Profile','Enter a name to save this profile as',s) then
+    if fCustomerID <> -1 then
     begin
-        if (s <> '') then
-            SaveMapping(s);
+        // --
+        SaveCustomerMapping(fCustomerID);
+    end
+    else begin
+        // -- Use the currently selected name if any
+        if cbxConnectionList.ItemIndex <> -1 then
+            s := cbxConnectionList.Text;
+
+        if bsSkinInputDialog1.InputQuery('Save Profile','Enter a name to save this profile as',s) then
+        begin
+            if (s <> '') then
+                SaveMapping(s);
+        end;
     end;
 end;
 //---------------------------------------------------------------------------
@@ -308,7 +323,7 @@ begin
 end;
 
 // -- These are dedicated customer mappings
-function TBuildPricelistFromDBConfig.LoadCustomerMapping(Trader_ID : Integer):Boolean;
+function TBuildPricelistFromDBConfig.LoadCustomerMapping(aTrader_ID : Integer):Boolean;
 var
     xc,xd : Integer;
     s : String;
@@ -318,39 +333,74 @@ begin
     if not Assigned(fDocRegistry) then
         Exit;
 
-    if fDocRegistry.OpenForTraderNumber(Trader_ID) then
+    if fDocRegistry.OpenForTraderNumber(aTrader_ID) then
     begin
-    
-        lsvFieldList.Items.Clear;
 
-        fDocRegistry.GetTraderSettingString('/Pricelist Build Database','Driver',s);
-        fDocRegistry.GetTraderSettingString('/Pricelist Build Database','ConnectionString',s); txtConnectionString.Text := s;
-        fDocRegistry.GetTraderSettingString('/Pricelist Build Recordset','SQL_QueryText',s); mmoQry.Text := s;
+        fCustomerID := aTrader_ID;
 
-        if fDocRegistry.GetTraderSettingInt('/Pricelist Build Mappings','Count',xd) then
+        if fDocRegistry.GetSettingString(BldplfrmDbConfigKey,EncodeIntegerField('Trader',Trader_ID),s) then
         begin
-            for xc := 1 to xd do
+
+            fDocRegistry.GetSettingMemoString('/Database','Driver',s);
+            fDocRegistry.GetSettingMemoString('/Database','ConnectionString',s); txtConnectionString.Text := s;
+            fDocRegistry.GetSettingMemoString('/Recordset','SQL_QueryText',s); mmoQry.Text := s;
+
+            lsvFieldList.Items.Clear;
+            
+            if fDocRegistry.GetSettingMemoInt('/Mappings','Count',xd) then
             begin
-                // -- Retrieve each value
-                fDocRegistry.GetTraderSettingString('/Pricelist Build Mappings','Column_'+IntToStr(xc),s);
+                for xc := 1 to xd do
+                begin
+                    // -- Retrieve each value
+                    fDocRegistry.GetSettingMemoString('/Mappings','Column_'+IntToStr(xc),s);
 
-                // -- Add the value to the field list
-                anItem := lsvFieldList.Items.Add;
-                anItem.Caption := Parse(s,'=');
-                anItem.SubItems.Add(s);
+                    // -- Add the value to the field list
+                    anItem := lsvFieldList.Items.Add;
+                    anItem.Caption := Parse(s,'=');
+                    anItem.SubItems.Add(s);
+                end;
             end;
+
+            // -- Last value saves the record
+            Result := True;
+
         end;
-
-        cbxConnectionList.Text := fDocRegistry.Trader_Name;
-
-        // -- Last value saves the record
-        Result := True;
     end;
-
 end;
 
-function TBuildPricelistFromDBConfig.SaveCustomerMapping(Trader_ID : Integer):Boolean;
+function TBuildPricelistFromDBConfig.SaveCustomerMapping(aTrader_ID : Integer):Boolean;
+var
+    xc : Integer;
 begin
+    // -- Open the table if not already so
+    if not Assigned(fDocRegistry) then
+        Exit;
+
+    SaveMapping('Trader#=' + IntToStr(aTrader_ID));
+
+    fCustomerID := aTrader_ID;
+
+    {
+    fDocRegistry.SaveSettingString(BldplfrmDbConfigKey,EncodeIntegerField('Trader',aTrader_ID),'');
+
+    fDocRegistry.SaveSettingMemoString('/Database','Driver','ADO');
+    fDocRegistry.SaveSettingMemoString('/Database','ConnectionString',txtConnectionString.Text);
+
+    fDocRegistry.SaveSettingMemoString('/Recordset','SQL_QueryText',mmoQry.Text,False);
+
+    // -- Save every mapped field in the list
+    for xc := 1 to lsvFieldList.Items.Count do
+    begin
+        // --
+        fDocRegistry.SaveSettingMemoString('/Mappings','Column_'+IntToStr(xc),lsvFieldList.Items[xc-1].Caption + '=' + lsvFieldList.Items[xc-1].SubItems[0],False);
+    end;
+
+    // -- Last value saves the record
+    fDocRegistry.SaveSettingMemoInt('/Mappings','Count',lsvFieldList.Items.Count,True);
+    }
+
+    // -- reload up the list of saved mappings
+    fDocRegistry.GetSettingItemList(BldplfrmDbConfigKey,cbxConnectionList.Items);
 end;
 
 end.

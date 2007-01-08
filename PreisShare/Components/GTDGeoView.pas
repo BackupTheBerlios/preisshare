@@ -327,7 +327,7 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents('Tradalogs', [hGeoView]);
+  RegisterComponents('PreisShare', [hGeoView]);
 end;
 
 function hGeoView.GetDataSource: TDataSource;
