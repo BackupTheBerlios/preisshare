@@ -34,9 +34,9 @@ object PricelistGenerator: TPricelistGenerator
     Caption = 'pnlBack'
     Align = alClient
     object lblStatus: TbsSkinStdLabel
-      Left = 428
+      Left = 340
       Top = 197
-      Width = 31
+      Width = 181
       Height = 13
       UseSkinFont = True
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -45,6 +45,8 @@ object PricelistGenerator: TPricelistGenerator
       DefaultFont.Name = 'MS Sans Serif'
       DefaultFont.Style = []
       SkinDataName = 'stdlabel'
+      Alignment = taCenter
+      AutoSize = False
       Caption = 'Ready'
     end
     object lblListCount: TbsSkinStdLabel
@@ -125,7 +127,7 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = btnPreviewClick
     end
     object btnGenerateAll: TbsSkinSpeedButton
-      Left = 362
+      Left = 342
       Top = 260
       Width = 77
       Height = 23
@@ -457,7 +459,7 @@ object PricelistGenerator: TPricelistGenerator
         Left = 6
         Top = 29
         Width = 339
-        Height = 97
+        Height = 132
         Color = clWhite
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -713,7 +715,7 @@ object PricelistGenerator: TPricelistGenerator
       Left = 172
       Top = 16
       Width = 349
-      Height = 173
+      Height = 169
       TabOrder = 2
       SkinDataName = 'grid'
       UseSkinFont = True
@@ -844,23 +846,20 @@ object PricelistGenerator: TPricelistGenerator
   end
   object SmtpEmail: TSmtpCli
     Tag = 0
-    Host = 'mail.preisshare.net'
+    ShareMode = smtpShareDenyWrite
     LocalAddr = '0.0.0.0'
     Port = 'smtp'
-    Username = 'david.lyon@preisshare.net'
-    Password = 'starwars72'
     AuthType = smtpAuthLogin
-    FromName = 'david.lyon@preisshare.net'
+    ConfirmReceipt = False
     RcptName.Strings = (
       'sinu@preisshare.net')
-    HdrFrom = 'david.lyon@preisshare.net'
-    HdrTo = 'sinu@preisshare.net'
-    HdrCc = 'david.lyon@preisshare.net'
-    HdrReplyTo = 'david.lyon@preisshare.net'
-    HdrReturnPath = 'david.lyon@preisshare.net'
-    HdrSubject = 'CSS Email Test'
-    HdrSender = 'David Lyon'
+    HdrPriority = smtpPriorityNone
     CharSet = 'iso-8859-1'
+    SendMode = smtpToSocket
+    DefaultEncoding = smtpEnc7bit
+    Allow8bitChars = True
+    FoldHeaders = False
+    WrapMessageText = False
     ContentType = smtpPlainText
     OwnHeaders = False
     OnDisplay = SmtpEmailDisplay
