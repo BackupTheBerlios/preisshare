@@ -90,6 +90,8 @@ type
     BuildPricelistfromDB1: TMenuItem;
     bsOpenSkinDialog1: TbsOpenSkinDialog;
     Load1: TMenuItem;
+    EmailPricelists1: TMenuItem;
+    Configuration1: TMenuItem;
     procedure Restore1Click(Sender: TObject);
 	procedure Shutdown1Click(Sender: TObject);
     procedure bsSkinButton1Click(Sender: TObject);
@@ -117,6 +119,8 @@ type
     procedure SmartStyle1Click(Sender: TObject);
     procedure BuildPricelistfromDB1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
+    procedure EmailPricelists1Click(Sender: TObject);
+    procedure Configuration1Click(Sender: TObject);
   private
     { Private declarations }
 	myConnections : TCustomerTcpListener;
@@ -138,7 +142,7 @@ implementation
 {$R *.DFM}
 Uses Data, Accounts, Settings, Search, NetworkSearches, ProductEdit,
      AdoAPI, ActiveX, ComObj, CustomerAdd, SpreadSheetImport, GenPricelists,
-     NewsLetter, BuildDBPricelist;
+     NewsLetter, BuildDBPricelist, Config;
 
 procedure TfrmMain.Restore1Click(Sender: TObject);
 begin
@@ -468,6 +472,24 @@ begin
         bsSkinData1.LoadFromFile(bsOpenSkinDialog1.FileName);
     end;
 
+end;
+
+procedure TfrmMain.EmailPricelists1Click(Sender: TObject);
+begin
+    if not Assigned(frmGeneratePL) then
+    begin
+        Application.CreateForm(TfrmGeneratePL, frmGeneratePL);
+    end;
+    
+    frmGeneratePL.ShowModal;
+    Application.ProcessMessages;
+
+
+end;
+
+procedure TfrmMain.Configuration1Click(Sender: TObject);
+begin
+    frmConfig.SHowModal;
 end;
 
 end.

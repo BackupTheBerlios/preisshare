@@ -22243,8 +22243,12 @@ object frmMain: TfrmMain
       Caption = '-'
     end
     object BuildPricelistfromDB1: TMenuItem
-      Caption = 'Build Pricelist from Database..'
+      Caption = 'Customer Pricelist Builder...'
       OnClick = BuildPricelistfromDB1Click
+    end
+    object EmailPricelists1: TMenuItem
+      Caption = 'Email Pricelists'
+      OnClick = EmailPricelists1Click
     end
     object Import1: TMenuItem
       Caption = 'Import Prices from..'
@@ -22273,8 +22277,13 @@ object frmMain: TfrmMain
       Caption = '-'
       Visible = False
     end
+    object Configuration1: TMenuItem
+      Caption = 'Configuration'
+      OnClick = Configuration1Click
+    end
     object Restore1: TMenuItem
       Caption = 'Settings'
+      Visible = False
       OnClick = Restore1Click
     end
     object NetworkSearches1: TMenuItem
