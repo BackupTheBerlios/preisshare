@@ -355,7 +355,7 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents('Tradalogs', [TProductLister]);
+  RegisterComponents('PreisShare', [TProductLister]);
 end;
 
 constructor TProductLister.Create(AOwner: TComponent);
