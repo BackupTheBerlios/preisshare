@@ -457,7 +457,7 @@ function TPricelistGenerator.GenerateForTrader(Trader_ID : Integer):Boolean;
 var
   pl : GTDPricelist;
   sFormat,sColName,sColumns,sFileName : String;
-  i,iColCount : Integer;
+  i,xd, iColCount : Integer;
 begin
   Result := False;
   // -- Use the registry to load the trader record
@@ -477,48 +477,42 @@ begin
       // -- If not then use the standard pricelist
       if FileExists(GTD_CURRENT_PRICELIST) then
         pl.xml.LoadFromFile(GTD_CURRENT_PRICELIST)
-      else {No pricelist to load, didn't work}
+      else
+        // -- No pricelist to load, didn't work
         Exit;
     end;
+
     MoveProgressBar;
 
-    {Now see what format they want it in }
     fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_FORMAT,sFormat);
+
     iColCount := 0;
-    MoveProgressBar;
+
+    // -- Depending on the format required
+    iColCount := 0;
     if (sFormat = PL_DELIV_CSV) then
-      fDocRegistry.GetTraderSettingInt('/CSV OutputFormat','Column_Count',iColCount)
+      fDocRegistry.GetTraderSettingInt('/CSV Pricelist Output','Column_Count',iColCount)
     else if (sFormat = PL_DELIV_XLS) then
-      fDocRegistry.GetTraderSettingInt('/XLS OutputFormat','Column_Count',iColCount);
+      fDocRegistry.GetTraderSettingInt('/XLS Pricelist Output','Column_Count',iColCount);
 
-    MoveProgressBar;
-
-    {If there are no columns defined to use, then use the standard column list}
-    if (iColCount = 0) then
+    if iColCount = 0 then
+      // -- There were no standard columns defined
       sColumns := PL_OUTPUT_STD_COLUMNS
-    else
-    begin
-      {Add all the column names from the definition}
-      for i := 1 to iColCount do
+    else begin
+      // -- Force a reload on the config file
+      sColumns := '';
+      for xd := 1 to iColCount do
       begin
-        {Retrieve every column}
-        sColName := '';
-        if (sFormat = PL_DELIV_CSV) then
-          fDocRegistry.GetTraderSettingString('/CSV OutputFormat','Column_' + IntToStr(i),sColName)
-        else if (sFormat = PL_DELIV_XLS) then
-          fDocRegistry.GetTraderSettingString('/XLS OutputFormat','Column_' + IntToStr(i),sColName);
-        if Trim(sColumns) = '' then
-          sColumns := sColName
-        else
-          sColumns := sColumns + ';' +  sColName;
+        // -- Add in a custom column for every definition
+        sColumns := '<Custom Column>;' + sColumns;
       end;
     end;
-    MoveProgressBar;
 
-    // -- Check whether the trader name is empty or not.
+    // -- Add all the column names from the definition
     if Trim(fDocRegistry.Trader_Name) = '' then
       sFileName := PL_PRICELIST_FILENAME
-    else begin
+    else
+    begin
       // -- Retrieve our company name
       sFileName := Trim(fDocRegistry.GetCompanyName);
 
@@ -526,6 +520,7 @@ begin
       if (FastCharPos(sFileName,'.',1) <> 0) then
           sFileName := FastReplace(sFileName,'.','');
     end;
+
 
     // -- Now output the file
     if (sFormat = PL_DELIV_CSV) then
@@ -541,13 +536,13 @@ begin
       sFileName := sFileName + '.xls';
 
       // -- Save the price list in xls format
-      pl.ExportAsStandardXLS(fDocRegistry, sFileName,sColumns);
-      
+      pl.ExportAsXLS(fDocRegistry, sFileName,sColumns);
+
       MoveProgressBar;
 
     end;
 
-    {Send the file to the customer}
+    // -- Send the file to the customer
     SendEmail(sFileName,qryFindTargets.FieldByName('Email').AsString,sFormat,pl);
   end;
 end;
@@ -568,7 +563,7 @@ function TPricelistGenerator.SendEmail(AFileName,AEmailId,delivFormat : String; 
         SmtpEmail.MailMessage.Add('Hi ' + Parse(s,' ') + ',');
 
       SmtpEmail.MailMessage.Add('');
-      SmtpEmail.MailMessage.Add('Please find our latest Pricelist');
+      SmtpEmail.MailMessage.Add('Please find our latest Pricelist.');
 
       // -- Build the message
       SmtpEmail.MailMessage.Add('');
@@ -576,6 +571,11 @@ function TPricelistGenerator.SendEmail(AFileName,AEmailId,delivFormat : String; 
       SmtpEmail.MailMessage.Add('  Date   : ' + DateTimeToStr(Now));
       SmtpEmail.MailMessage.Add('  Format : ' + UpperCase(delivFormat));
 //    SmtpEmail.MailMessage.Add('  Frequency : ' + IntToStr(PricelistRef.xml.Count));
+
+      SmtpEmail.MailMessage.Add('');
+      SmtpEmail.MailMessage.Add('Best Regards');
+      SmtpEmail.MailMessage.Add('');
+      SmtpEmail.MailMessage.Add(fDocRegistry.GetCompanyName);
 
     end;
 
@@ -603,7 +603,6 @@ begin
         Exit;
     end
     else begin
-
         if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_HOST,s) then
             SmtpEmail.Host := s
         else

@@ -34,11 +34,11 @@ type
 	public
       ItemList   : TStringList;
 
-	  function LoadProductGroupTree(aListView : TTreeView):Boolean; overload;
+	    function LoadProductGroupTree(aListView : TTreeView):Boolean; overload;
       function LoadProductGroupTree(aList : TStringList):Boolean; overload;
 
       // -- This function loads all selected items as line items into a stringlist
-	  function LoadSelectedAsItemList(aListView : TTreeView; aStringList : TStringList):Boolean;
+ 	    function LoadSelectedAsItemList(aListView : TTreeView; aStringList : TStringList):Boolean;
       procedure LoadItemsFromNodeToList(aNode : GTDNode; aStringList : TStringList; aGroupName : String);
       procedure LoadAllItemsToList(aStringList : TStringList);
 
@@ -56,8 +56,7 @@ type
       procedure ExportAsXML(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
 
       // -- Excel Output
-      procedure ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFilename, columnList : String); {Sinu}
-      procedure ExportAsCustomerSpecifiedXLS(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
+      procedure ExportAsXLS(aRegistry : GTDDocumentRegistry; aFilename, columnList : String); {Sinu}
 
       // -- PDF Output
       procedure ExportAsStandardPDF(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
@@ -279,7 +278,6 @@ begin
         Result := True;
     end
     else begin
-//      EndItemIterator;
         Result := False;
     end;
 
@@ -312,11 +310,55 @@ begin
 end;
 
 // -- Excel Output
-procedure GTDPricelist.ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFilename, columnList : String);
+procedure GTDPricelist.ExportAsXLS(aRegistry : GTDDocumentRegistry; aFilename, columnList : String);
+
+    procedure AddPriceChangeSummarySheet;
+    var
+      y : integer;
+      sh : TvteXLSWorksheet;
+
+      procedure af(number : double; const format : string);
+      begin
+      sh.Ranges[0,y,0,y].Value := number;
+      sh.Ranges[1,y,1,y].Value := number;
+      sh.Ranges[1,y,1,y].Format := format;
+      sh.Ranges[2,y,2,y].Value := format;
+      sh.Ranges[2,y,2,y].HorizontalAlignment := vtexlHAlignRight;
+      Inc(y);
+      end;
+
+    begin
+//      sh := wb.AddSheet;
+      sh.Title := 'Changes';
+
+      sh.Ranges[0,0,0,0].Value := 'Number';
+      sh.Ranges[0,0,0,0].FillPattern := vtefpSolid;
+      sh.Ranges[0,0,0,0].BackgroundFillPatternColor := clWhite;
+      sh.Ranges[0,0,0,0].ForegroundFillPatternColor := $00FF00;
+      sh.Cols[0].Width := 10*256;
+
+      sh.Ranges[1,0,1,0].Value := 'Format';
+      sh.Ranges[1,0,1,0].FillPattern := vtefpSolid;
+      sh.Ranges[1,0,1,0].BackgroundFillPatternColor := clWhite;
+      sh.Ranges[1,0,1,0].ForegroundFillPatternColor := $00FF00;
+      sh.Cols[1].Width := 10*256;
+
+      sh.Ranges[2,0,2,0].Value := 'Formatted number';
+      sh.Ranges[2,0,2,0].FillPattern := vtefpSolid;
+      sh.Ranges[2,0,2,0].BackgroundFillPatternColor := clWhite;
+      sh.Ranges[2,0,2,0].ForegroundFillPatternColor := $00FF00;
+      sh.Cols[2].Width := 20*256;
+
+      y := 1;
+      af(10123.456,'# ##0.00');
+      af(10123.456,'#,##0.00 "€"');
+      af(10123.456,'#,0.00');
+      af(10123.456,'0');
+    end;
 
     procedure WriteHeader(AWorkSheet: TvteXLSWorksheet;AColumns : String);
     var
-      iColCount, iCol : Integer;
+      iColCount, iCol,cw : Integer;
       sCol,s : String;
     begin
       if Not Assigned(AWorkSheet) then
@@ -345,13 +387,16 @@ procedure GTDPricelist.ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFil
       Repeat
         sCol := Parse(AColumns,';');
 
+        // -- Standard Column setup stuff here
+        AWorkSheet.Cols[iCol].Width                                  := 5000;
+        AWorkSheet.Ranges[iCol,4,iCol,4].FillPattern                 := vtefpSolid;
+        AWorkSheet.Ranges[iCol,4,iCol,4].ForegroundFillPatternColor  := clBlue;
+        AWorkSheet.Ranges[iCol,4,iCol,4].Font.Color                  := clWhite;
+
         if (sCol[1] <> '<') then
         begin
+          // -- Set the column name
           AWorkSheet.Ranges[iCol,4,iCol,4].Value                       := sCol;
-          AWorkSheet.Cols[iCol].Width                                  := 5000;
-          AWorkSheet.Ranges[iCol,4,iCol,4].FillPattern                 := vtefpSolid;
-          AWorkSheet.Ranges[iCol,4,iCol,4].ForegroundFillPatternColor  := clBlue;
-          AWorkSheet.Ranges[iCol,4,iCol,4].Font.Color                  := clWhite;
 
           // -- Make the product name wider if it is encountered
           if sCol = GTD_PL_ELE_PRODUCT_PLU then
@@ -363,8 +408,31 @@ procedure GTDPricelist.ExportAsStandardXLS(aRegistry : GTDDocumentRegistry; aFil
             AWorkSheet.Cols[iCol].Width := 60 * 256;
           end;
 
-          Inc(iCol);
+        end
+        else begin
+          // -- Custom columns. If this is the case, the custom columns
+          //    are defined in in the Trader.Settings memo field
+          if sCol = '<Custom Column>' then
+          begin
+            // -- Retrieve the display title
+            if aRegistry.GetTraderSettingString('/XLS Pricelist Output/Column ' + IntToStr(iCol+1),'Display_Title',s) then
+              AWorkSheet.Ranges[iCol,4,iCol,4].Value := s
+            else
+            if aRegistry.GetTraderSettingString('/XLS Pricelist Output/Column ' + IntToStr(iCol+1),'Element_Name',s) then
+              AWorkSheet.Ranges[iCol,4,iCol,4].Value := s
+            else
+              AWorkSheet.Ranges[iCol,4,iCol,4].Value := 'Column ' + IntToStr(iCol+1);
+
+
+            // -- Retrieve the column width
+            if aRegistry.GetTraderSettingInt('/XLS Pricelist Output/Column ' + IntToStr(iCol+1),'Width',cw) then
+              AWorkSheet.Cols[iCol].Width := cw * 256;
+
+          end;
         end;
+
+        // -- Advance the column count
+        Inc(iCol);
 
       until (AColumns = '');
     end;
@@ -377,51 +445,6 @@ var
   wb : TvteXLSWorkbook;
   sh : TvteXLSWorksheet;
   Writer : TvteCustomWriter;
-
-        procedure AddNumberFormatsSheet;
-        var
-          y : integer;
-          sh : TvteXLSWorksheet;
-
-          procedure af(number : double; const format : string);
-          begin
-          sh.Ranges[0,y,0,y].Value := number;
-          sh.Ranges[1,y,1,y].Value := number;
-          sh.Ranges[1,y,1,y].Format := format;
-          sh.Ranges[2,y,2,y].Value := format;
-          sh.Ranges[2,y,2,y].HorizontalAlignment := vtexlHAlignRight;
-          Inc(y);
-          end;
-
-        begin
-          sh := wb.AddSheet;
-          sh.Title := 'NumberFormats';
-
-          sh.Ranges[0,0,0,0].Value := 'Number';
-          sh.Ranges[0,0,0,0].FillPattern := vtefpSolid;
-          sh.Ranges[0,0,0,0].BackgroundFillPatternColor := clWhite;
-          sh.Ranges[0,0,0,0].ForegroundFillPatternColor := $00FF00;
-          sh.Cols[0].Width := 10*256;
-
-          sh.Ranges[1,0,1,0].Value := 'Format';
-          sh.Ranges[1,0,1,0].FillPattern := vtefpSolid;
-          sh.Ranges[1,0,1,0].BackgroundFillPatternColor := clWhite;
-          sh.Ranges[1,0,1,0].ForegroundFillPatternColor := $00FF00;
-          sh.Cols[1].Width := 10*256;
-
-          sh.Ranges[2,0,2,0].Value := 'Formatted number';
-          sh.Ranges[2,0,2,0].FillPattern := vtefpSolid;
-          sh.Ranges[2,0,2,0].BackgroundFillPatternColor := clWhite;
-          sh.Ranges[2,0,2,0].ForegroundFillPatternColor := $00FF00;
-          sh.Cols[2].Width := 20*256;
-
-          y := 1;
-          af(10123.456,'# ##0.00');
-          af(10123.456,'#,##0.00 "€"');
-          af(10123.456,'#,0.00');
-          af(10123.456,'0');
-        end;
-
 begin
   tmpProduct    := GTDNode.Create;
   wb            := TvteXLSWorkbook.Create;
@@ -435,6 +458,7 @@ begin
   try
     ReStartItemIterator;
 
+    // -- Write the spreadsheet header, including names and set column widths
     WriteHeader(sh,ColumnList);
 
     iRow := 5;
@@ -463,9 +487,17 @@ begin
               sh.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
           end;
 
-          Inc(iCol);
         end
+        else if (sField = '<Custom Column>') then
+        begin
+            // -- Read the value and output it
+            if aRegistry.GetTraderSettingString('/XLS Pricelist Output/Column ' + IntToStr(iCol+1),'Element_Name',sField) then
+              sh.Ranges[iCol,iRow,iCol,iRow].Value := tmpProduct.ReadStringField(sField);
 
+        end;
+
+        // -- Advance the column number
+        Inc(iCol);
 
       until (sColumns = '');
 
@@ -486,10 +518,6 @@ begin
     tmpProduct.Destroy;
     FreeAndNil(wb);
   end;
-end;
-
-procedure GTDPricelist.ExportAsCustomerSpecifiedXLS(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
-begin
 end;
 
 // -- PDF Output
@@ -604,8 +632,7 @@ begin
   Repeat
     sCol := Parse(AColumns,';');
 
-    if (sCol[1] <> '<') then
-      Inc(iCount);
+    Inc(iCount);
 
   until (AColumns = '');
 
