@@ -2111,7 +2111,7 @@ object frmProductEdit: TfrmProductEdit
     Top = 76
     Width = 670
     Height = 413
-    ActivePage = pgGroups
+    ActivePage = pgItems
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBtnText
     Font.Height = 14
@@ -2528,7 +2528,7 @@ object frmProductEdit: TfrmProductEdit
         DisplayOptions = [pgoShowHeader]
         DisplayStyle = ProductBasicStyle
         FoundColor = clBlack
-        HidePictures = True
+        HidePictures = False
         ColWidths = (
           401)
       end
@@ -2538,6 +2538,7 @@ object frmProductEdit: TfrmProductEdit
         Width = 19
         Height = 341
         TabOrder = 3
+        Visible = False
         SkinDataName = 'vscrollbar'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -2700,7 +2701,6 @@ object frmProductEdit: TfrmProductEdit
         Width = 17
         Height = 349
         TabOrder = 1
-        Visible = False
         SkinDataName = 'vscrollbar'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -3841,8 +3841,8 @@ object frmProductEdit: TfrmProductEdit
     DefaultButtonFont.Name = 'Arial'
     DefaultButtonFont.Style = []
     UseSkinFont = True
-    Left = 52
-    Top = 436
+    Left = 368
+    Top = 4
   end
   object PopupMenu1: TPopupMenu
     Left = 144

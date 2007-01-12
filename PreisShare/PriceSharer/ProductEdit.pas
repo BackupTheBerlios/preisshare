@@ -119,7 +119,7 @@ type
 
     ProductGroupCursor,
     ProductItemCursor,
-	TradalogFileName,
+	PricelistFileName,
 
     dbProfileName : String;                    // -- Filename for pricelist
 
@@ -132,14 +132,14 @@ type
 
   public
     { Public declarations }
-    CurrentTradalog : GTDBizDoc;
+    CurrentPricelist : GTDBizDoc;
     LoadingItem,
     ItemChanged,
-    TradalogChanged : Boolean;
+    PricelistChanged : Boolean;
 
-    procedure ClearTradalog;
-    procedure SaveTradalog;
-	procedure LoadTradalog(const tFileName : String = GTD_CURRENT_PRICELIST);
+    procedure ClearPricelist;
+    procedure SavePricelist;
+	procedure LoadPricelist(const tFileName : String = GTD_CURRENT_PRICELIST);
 	procedure LoadProductGroups;
 	procedure LoadItemsInGroup(ForPageIndex : Integer);
     procedure LoadProductItem;
@@ -153,7 +153,7 @@ var
 implementation
 
 {$R *.DFM}
-uses Main, AddProductGroup;
+uses Main, AddProductGroup, GenPricelists;
 
 procedure TfrmProductEdit.btnCloseClick(Sender: TObject);
 begin
@@ -189,13 +189,13 @@ begin
                 // -- Now add the product group
                 s := '/' + GTD_PL_PRICELIST_TAG + '/' + GTD_PL_PRODUCTINFO_TAG + '/' + GTD_PL_PRODUCTGROUP_TAG;
 
-                l1grpNum := CurrentTradalog.NodeCount(s) + 1;
+                l1grpNum := CurrentPricelist.NodeCount(s) + 1;
 
                 // -- Recalculate the cursor
                 ProductGroupCursor := s + '[' + IntToStr(l1grpNum) + ']';
 
                 // -- Create the nodes in the document
-                CurrentTradalog.SetStringElement(ProductGroupCursor,GTD_PL_ELE_GROUP_NAME,txtGroupName.Text);
+                CurrentPricelist.SetStringElement(ProductGroupCursor,GTD_PL_ELE_GROUP_NAME,txtGroupName.Text);
 
             end
             else begin
@@ -228,7 +228,7 @@ begin
     begin
         tvwGroups.Items.Delete(tvwGroups.Selected);
         SetDirty;
-        if not CurrentTradalog.RemoveNode(ProductGroupCursor) then
+        if not CurrentPricelist.RemoveNode(ProductGroupCursor) then
             bsSkinMessage1.messagedlg('Unable to delete this Group [' + ProductGroupCursor + '/' + ProductItemCursor + ']',mtError,[mbOk],0);
 	end;
 
@@ -269,7 +269,7 @@ begin
     ProductItemCursor := GTD_PL_PRODUCTITEMS_NODE + '/' + GTD_PL_PRODUCTITEM_TAG + '[' + IntToStr(i) + ']';
 
     // -- Create the item in the pricelist
-    if not CurrentTradalog.CreateNodesInDocument(ProductGroupCursor + ProductItemCursor) then
+    if not CurrentPricelist.CreateNodesInDocument(ProductGroupCursor + ProductItemCursor) then
     begin
         bsSkinMessage1.MessageDlg('Item not created.',mtError,[mbOk],0);
     end
@@ -297,7 +297,7 @@ begin
     begin
         lsvItems.Items.Delete(lsvItems.Selected.Index);
         SetDirty;
-        if not CurrentTradalog.RemoveNode(ProductGroupCursor + '/' + ProductItemCursor) then
+        if not CurrentPricelist.RemoveNode(ProductGroupCursor + '/' + ProductItemCursor) then
             bsSkinMessage1.messagedlg('Unable to deleting this Item [' + ProductGroupCursor + '/' + ProductItemCursor + ']',mtError,[mbOk],0);
     end;
 
@@ -305,9 +305,8 @@ end;
 
 procedure TfrmProductEdit.btnUpdateClick(Sender: TObject);
 begin
-//    frmSaveGenerate.Show;
 
-    SaveTradalog;
+    SavePricelist;
 
 //    if Server.CommunityLink.Active then
 //    begin
@@ -321,9 +320,9 @@ begin
 
 //    end;
 
-//    frmSaveGenerate.plGen.Process;
-
-    Application.ProcessMessages;
+    // -- Now we have to distribute the new prices
+    if not Assigned(frmGeneratePL) then
+        Application.CreateForm(TfrmGeneratePL, frmGeneratePL);
 
 //    frmSaveGenerate.Close;
 
@@ -339,15 +338,15 @@ begin
     btnUpdate.Visible := onoroff;        
 end;
 
-procedure TfrmProductEdit.ClearTradalog;
+procedure TfrmProductEdit.ClearPricelist;
 begin
-    CurrentTradalog.Clear;
+    CurrentPricelist.Clear;
     lsvItems.Items.Clear;
     tvwGroups.Items.Clear;
     pdlList1.Clear;
 end;
 
-procedure TfrmProductEdit.SaveTradalog;
+procedure TfrmProductEdit.SavePricelist;
 
     function BuildCompanyInformation:Boolean;
     var
@@ -359,7 +358,7 @@ procedure TfrmProductEdit.SaveTradalog;
 
         if (frmMain.DocRegistry.GetGTL = '') then
         begin
-            e := e + 'Missing GTL (Grid Trading Location)' + #13;
+            e := e + 'Missing PreisShare_ID' + #13;
         end;
 
         if (frmMain.DocRegistry.GetCompanyName = '') then
@@ -388,58 +387,58 @@ procedure TfrmProductEdit.SaveTradalog;
             Result := False;
         end;
 
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE,frmMain.DocRegistry.GetGTL);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME,frmMain.DocRegistry.GetCompanyName);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_1,frmMain.DocRegistry.GetAddress1);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_2,frmMain.DocRegistry.GetAddress2);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TOWN,frmMain.DocRegistry.GetCity);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_STATE_REGION,frmMain.DocRegistry.GetState);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_POSTALCODE,frmMain.DocRegistry.GetPostcode);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COUNTRYCODE,frmMain.DocRegistry.GetCountryCode);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE,frmMain.DocRegistry.GetGTL);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME,frmMain.DocRegistry.GetCompanyName);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_1,frmMain.DocRegistry.GetAddress1);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_2,frmMain.DocRegistry.GetAddress2);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TOWN,frmMain.DocRegistry.GetCity);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_STATE_REGION,frmMain.DocRegistry.GetState);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_POSTALCODE,frmMain.DocRegistry.GetPostcode);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COUNTRYCODE,frmMain.DocRegistry.GetCountryCode);
 
         {
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_IPADDRESS,DocRegistry.);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_FAX,DocRegistry.);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_PROFILE,DocRegistry.);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TELEPHONE,DocRegistry.);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TELEPHONE2,DocRegistry.);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_EMAIL_ADDRESS,DocRegistry.);
-        CurrentTradalog.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_OTHER_INFO,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_IPADDRESS,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_FAX,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_PROFILE,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TELEPHONE,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TELEPHONE2,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_EMAIL_ADDRESS,DocRegistry.);
+        CurrentPricelist.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_OTHER_INFO,DocRegistry.);
         }
 
     end;
 
 
 var
-    OldTradalog : GTDBizDoc;
+    OldPricelist : GTDBizDoc;
     sl    : TStringList;
     aMemo 	: TMemoField;
 begin
     sl          := TStringList.Create;
-    OldTradalog := GTDBizDoc.Create(Self);
+    OldPricelist := GTDBizDoc.Create(Self);
 
     try
 		// -- Load what we had before
-		if FileExists(TradalogFileName) then
-			oldTradalog.LoadFromFile(TradalogFileName {'original.pricelist'})
+		if FileExists(PricelistFileName) then
+			oldPricelist.LoadFromFile(PricelistFileName {'original.pricelist'})
 		else
-			oldTradalog.Clear;
+			oldPricelist.Clear;
 
         // -- Do we have a company information section and if not then add it
-        if (CurrentTradalog.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE) = '') or
-           (CurrentTradalog.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME) = '') then
+        if (CurrentPricelist.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE) = '') or
+           (CurrentPricelist.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME) = '') then
         begin
             BuildCompanyInformation;
         end;
 
         // -- Save our current work to disk first
 //        frmSaveGenerate.SetRetailStatus('Saving');
-        CurrentTradalog.XML.SaveToFile(ExtractFilePath(Application.Exename) + '\' + GTD_CURRENT_PRICELIST);
+        CurrentPricelist.XML.SaveToFile(ExtractFilePath(Application.Exename) + '\' + GTD_CURRENT_PRICELIST);
 
 		SetDirty(False);
 
         // -- Now build the patch file
-		CurrentTradalog.BuildPatch(oldTradalog.xml,sl,dtUnified);
+		CurrentPricelist.BuildPatch(oldPricelist.xml,sl,dtUnified);
 
 		if sl.Count <> 0 then
 		begin
@@ -477,13 +476,13 @@ begin
 		//qryHistory.Active := True;
 
 	finally
-		OldTradalog.Free;
+		OldPricelist.Free;
 		sl.Free;
 	end;
     //frmSaveGenerate.SetRetailStatus('Done');
 end;
 
-procedure TfrmProductEdit.LoadTradalog(const tFileName : String);
+procedure TfrmProductEdit.LoadPricelist(const tFileName : String);
 var
     f : String;
 begin
@@ -501,8 +500,8 @@ begin
     // -- Load the file from the current directory
     if FileExists(f) then
     begin
-        // -- Load the tradalog from disk
-        CurrentTradalog.LoadFromFile(f);
+        // -- Load the Pricelist from disk
+        CurrentPricelist.LoadFromFile(f);
 
         LoadProductGroups;
 
@@ -517,20 +516,20 @@ begin
 //        bsSkinMessage1.MessageDlg('A pricelist file does not exist. A new one will be created now.',mtInformation,[mbOk],0);
 
         // -- This section is needed to due to some faults in the api
-        CurrentTradalog.Clear;
-        CurrentTradalog.XML.Add('<PriceList>');
-        CurrentTradalog.XML.Add('  <Vendor Information>');
-        CurrentTradalog.XML.Add('  </Vendor Information>');
-        CurrentTradalog.XML.Add('  <Product Information>');
-        CurrentTradalog.XML.Add('  </Product Information>');
-        CurrentTradalog.XML.Add('</PriceList>');
+        CurrentPricelist.Clear;
+        CurrentPricelist.XML.Add('<PriceList>');
+        CurrentPricelist.XML.Add('  <Vendor Information>');
+        CurrentPricelist.XML.Add('  </Vendor Information>');
+        CurrentPricelist.XML.Add('  <Product Information>');
+        CurrentPricelist.XML.Add('  </Product Information>');
+        CurrentPricelist.XML.Add('</PriceList>');
 
-//        CurrentTradalog.CreateNodesInDocument(GTD_PL_VENDORINFO_NODE);
-//        CurrentTradalog.CreateNodesInDocument(GTD_PL_PRODUCTINFO_NODE);
+//        CurrentPricelist.CreateNodesInDocument(GTD_PL_VENDORINFO_NODE);
+//        CurrentPricelist.CreateNodesInDocument(GTD_PL_PRODUCTINFO_NODE);
     end;
 
     ItemChanged := False;
-    TradalogChanged := False;
+    PricelistChanged := False;
 
     SetDirty(False);
 
@@ -551,9 +550,9 @@ begin
     // -- Determine how many levels
     s := GTD_PL_PRODUCTINFO_NODE + '/' + GTD_PL_DISPLAYINFO_NODE;
 
-    CatalogLevels := CurrentTradalog.GetIntegerElement(s,GTD_PL_LEVELCOUNT,1);
+    CatalogLevels := CurrentPricelist.GetIntegerElement(s,GTD_PL_LEVELCOUNT,1);
 
-    if (ProductGroupNode.LoadFromDocument(CurrentTradalog,'/' + GTD_PL_PRODUCTINFO_TAG,false)) then
+    if (ProductGroupNode.LoadFromDocument(CurrentPricelist,'/' + GTD_PL_PRODUCTINFO_TAG,false)) then
     begin
 
         while ProductGroupNode.FindTag(GTD_PL_PRODUCTGROUP_TAG) do
@@ -595,7 +594,7 @@ begin
 	lsvItems.Items.Clear;
 
 	// -- Load up the product group
-	if not ProductGroupNode.LoadFromDocument(CurrentTradalog,ProductGroupCursor,True) then
+	if not ProductGroupNode.LoadFromDocument(CurrentPricelist,ProductGroupCursor,True) then
 	begin
 		 Exit;
 	end;
@@ -618,12 +617,12 @@ begin
 			// -- Load our product lister
 			ProductGroupNode.GotoStart;
 
-			for xc := 1 to CurrentTradalog.NodeCount(ProductGroupCursor + '/Product Items/Product Item') do
+			for xc := 1 to CurrentPricelist.NodeCount(ProductGroupCursor + GTD_PL_PRODUCTITEMS_NODE + GTD_PL_PRODUCTITEM_NODE) do
 			begin
 
-				ia := ProductGroupCursor + '/Product Items/Product Item[' + IntToStr(xc) + ']';
+				ia := ProductGroupCursor + GTD_PL_PRODUCTITEMS_NODE + GTD_PL_PRODUCTITEM_NODE + '[' + IntToStr(xc) + ']';
 
-				L := CurrentTradalog.GetStringElement(ia,GTD_PL_ELE_PRODUCT_NAME);
+				L := CurrentPricelist.GetStringElement(ia,GTD_PL_ELE_PRODUCT_NAME);
 
 				anItem := lsvItems.Items.Add;
 				anItem.Caption := L;
@@ -645,7 +644,7 @@ begin
 
     LoadingItem := True;
 
-    if (ProductNode.LoadFromDocument(CurrentTradalog,ProductGroupCursor + ProductItemCursor,false)) then
+    if (ProductNode.LoadFromDocument(CurrentPricelist,ProductGroupCursor + ProductItemCursor,false)) then
     begin
 
          // -- Load all the individual fields out as required
@@ -653,7 +652,7 @@ begin
          txtProductName.Text  := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_NAME);
          txtProductDesc.Text  := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_DESC);
          txtProductList.Text  := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_LIST);
-         txtProductSell.Text  := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_SELL);
+         txtProductSell.Text  := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_ACTUAL);
          cbxUOM.Text          := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_UNIT);
          cbxBrand.Text        := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_BRAND);
          cbxTaxRate.Text      := ProductNode.ReadStringField(GTD_PL_ELE_PRODUCT_TAXR);
@@ -785,45 +784,45 @@ begin
 
     // -- Items go in backwards
 	if cbxUOM.Tag <> 0 then
-		 CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_UNIT,cbxUOM.Text);
+		 CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_UNIT,cbxUOM.Text);
 
 	if cbxBrand.Tag <> 0 then
-		 CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_BRAND,cbxBrand.Text);
+		 CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_BRAND,cbxBrand.Text);
 
 	if cbxTaxRate.Tag <> 0 then
-		 CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_TAXR,cbxTaxRate.Text);
+		 CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_TAXR,cbxTaxRate.Text);
 
 	if cbxOnSpecial.Tag <> 0 then
-		 CurrentTradalog.SetBooleanElement(ic,GTD_PL_ELE_ONSPECIAL,cbxOnSpecial.Checked);
+		 CurrentPricelist.SetBooleanElement(ic,GTD_PL_ELE_ONSPECIAL,cbxOnSpecial.Checked);
 
 	if cbxAvailability.Tag <> 0 then
-		 CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_AVAIL_STATUS,cbxAvailability.Text);
+		 CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_AVAIL_STATUS,cbxAvailability.Text);
 
     if txtPicture.Tag <> 0 then
-		 CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_PICTURE,txtPicture.Text);
+		 CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_PICTURE,txtPicture.Text);
 
 	if txtProductSell.Tag <> 0 then
-		 CurrentTradalog.SetCurrencyElement(ic,GTD_PL_ELE_PRODUCT_SELL,StringToFloat(txtProductSell.Text));
+		 CurrentPricelist.SetCurrencyElement(ic,GTD_PL_ELE_PRODUCT_ACTUAL,StringToFloat(txtProductSell.Text));
 	if txtProductList.Tag <> 0 then
-		 CurrentTradalog.SetCurrencyElement(ic,GTD_PL_ELE_PRODUCT_LIST,StringToFloat(txtProductList.Text));
+		 CurrentPricelist.SetCurrencyElement(ic,GTD_PL_ELE_PRODUCT_LIST,StringToFloat(txtProductList.Text));
 
 	if txtProductDesc.Tag <> 0 then
-		 CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_DESC,txtProductDesc.Text);
+		 CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_DESC,txtProductDesc.Text);
 
 	if txtProductName.Tag <> 0 then
 	begin
-		CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_NAME,txtProductName.Text);
+		CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_NAME,txtProductName.Text);
 		if Assigned(lsvItems.Selected) then
 			lsvItems.Selected.Caption := txtProductName.Text;
 	end;
 
 	if txtProductCode.Tag <> 0 then
 	begin
-		CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_CODE,txtProductCode.Text);
+		CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_CODE,txtProductCode.Text);
     end;
 
     if txtPicture.Tag <> 0 then
-        CurrentTradalog.SetStringElement(ic,GTD_PL_ELE_PRODUCT_IMAGE,txtPicture.Text);
+        CurrentPricelist.SetStringElement(ic,GTD_PL_ELE_PRODUCT_IMAGE,txtPicture.Text);
 
 	txtProductCode.Tag := 0;
 	txtProductName.Tag := 0;
@@ -832,7 +831,7 @@ begin
 	txtProductSell.Tag := 0;
 	txtPicture.Tag     := 0;
 
-	TradalogChanged := True;
+	PricelistChanged := True;
 
 end;
 
@@ -858,7 +857,7 @@ end;
 procedure TfrmProductEdit.FormCreate(Sender: TObject);
 begin
 	// -- This business doc holds the catalog
-	CurrentTradalog  := GTDBizDoc.Create(Self);
+	CurrentPricelist  := GTDBizDoc.Create(Self);
 
 	// -- This node holds the selected product group
 	ProductGroupNode := GTDNode.Create;
@@ -866,7 +865,7 @@ begin
 	// -- This node holds the selected item
 	ProductNode      := GTDNode.Create;
 
-    LoadTradalog;
+    LoadPricelist;
 
     pdlList1.HidePictures := False;
 
@@ -1011,8 +1010,11 @@ begin
     cbxTaxRate.SkinData := sd;
     cbxOnSpecial.SkinData := sd;
 
-    ssbItems.SkinData := sd;
+    bsSkinMessage1.SkinData := sd;
+    bsSkinMessage1.CtrlSkinData := sd;
     
+    ssbItems.SkinData := sd;
+
     bsSkinOpenPictureDialog1.SkinData := sd;
     bsSkinOpenPictureDialog1.CtrlSkinData := sd;
     
