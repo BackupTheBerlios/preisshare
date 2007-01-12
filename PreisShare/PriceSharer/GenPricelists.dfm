@@ -4,8 +4,8 @@ object frmGeneratePL: TfrmGeneratePL
   AutoScroll = False
   BorderIcons = []
   Caption = 'Generate Pricelists'
-  ClientHeight = 288
-  ClientWidth = 417
+  ClientHeight = 426
+  ClientWidth = 558
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,8 +18,8 @@ object frmGeneratePL: TfrmGeneratePL
   PixelsPerInch = 96
   TextHeight = 13
   object btnClose: TbsSkinButton
-    Left = 312
-    Top = 232
+    Left = 452
+    Top = 348
     Width = 75
     Height = 25
     TabOrder = 0

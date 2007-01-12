@@ -32,10 +32,14 @@ type
     Image1: TImage;
     bsSkinMessage1: TbsSkinMessage;
     procedure btnSaveClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
+    fCustomerAdded : Boolean;
   public
     { Public declarations }
+  published
+    property CustomerAdded : Boolean read fCustomerAdded;
   end;
 
 var
@@ -104,6 +108,8 @@ begin
         FieldByName(GTD_DB_COL_STATUS_CODE).AsString := GTD_TRADER_STATUS_ACTIVE;
         Post;
 
+        frmMain.DocRegistry.Traders.Refresh;
+        
         // -- Now edit it again to have the correct details
         if frmMain.DocRegistry.OpenForTraderNumber(frmMain.DocRegistry.Traders.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger) then
         begin
@@ -136,6 +142,9 @@ begin
             frmMain.DocRegistry.SaveTraderSettingString(PL_DELIV_NODE,PL_DELIV_FREQUENCY,uf);
 
         end;
+
+        fCustomerAdded := True;
+        
     end;
 
     // -- Clear the fields
@@ -145,6 +154,11 @@ begin
     cbxWhenChanged.Checked := True;
     cbxXMLFormat.Checked := True;
 
+end;
+
+procedure TfrmCustomerAdd.FormShow(Sender: TObject);
+begin
+    fCustomerAdded := False;
 end;
 
 end.

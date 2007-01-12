@@ -40,6 +40,8 @@ begin
         Parent := Self;
         Visible := True;
         SkinData := bsBusinessSkinForm1.SkinData;
+        DocRegistry := frmMain.DocRegistry;
+        Init;
         SendToBack;
     end;
 

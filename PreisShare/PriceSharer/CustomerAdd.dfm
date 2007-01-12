@@ -14,6 +14,7 @@ object frmCustomerAdd: TfrmCustomerAdd
   Font.Style = []
   OldCreateOrder = False
   Position = poDesktopCenter
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Image1: TImage
@@ -236,14 +237,14 @@ object frmCustomerAdd: TfrmCustomerAdd
       Font.Name = 'Arial'
       Font.Style = []
       ParentFont = False
-      TabOrder = 2
+      TabOrder = 3
     end
     object bsSkinLabel2: TbsSkinLabel
       Left = 12
       Top = 112
       Width = 257
       Height = 17
-      TabOrder = 3
+      TabOrder = 4
       SkinData = frmMain.bsSkinData1
       SkinDataName = 'label'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -263,7 +264,7 @@ object frmCustomerAdd: TfrmCustomerAdd
       Top = 72
       Width = 257
       Height = 17
-      TabOrder = 4
+      TabOrder = 5
       SkinData = frmMain.bsSkinData1
       SkinDataName = 'label'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -300,7 +301,7 @@ object frmCustomerAdd: TfrmCustomerAdd
       Font.Name = 'Arial'
       Font.Style = []
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 2
     end
   end
   object cbxUpdateFrequency: TbsSkinGroupBox
@@ -553,7 +554,7 @@ object frmCustomerAdd: TfrmCustomerAdd
       Height = 25
       TabOrder = 1
       SkinData = frmMain.bsSkinData1
-      SkinDataName = 'checkbox'
+      SkinDataName = 'radiobox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
       DefaultFont.Height = 14
@@ -566,9 +567,9 @@ object frmCustomerAdd: TfrmCustomerAdd
       Flat = True
       TabStop = True
       CanFocused = True
-      Radio = False
-      Checked = False
-      GroupIndex = 0
+      Radio = True
+      Checked = True
+      GroupIndex = 1
       Caption = 'XLS'
     end
     object cbxXMLFormat: TbsSkinCheckRadioBox
@@ -578,7 +579,7 @@ object frmCustomerAdd: TfrmCustomerAdd
       Height = 25
       TabOrder = 2
       SkinData = frmMain.bsSkinData1
-      SkinDataName = 'checkbox'
+      SkinDataName = 'radiobox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
       DefaultFont.Height = 14
@@ -591,9 +592,9 @@ object frmCustomerAdd: TfrmCustomerAdd
       Flat = True
       TabStop = True
       CanFocused = True
-      Radio = False
+      Radio = True
       Checked = False
-      GroupIndex = 0
+      GroupIndex = 1
       Caption = 'XML'
     end
     object cbxCSVFormat: TbsSkinCheckRadioBox
@@ -603,7 +604,7 @@ object frmCustomerAdd: TfrmCustomerAdd
       Height = 25
       TabOrder = 3
       SkinData = frmMain.bsSkinData1
-      SkinDataName = 'checkbox'
+      SkinDataName = 'radiobox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
       DefaultFont.Height = 14
@@ -616,9 +617,9 @@ object frmCustomerAdd: TfrmCustomerAdd
       Flat = True
       TabStop = True
       CanFocused = True
-      Radio = False
+      Radio = True
       Checked = False
-      GroupIndex = 0
+      GroupIndex = 1
       Caption = 'CSV'
     end
   end
