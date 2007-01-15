@@ -473,7 +473,17 @@ begin
         sField := Parse(sColumns,';');
 
         // -- Now extract the value of that field
-        if (sField[1] <> '<') then
+        if (sField = '<Custom Column>') then
+        begin
+            // -- Read the value of the custom field name, which
+            //    will be one level deeper
+            if aRegistry.GetTraderSettingString('/XLS Pricelist Output/Column ' + IntToStr(iCol+1),'Element_Name',sField) then
+              ;
+
+        end;
+
+        // -- Now output the field
+        if ((length(sField) <> 0) and (sField[1] <> '<')) then
         begin
           if (sField = GTD_PL_ELE_PRODUCT_LIST) or (sField = GTD_PL_ELE_PRODUCT_ACTUAL) then
           begin
@@ -486,13 +496,6 @@ begin
               sFieldValue := tmpProduct.ReadStringField(sField);
               sh.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
           end;
-
-        end
-        else if (sField = '<Custom Column>') then
-        begin
-            // -- Read the value and output it
-            if aRegistry.GetTraderSettingString('/XLS Pricelist Output/Column ' + IntToStr(iCol+1),'Element_Name',sField) then
-              sh.Ranges[iCol,iRow,iCol,iRow].Value := tmpProduct.ReadStringField(sField);
 
         end;
 
