@@ -37,6 +37,7 @@ type
     PageProducer1: TPageProducer;
     Image1: TImage;
     rdoGenerateForHowMany: TbsSkinRadioGroup;
+    Scheduler: TTimer;
     procedure btnGenerateAllClick(Sender: TObject);
     procedure btnListClick(Sender: TObject);
     procedure lblListCountClick(Sender: TObject);
@@ -47,6 +48,7 @@ type
     procedure SmtpEmailDisplay(Sender: TObject; Msg: String);
     procedure SmtpEmailRequestDone(Sender: TObject; RqType: TSmtpRequest;
       ErrorCode: Word);
+    procedure SchedulerTimer(Sender: TObject);
   private
 	  { Private declarations }
 	  fSkinData           : TbsSkinData;
@@ -55,7 +57,8 @@ type
     fplBuildConfig      : TBuildPricelistFromDBConfig;
 
     fConnectionErr,
-    fProcessing      : Boolean; {Sinu}
+    fProcessing ,
+    fDistributing       : Boolean; {Sinu}
 
     function CollectEmailDistributionList:Boolean;
     function CreateHTMLEmailfromTemplate(TemplateFileName : String):Boolean;
@@ -73,6 +76,8 @@ type
     procedure Report(const msgType, msgText : String);
 
     procedure SetSkinData(Value: TbsSkinData);
+    procedure SetPriceListTimer(ASeconds : Integer);
+
   published
     property SkinData   : TbsSkinData read fSkinData write SetSkinData;
     property DocRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
@@ -94,8 +99,10 @@ const
   PL_DELIV_FREQ_WEEKLY  = 'Weekly';
   PL_DELIV_FREQ_FORTNIGHT = 'Fortnightly';
   PL_DELIV_LAST_RUN     = 'Last_Run';
+  PL_DELIV_LAST_SENT     = 'Last_Sent';
 
 implementation
+  uses DateUtils;
 
 {$R *.DFM}
 
@@ -112,7 +119,7 @@ begin
 
     fDocRegistry.OpenRegistry('',sStatus);
 
-	lsvItems.Items.Clear;
+    lsvItems.Items.Clear;
 
 	newItem := lsvItems.Items.Add;
 	newItem.Caption := 'Ready';
@@ -188,9 +195,10 @@ begin
         end;
     end;
 
-  {Sinu}
-  CollectEmailDistributionList; {Collect all traders}
-  {Sinu}
+    fDistributing := False;
+    SetPriceListTimer(30);
+
+    CollectEmailDistributionList; {Collect all traders}
 end;
 
 procedure TPricelistGenerator.SetSkinData(Value: TbsSkinData);
@@ -220,8 +228,8 @@ function TPricelistGenerator.GenerateForAll:Boolean;
 var
 	iCount : Integer;
 begin
-  {Sinu start}
-
+  // -- Generate pricelists for everybody
+  fDistributing       := True;
   fProcessing         := False;
   iCount              := 0;
   with qryFindTargets do
@@ -262,20 +270,8 @@ begin
     end;
   end;
 
-	{for xc := 2 to lsvItems.Items.Count do
-	begin
+  fDistributing := False;
 
-		sgProgress.Value := xc;
-
-		lsvItems.Items[xc-1].Caption := 'Running';
-		lsvItems.Update;
-		Sleep(500);
-
-		lsvItems.Items[xc-1].Caption := 'Complete';
-
-	end;}
-
-  {Sinu stop}
 end;
 
 procedure TPricelistGenerator.btnGenerateAllClick(Sender: TObject);
@@ -454,10 +450,25 @@ begin
 end;
 
 function TPricelistGenerator.GenerateForTrader(Trader_ID : Integer):Boolean;
+
+  procedure ResetBeforeExit;
+  begin
+    fProcessing         := False;
+    sgProgress.Value    := 100;
+    sgProgress.Visible  := False;
+    Screen.Cursor       := crDefault;
+
+    btnGenerateAll.Enabled  := True;
+  end;
+
 var
   pl : GTDPricelist;
-  sFormat,sColName,sColumns,sFileName : String;
+  sFormat,sColName,sColumns,sFileName , sFrequency , sLastSent: String;
+  dLastSent: TDateTime;
+  fTimeDiff : Double;
   i,xd, iColCount : Integer;
+  bNoNeedToProcess : Boolean;
+
 begin
   Result := False;
   // -- Use the registry to load the trader record
@@ -469,6 +480,31 @@ begin
   begin
     MoveProgressBar;
 
+    // -- Get pricelist delivery frequency
+    fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_FREQUENCY,sFrequency);
+
+    // -- Get the time when the pricelist delivered  previously
+    fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,sLastSent);
+    if Trim(sLastSent) <> '' then
+    begin
+      // -- Here we determine if it is time to send again
+      dLastSent   := StrToDateTime(sLastSent);
+      fTimeDiff   := DaysBetween(Now ,dLastSent);
+      sFrequency  := UpperCase(Trim(sFrequency));
+
+      // -- Time to send ?
+      bNoNeedToProcess := ((sFrequency = UpperCase(PL_DELIV_FREQ_DAILY)) and (fTimeDiff = 0)) or
+              ((sFrequency = UpperCase(PL_DELIV_FREQ_WEEKLY)) and (fTimeDiff <= 7)) or
+              ((sFrequency = UpperCase(PL_DELIV_FREQ_FORTNIGHT)) and (fTimeDiff <= 14));
+
+      if bNoNeedToProcess then
+      begin
+        ResetBeforeExit;
+        Exit;
+      end
+
+    end;
+
     pl := GTDPricelist.Create(Self);
 
     // -- Retrieve the Customers latest pricelist
@@ -479,10 +515,9 @@ begin
         pl.xml.LoadFromFile(GTD_CURRENT_PRICELIST)
       else
         // -- No pricelist to load, didn't work
+        pl.Destroy;
         Exit;
     end;
-
-    MoveProgressBar;
 
     fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_FORMAT,sFormat);
 
@@ -726,6 +761,9 @@ begin
     sgProgress.Visible := False;
     Report('SHOW','Product Data Mailed Successfully to ' + SmtpEmail.HdrTo);
 
+    // -- Set current time as the delivery time
+    fDocRegistry.SaveTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,DateTimeToStr(Now));
+
     rdoGenerateForHowMany.Enabled    := True;
     btnGenerateAll.Enabled  := True;
     Screen.Cursor           := crDefault;
@@ -768,6 +806,19 @@ end;
 procedure TPricelistGenerator.Report(const msgType, msgText : String);
 begin
     mmoErrLog.Lines.Add(msgtype + ' - ' + msgText);
+end;
+
+procedure TPricelistGenerator.SetPriceListTimer(ASeconds: Integer);
+begin
+  Scheduler.Enabled   := False;
+  Scheduler.Interval  := 1000 * ASeconds;
+  Scheduler.Enabled   := True;
+end;
+
+procedure TPricelistGenerator.SchedulerTimer(Sender: TObject);
+begin
+  if Not fDistributing then
+    GenerateForAll;
 end;
 
 end.

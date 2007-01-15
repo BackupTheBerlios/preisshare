@@ -871,4 +871,9 @@ object PricelistGenerator: TPricelistGenerator
     Left = 440
     Top = 12
   end
+  object Scheduler: TTimer
+    OnTimer = SchedulerTimer
+    Left = 352
+    Top = 192
+  end
 end
