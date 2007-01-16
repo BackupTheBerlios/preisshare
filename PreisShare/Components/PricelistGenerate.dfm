@@ -63,7 +63,6 @@ object PricelistGenerator: TPricelistGenerator
       SkinDataName = 'stdlabel'
       Alignment = taCenter
       Caption = '0 Customers found'
-      OnClick = lblListCountClick
     end
     object btnList: TbsSkinSpeedButton
       Left = 424
@@ -432,7 +431,7 @@ object PricelistGenerator: TPricelistGenerator
       Top = 17
       Width = 349
       Height = 168
-      TabOrder = 4
+      TabOrder = 2
       SkinDataName = 'groupbox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -485,7 +484,7 @@ object PricelistGenerator: TPricelistGenerator
       Top = 428
       Width = 173
       Height = 145
-      TabOrder = 3
+      TabOrder = 1
       SkinDataName = 'groupbox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -687,73 +686,12 @@ object PricelistGenerator: TPricelistGenerator
       BitMapBG = False
       SkinDataName = 'memo'
     end
-    object lsvItems: TbsSkinListView
-      Left = 304
-      Top = 425
-      Width = 93
-      Height = 129
-      Columns = <>
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = 14
-      Font.Name = 'Arial'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 1
-      Visible = False
-      HeaderSkinDataName = 'resizebutton'
-      DefaultFont.Charset = DEFAULT_CHARSET
-      DefaultFont.Color = clWindowText
-      DefaultFont.Height = 14
-      DefaultFont.Name = 'Arial'
-      DefaultFont.Style = []
-      UseSkinFont = True
-      SkinDataName = 'listview'
-      DefaultColor = clWindow
-    end
-    object dbgCustomerList: TbsSkinDBGrid
-      Left = 172
-      Top = 16
-      Width = 349
-      Height = 169
-      TabOrder = 2
-      SkinDataName = 'grid'
-      UseSkinFont = True
-      UseSkinCellHeight = True
-      GridLineColor = clWindowText
-      DefaultCellHeight = 20
-      UseColumnsFont = False
-      DefaultRowHeight = 17
-      MouseWheelSupport = False
-      SaveMultiSelection = False
-      PickListBoxSkinDataName = 'listbox'
-      PickListBoxCaptionMode = False
-      DataSource = DataSource1
-      ReadOnly = True
-      TitleFont.Charset = DEFAULT_CHARSET
-      TitleFont.Color = clWindowText
-      TitleFont.Height = -11
-      TitleFont.Name = 'MS Sans Serif'
-      TitleFont.Style = []
-      Columns = <
-        item
-          Expanded = False
-          FieldName = 'Trader_id'
-          Visible = False
-        end
-        item
-          Expanded = False
-          FieldName = 'Name'
-          Width = 240
-          Visible = True
-        end>
-    end
     object rdoGenerateForHowMany: TbsSkinRadioGroup
       Left = 172
       Top = 200
       Width = 149
       Height = 89
-      TabOrder = 5
+      TabOrder = 3
       SkinDataName = 'groupbox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -786,6 +724,45 @@ object PricelistGenerator: TPricelistGenerator
       Items.Strings = (
         'Selected Customer'
         'All Customers')
+    end
+    object lsvCustomerList: TbsSkinListView
+      Left = 172
+      Top = 16
+      Width = 349
+      Height = 169
+      Columns = <
+        item
+          Caption = 'Company'
+          Width = 160
+        end
+        item
+          Caption = 'Status'
+          Width = 100
+        end
+        item
+          Caption = 'Updated'
+          Width = 100
+        end>
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = 14
+      Font.Name = 'Arial'
+      Font.Style = []
+      ReadOnly = True
+      RowSelect = True
+      ParentFont = False
+      TabOrder = 4
+      ViewStyle = vsReport
+      HeaderSkinDataName = 'resizebutton'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      UseSkinFont = True
+      SkinDataName = 'listview'
+      DefaultColor = clWindow
+      OnChange = lsvCustomerListChange
     end
   end
   object sgProgress: TbsSkinGauge
@@ -821,8 +798,8 @@ object PricelistGenerator: TPricelistGenerator
   end
   object DataSource1: TDataSource
     DataSet = qryFindTargets
-    Left = 500
-    Top = 200
+    Left = 340
+    Top = 176
   end
   object bsSkinMessage1: TbsSkinMessage
     AlphaBlend = False
@@ -872,8 +849,9 @@ object PricelistGenerator: TPricelistGenerator
     Top = 12
   end
   object Scheduler: TTimer
+    Enabled = False
     OnTimer = SchedulerTimer
-    Left = 352
-    Top = 192
+    Left = 376
+    Top = 176
   end
 end

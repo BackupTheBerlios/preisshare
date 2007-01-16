@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, bsSkinData,bsSkinBoxCtrls, bsSkinCtrls, ComCtrls, Db, DBTables, GTDBizDocs,
-  GTDBizLinks,
+  GTDBizLinks, Variants,
   SmtpProt, bsSkinGrids, bsDBGrids, bsMessages,ShellAPI,
   GTDBuildPricelistFromDBRun,GTDBuildPricelistFromDBConfig,GTDPricelists,
   Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings ;
@@ -17,10 +17,8 @@ type
     pnlBack: TbsSkinPanel;
     lblStatus: TbsSkinStdLabel;
     mmoLog: TbsSkinMemo;
-    lsvItems: TbsSkinListView;
     lblListCount: TbsSkinStdLabel;
     btnList: TbsSkinSpeedButton;
-    dbgCustomerList: TbsSkinDBGrid;
     DataSource1: TDataSource;
     pnlSettings: TbsSkinGroupBox;
     cbxSpecialsOnly: TbsSkinCheckRadioBox;
@@ -38,9 +36,9 @@ type
     Image1: TImage;
     rdoGenerateForHowMany: TbsSkinRadioGroup;
     Scheduler: TTimer;
+    lsvCustomerList: TbsSkinListView;
     procedure btnGenerateAllClick(Sender: TObject);
     procedure btnListClick(Sender: TObject);
-    procedure lblListCountClick(Sender: TObject);
     procedure SmtpEmailSinuDisplay(Sender: TObject; Msg: String);
     procedure SmtpEmailSinuRequestDone(Sender: TObject; RqType: TSmtpRequest;
       ErrorCode: Word);
@@ -49,12 +47,15 @@ type
     procedure SmtpEmailRequestDone(Sender: TObject; RqType: TSmtpRequest;
       ErrorCode: Word);
     procedure SchedulerTimer(Sender: TObject);
+    procedure lsvCustomerListChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
   private
 	  { Private declarations }
 	  fSkinData           : TbsSkinData;
     fDocRegistry        : GTDDocumentRegistry;
     fplBuilder          : TBuildPricelistFromDBRun;
     fplBuildConfig      : TBuildPricelistFromDBConfig;
+    fLatestpl           : GTDPricelist;
 
     fConnectionErr,
     fProcessing ,
@@ -70,8 +71,8 @@ type
   public
     { Public declarations }
     function Init:Boolean;
-    function GenerateForAll:Boolean;
-    function GenerateForTrader(Trader_ID : Integer):Boolean;
+    function SendToAll:Boolean;
+    function SendToTrader(Trader_ID : Integer; ForcedSend : Boolean = False):Boolean;
     function Cancel:Boolean;
     procedure Report(const msgType, msgText : String);
 
@@ -108,7 +109,6 @@ implementation
 
 function TPricelistGenerator.Init:Boolean;
 var
-	newItem : TListItem;
   sStatus : String;
 begin
     if not Assigned(fDocRegistry) then
@@ -118,55 +118,6 @@ begin
     end;
 
     fDocRegistry.OpenRegistry('',sStatus);
-
-    lsvItems.Items.Clear;
-
-	newItem := lsvItems.Items.Add;
-	newItem.Caption := 'Ready';
-	newItem.SubItems.Add('Retail Pricelist');
-	newItem.SubItems.Add('All Retail Customers');
-	newItem.SubItems.Add('Grid');
-
-	with qryFindTargets do
-	begin
-
-		Active := False;
-
-		DatabaseName := GTD_ALIAS;
-
-		SQL.Clear;
-		SQL.Add('select * from SysVals');
-		SQL.Add('where ');
-		SQL.Add('  (Section = "Special Generator") or');
-		SQL.Add('  (Section = "Customer Generator")');
-
-		Active := True;
-
-		First;
-		while not Eof do
-		begin
-
-			newItem := lsvItems.Items.Add;
-
-			if FieldByName('Section').AsString = 'Special Generator' then
-			begin
-				newItem.Caption := 'Not Started';
-				newItem.SubItems.Add('Custom');
-				newItem.SubItems.Add(FieldByName('KeyName').AsString);
-				newItem.SubItems.Add(FieldByName('KeyValue').AsString);
-			end
-			else if FieldByName('Section').AsString = 'Customer Generator' then
-			begin
-				newItem.Caption := 'Not Started';
-				newItem.SubItems.Add('Pricelist');
-				newItem.SubItems.Add(FieldByName('KeyValue').AsString);
-				newItem.SubItems.Add('Grid');
-			end;
-
-			Next;
-		end;
-
-	end;
 
     if not Assigned(fplBuildConfig) then
     begin
@@ -196,6 +147,7 @@ begin
     end;
 
     fDistributing := False;
+    
     SetPriceListTimer(30);
 
     CollectEmailDistributionList; {Collect all traders}
@@ -204,27 +156,26 @@ end;
 procedure TPricelistGenerator.SetSkinData(Value: TbsSkinData);
 begin
   pnlBack.SkinData := Value;
-	mmoLog.SkinData := Value;
+  mmoLog.SkinData := Value;
   mmoErrLog.SkinData := Value;{Sinu}
   gbErrorLog.SkinData := Value;{Sinu}
 
-	lsvItems.SkinData := Value;
-	rdoGenerateForHowMany.SkinData := Value;
-	btnGenerateAll.SkinData := Value;
-	sgProgress.SkinData := Value;
+  lsvCustomerList.SkinData := Value;
+  rdoGenerateForHowMany.SkinData := Value;
+  btnGenerateAll.SkinData := Value;
+  sgProgress.SkinData := Value;
 
-    btnList.SkinData := Value;
-    dbgCustomerList.SkinData := Value;
-    pnlSettings.SkinData := Value;
-    cbxSpecialsOnly.SkinData := Value;
-    cbxNewProducts.SkinData := Value;
-    cbxFullPricelist.SkinData := Value;
-    btnPreview.SkinData := Value;
-    cbxTemplateName.SkinData := Value;
-    lblTemplateName.SkinData := Value;
+  btnList.SkinData := Value;
+  pnlSettings.SkinData := Value;
+  cbxSpecialsOnly.SkinData := Value;
+  cbxNewProducts.SkinData := Value;
+  cbxFullPricelist.SkinData := Value;
+  btnPreview.SkinData := Value;
+  cbxTemplateName.SkinData := Value;
+  lblTemplateName.SkinData := Value;
 end;
 
-function TPricelistGenerator.GenerateForAll:Boolean;
+function TPricelistGenerator.SendToAll:Boolean;
 var
 	iCount : Integer;
 begin
@@ -239,9 +190,9 @@ begin
     begin
       if Not fProcessing then
       begin
-        {Initialize progress bar for sending each mail}
+        // -- Initialize progress bar for sending each mail
         sgProgress.Value       := 1;
-        sgProgress.MaxValue    := lsvItems.Items.Count * 10;
+        sgProgress.MaxValue    := lsvCustomerList.Items.Count * 10;
         sgProgress.Visible     := True;
 
         fProcessing            := True;
@@ -251,18 +202,18 @@ begin
 
         MoveProgressBar; {Move position of progress bar}
 
-        {Generate and send price list for each trader}
-        GenerateForTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger);
+        // -- Generate and send price list for each trader
+        SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger);
       end;
 
-      {repeat this loop until a reply gets from the mail server.
-      Call GenerateForTrader and process all messages till gets a reply from mail server.
-      After finishing the process of mail sending , loop to do the same for another trader.}
+      // -- repeat this loop until a reply gets from the mail server.
+      //    Call GenerateForTrader and process all messages till gets a reply from mail server.
+      //  After finishing the process of mail sending , loop to do the same for another trader.}
       repeat
         Application.ProcessMessages;
       until fProcessing = False;
 
-      {If there is any mail server problem, break from the loop.}
+      // -- If there is any mail server problem, break from the loop.
       if fConnectionErr then
         Break;
 
@@ -272,24 +223,38 @@ begin
 
   fDistributing := False;
 
+  if Scheduler.Enabled then
+    Report('STATUS','Waiting on Scheduler')
+  else
+    Report('STATUS','Ready');
+
 end;
 
 procedure TPricelistGenerator.btnGenerateAllClick(Sender: TObject);
 begin
+    Screen.Cursor           := crHourGlass;
+    lsvCustomerList.Visible := False;
+    sgProgress.Visible      := True;
+    sgProgress.Value        := 1;
+    sgProgress.MaxValue     := 11;
+    rdoGenerateForHowMany.Enabled    := False;
+    btnGenerateAll.Enabled  := False;
+
+    Application.ProcessMessages;
+
     if rdoGenerateForHowMany.ItemIndex = 1 then
-        GenerateForAll
+        SendToAll
     else begin
+        if Assigned(lsvCustomerList.Selected) then
+        begin
+          if qryFindTargets.Locate(GTD_DB_COL_TRADER_ID,VarArrayOf([StrToInt(lsvCustomerList.Selected.SubItems[2])]),[]) then
+            SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger)
+          else
+            bsSkinMessage1.MessageDlg('Customer not found.',mtError,[mbOk],0);
 
-        dbgCustomerList.Visible := False;
-
-        sgProgress.Visible      := True;
-        sgProgress.MaxValue     := 11;
-        rdoGenerateForHowMany.Enabled    := False;
-        btnGenerateAll.Enabled  := False;
-        Screen.Cursor           := crHourGlass;
-
-        sgProgress.Value        := 1;
-        GenerateForTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger);
+        end
+        else
+          bsSkinMessage1.MessageDlg('No Customer selected',mtError,[mbOk],0);
     end;
 end;
 
@@ -316,23 +281,26 @@ begin
 		Active := True;
 
     // -- Cycle through each of the records
-		First;
-		ListCount :=0;
-
+    lsvCustomerList.Items.Clear;
+    First;
+    ListCount :=0;
     while not Eof do
-		begin
-      CreateHTMLEmailfromTemplate('');
+    begin
+      // -- Add the company to the list
+      newItem := lsvCustomerList.Items.Add;
+      newItem.Caption := FieldByName(GTD_DB_COL_COMPANY_NAME).AsString;
+      newItem.SubItems.Add('Not Started');
+      newItem.SubItems.Add('');
 
-      EmailFileSetToCustomer;
+      newItem.SubItems.Add(FieldByName(GTD_DB_COL_TRADER_ID).AsString);
 
-      Inc(ListCount);
+      Next;
+    end;
 
-			Next;
-		end;
-
-    // -- Update the label
-    lblListCount.Caption := IntToStr(ListCount) + ' Customers found';
 	end;
+
+  // -- Update the label
+  lblListCount.Caption := IntToStr(ListCount) + ' Customers found';
 end;
 
 function TPricelistGenerator.Cancel:Boolean;
@@ -342,18 +310,7 @@ end;
 procedure TPricelistGenerator.btnListClick(Sender: TObject);
 begin
   CollectEmailDistributionList;
-  dbgCustomerList.Visible := not dbgCustomerList.Visible;
-end;
-
-procedure TPricelistGenerator.lblListCountClick(Sender: TObject);
-begin
-  sgProgress.Visible := True;
-
-  // -- Debugging code
-  with SmtpEmail do
-  begin
-      Connect;
-  end;
+  lsvCustomerList.Visible := not lsvCustomerList.Visible;
 end;
 
 procedure TPricelistGenerator.SmtpEmailSinuDisplay(Sender: TObject;
@@ -380,12 +337,10 @@ begin
   if (RqType = smtpConnect) and (ErrorCode = 0) then
   begin
     // -- Do the mailing
+    Report('STATUS','Sending Pricelist');
     Report('SHOW','Mail server connected Successfully.');
     Report('SHOW','Now price lists can be sent.');
-    {Sinu}
-    btnGenerateAll.Enabled := True;
-    rdoGenerateForHowMany.Enabled   := True;
-    {Sinu}
+
     SmtpEMail.Mail;
     sgProgress.Value := 40;
   end
@@ -403,9 +358,9 @@ begin
   begin
     sgProgress.Value := 100;
     Report('SHOW','Session closed Successfully');
-    Report('COMPLETE','Product Data Mailing Function complete.');
     sgProgress.Visible := False;
     Report('SHOW','Product Data Mailed Successfully');
+    Report('STATUS','Complete');
 
     fProcessing := False;
   end
@@ -449,7 +404,7 @@ begin
 //
 end;
 
-function TPricelistGenerator.GenerateForTrader(Trader_ID : Integer):Boolean;
+function TPricelistGenerator.SendToTrader(Trader_ID : Integer; ForcedSend : Boolean):Boolean;
 
   procedure ResetBeforeExit;
   begin
@@ -462,12 +417,11 @@ function TPricelistGenerator.GenerateForTrader(Trader_ID : Integer):Boolean;
   end;
 
 var
-  pl : GTDPricelist;
   sFormat,sColName,sColumns,sFileName , sFrequency , sLastSent: String;
   dLastSent: TDateTime;
   fTimeDiff : Double;
   i,xd, iColCount : Integer;
-  bNoNeedToProcess : Boolean;
+  bNeedToProcess : Boolean;
 
 begin
   Result := False;
@@ -479,6 +433,30 @@ begin
   if fDocRegistry.OpenForTraderNumber(Trader_ID) then
   begin
     MoveProgressBar;
+
+    // -- Progess display
+    Report('STATUS','Checking Pricelist');
+    Report('SHOW','Checking pricelist for ' + fDocRegistry.Trader_Name);
+
+    // -- Create a pricelist if not already done
+    if not Assigned(fLatestpl) then
+      fLatestpl := GTDPricelist.Create(Self)
+    else
+      fLatestpl.Clear;
+
+    // -- Retrieve the Customers latest pricelist
+    if not fDocRegistry.GetLatestPriceList(GTDBizDoc(fLatestpl))then
+    begin
+      // -- If not then use the standard pricelist
+      if FileExists(GTD_CURRENT_PRICELIST) then
+        fLatestpl.xml.LoadFromFile(GTD_CURRENT_PRICELIST)
+      else
+        // -- No pricelist to load, didn't work
+        Exit;
+    end
+    else
+      // -- Yes we could load the pricelist
+      Report('SHOW','Using pricelist from ' + DateTimeToStr(fLatestpl.Document_Date));
 
     // -- Get pricelist delivery frequency
     fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_FREQUENCY,sFrequency);
@@ -492,12 +470,22 @@ begin
       fTimeDiff   := DaysBetween(Now ,dLastSent);
       sFrequency  := UpperCase(Trim(sFrequency));
 
-      // -- Time to send ?
-      bNoNeedToProcess := ((sFrequency = UpperCase(PL_DELIV_FREQ_DAILY)) and (fTimeDiff = 0)) or
-              ((sFrequency = UpperCase(PL_DELIV_FREQ_WEEKLY)) and (fTimeDiff <= 7)) or
-              ((sFrequency = UpperCase(PL_DELIV_FREQ_FORTNIGHT)) and (fTimeDiff <= 14));
+      // -- Check the last sent date. Here it is a little complicated
+      if (fLatestpl.Document_Date > dLastSent) then
+      begin
+        // -- Time to send ?
+        bNeedToProcess := ((sFrequency = UpperCase(PL_DELIV_FREQ_DAILY)) and (fTimeDiff >= 1)) or
+                ((sFrequency = UpperCase(PL_DELIV_FREQ_WEEKLY)) and (fTimeDiff >= 7)) or
+                ((sFrequency = UpperCase(PL_DELIV_FREQ_FORTNIGHT)) and (fTimeDiff >= 14));
+      end
+      else begin
+        // -- Check if it was a forced send
+        bNeedToProcess := ForcedSend;
+        if not bNeedToProcess then
+          Report('SHOW','No changes since last send.');
+      end;
 
-      if bNoNeedToProcess then
+      if not bNeedToProcess then
       begin
         ResetBeforeExit;
         Exit;
@@ -505,20 +493,7 @@ begin
 
     end;
 
-    pl := GTDPricelist.Create(Self);
-
-    // -- Retrieve the Customers latest pricelist
-    if not fDocRegistry.GetLatestPriceList(GTDBizDoc(pl))then
-    begin
-      // -- If not then use the standard pricelist
-      if FileExists(GTD_CURRENT_PRICELIST) then
-        pl.xml.LoadFromFile(GTD_CURRENT_PRICELIST)
-      else
-        // -- No pricelist to load, didn't work
-        pl.Destroy;
-        Exit;
-    end;
-
+    // -- Retrieve the format that they want the pricelist in
     fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_FORMAT,sFormat);
 
     iColCount := 0;
@@ -562,24 +537,30 @@ begin
     begin
       sFileName := sFileName + '.csv';
 
+      Report('STATUS','Converting pricelist to CSV');
+
       // -- Save the price list in csv format
-      pl.ExportAsStandardCSV(sFileName,sColumns,False);
+      fLatestpl.ExportAsStandardCSV(sFileName,sColumns,False);
       MoveProgressBar;
     end
     else if (sFormat = PL_DELIV_XLS) then
     begin
       sFileName := sFileName + '.xls';
 
+      Report('STATUS','Converting pricelist to XLS');
+
       // -- Save the price list in xls format
-      pl.ExportAsXLS(fDocRegistry, sFileName,sColumns);
+      fLatestpl.ExportAsXLS(fDocRegistry, sFileName,sColumns);
 
       MoveProgressBar;
 
     end;
 
     // -- Send the file to the customer
-    SendEmail(sFileName,qryFindTargets.FieldByName('Email').AsString,sFormat,pl);
+    SendEmail(sFileName,qryFindTargets.FieldByName(GTD_DB_COL_EMAILADDRESS).AsString,sFormat,fLatestpl);
+
   end;
+
 end;
 
 function TPricelistGenerator.SendEmail(AFileName,AEmailId,delivFormat : String; PricelistRef : GTDPricelist): Boolean;
@@ -590,30 +571,37 @@ function TPricelistGenerator.SendEmail(AFileName,AEmailId,delivFormat : String; 
     begin
       SmtpEmail.MailMessage.Clear;
 
-      // -- Here we will use the first word of the contact field
-      s := qryFindTargets.FieldByName(GTD_DB_COL_CONTACT).AsString;
-      if (s = '') then
-        SmtpEmail.MailMessage.Add('Hello,')
-      else
-        SmtpEmail.MailMessage.Add('Hi ' + Parse(s,' ') + ',');
+      if fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,'Email_BodyText',s) then
+      begin
+        // -- Custom defined email message body
+        SmtpEmail.MailMessage.Add(s);
+      end
+      else begin
 
-      SmtpEmail.MailMessage.Add('');
-      SmtpEmail.MailMessage.Add('Please find our latest Pricelist.');
+        // -- Here we will use the first word of the contact field
+        s := qryFindTargets.FieldByName(GTD_DB_COL_CONTACT).AsString;
+        if (s = '') then
+          SmtpEmail.MailMessage.Add('Hello,')
+        else
+          SmtpEmail.MailMessage.Add('Hi ' + Parse(s,' ') + ',');
 
-      // -- Build the message
-      SmtpEmail.MailMessage.Add('');
-//    SmtpEmail.MailMessage.Add('  Items  : ' + IntToStr(PricelistRef.xml.Count));
-      SmtpEmail.MailMessage.Add('  Date   : ' + DateTimeToStr(Now));
-      SmtpEmail.MailMessage.Add('  Format : ' + UpperCase(delivFormat));
-//    SmtpEmail.MailMessage.Add('  Frequency : ' + IntToStr(PricelistRef.xml.Count));
+        SmtpEmail.MailMessage.Add('');
+        SmtpEmail.MailMessage.Add('Please find our latest Pricelist.');
 
-      SmtpEmail.MailMessage.Add('');
-      SmtpEmail.MailMessage.Add('Best Regards');
-      SmtpEmail.MailMessage.Add('');
-      SmtpEmail.MailMessage.Add(fDocRegistry.GetCompanyName);
+        // -- Build the message
+        SmtpEmail.MailMessage.Add('');
+  //    SmtpEmail.MailMessage.Add('  Items  : ' + IntToStr(PricelistRef.xml.Count));
+        SmtpEmail.MailMessage.Add('  Date   : ' + DateTimeToStr(Now));
+        SmtpEmail.MailMessage.Add('  Format : ' + UpperCase(delivFormat));
+  //    SmtpEmail.MailMessage.Add('  Frequency : ' + IntToStr(PricelistRef.xml.Count));
 
+        SmtpEmail.MailMessage.Add('');
+        SmtpEmail.MailMessage.Add('Best Regards');
+        SmtpEmail.MailMessage.Add('');
+        SmtpEmail.MailMessage.Add(fDocRegistry.GetCompanyName);
+
+      end;
     end;
-
 var
   s : String;
 
@@ -624,87 +612,82 @@ begin
   SmtpEmail.HdrTo      := AEmailId;
 
   // -- Build the message subject
-  if fDocRegistry.GetCompanyName <> '' then
-    s := 'Latest Pricelist from ' + fDocRegistry.GetCompanyName
-  else
-    s := 'Latest Price List';
-  SmtpEmail.HdrSubject := s;
+  if fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,'Email Subject',s) then
+  begin
+    // -- Use the Custom message subject
+    SmtpEmail.HdrSubject := s
+  end;
 
-    // -- Load the appropriate configuration record
-    if not fDocRegistry.GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_USER_EMAIL,s) then
-    begin
-        // -- Might be a new record
-        Report('Error','Unable to load configuration. Template not available');
-        Exit;
-    end
-    else begin
-        if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_HOST,s) then
-            SmtpEmail.Host := s
-        else
-            SmtpEmail.Host := '';
+  if SmtpEmail.HdrSubject='' then
+  begin
+    // -- No custom message subject. So build one from the company name
+    if fDocRegistry.GetCompanyName <> '' then
+      s := 'Latest Pricelist from ' + fDocRegistry.GetCompanyName
+    else
+      s := 'Latest Price List';
+    SmtpEmail.HdrSubject := s;
+  end;
 
-        if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_LOGINREQ,s) then
-        begin
-            if (s = 'True') then
-            begin
-                SmtpEmail.AuthType  := smtpAuthLogin;
+  // -- Load the appropriate configuration record
+  if not fDocRegistry.GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_USER_EMAIL,s) then
+  begin
+      // -- Might be a new record
+      Report('Error','Unable to load configuration. Template not available');
+      Exit;
+  end
+  else begin
+      if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_HOST,s) then
+          SmtpEmail.Host := s
+      else
+          SmtpEmail.Host := '';
 
-                if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_USERNAME,s) then
-                    SmtpEmail.UserName := s
-                else
-                    SmtpEmail.UserName := '';
+      if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_LOGINREQ,s) then
+      begin
+          if (s = 'True') then
+          begin
+              SmtpEmail.AuthType  := smtpAuthLogin;
 
-                if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_PASSWORD,s) then
-                    SmtpEmail.Password := s
-                else
-                    SmtpEmail.Password := '';
-            end
-            else
-                SmtpEmail.AuthType  := smtpAuthNone;
-        end
-        else
-            SmtpEmail.AuthType  := smtpAuthNone;
+              if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_USERNAME,s) then
+                  SmtpEmail.UserName := s
+              else
+                  SmtpEmail.UserName := '';
 
-        if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_DISPLAYNAME,s) then
-        begin
-            SmtpEmail.FromName:= s;
-            SmtpEmail.HdrFrom := s;
-        end
-        else
-            SmtpEmail.HdrFrom := '';
-        end;
+              if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_PASSWORD,s) then
+                  SmtpEmail.Password := s
+              else
+                  SmtpEmail.Password := '';
+          end
+          else
+              SmtpEmail.AuthType  := smtpAuthNone;
+      end
+      else
+          SmtpEmail.AuthType  := smtpAuthNone;
 
-        {
-        if DocumentRegistry.GetSettingMemoString('/email settings','subject',s) then
-            SmtpCli1.HdrSubject := s
-        else
-            SmtpCli1.HdrSubject := '';
-
-        if DocumentRegistry.GetSettingMemoString('/email settings','bodytext',s) then
-        begin
-            SmtpEmail.MailMessage.Clear;
-            SmtpCli1.MailMessage.Add(s);
-        end
-        else
-            SmtpCli1.MailMessage.Clear;
-        }
+      if fDocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_DISPLAYNAME,s) then
+      begin
+          SmtpEmail.FromName:= s;
+          SmtpEmail.HdrFrom := s;
+      end
+      else
+          SmtpEmail.HdrFrom := '';
+      end;
 
 //    end;
 
-    // -- Set the recipient
-    SmtpEmail.HdrTo := AEmailId;
-    SmtpEmail.RcptName.Clear;
-    SmtpEmail.RcptName.Add(AEmailId);
+  // -- Set the recipient
+  SmtpEmail.HdrTo := AEmailId;
+  SmtpEmail.RcptName.Clear;
+  SmtpEmail.RcptName.Add(AEmailId);
 
-    // -- Attach the attachments
-    SmtpEmail.EmailFiles.Clear;
-    SmtpEmail.EmailFiles.Add(AFileName);
+  // -- Attach the attachments
+  SmtpEmail.EmailFiles.Clear;
+  SmtpEmail.EmailFiles.Add(AFileName);
 
-    // -- Attach the message
-    BuildMessageBody;
+  // -- Attach the message
+  BuildMessageBody;
 
-    // -- Now send mail
-    SmtpEmail.Connect;
+  // -- Now send mail
+  SmtpEmail.Connect;
 end;
 
 procedure TPricelistGenerator.SmtpEmailDisplay(Sender: TObject;
@@ -735,14 +718,21 @@ begin
     Screen.Cursor           := crHourGlass;
 
     // -- Do the mailing
-    Report('SHOW','Mail server connected Successfully.');
-    Report('SHOW','Price lists can now be sent.');
+    Report('SHOW','Connected to Mail server.');
+    Report('STATUS','Sending Pricelist.');
     MoveProgressBar;
     SmtpEMail.Mail;
+
     //sgProgress.Value := iRecord * 40;
   end
   else if (RqType = smtpMail) and (ErrorCode = 0) then
   begin
+
+    Report('SHOW','Pricelist sent.');
+
+    // -- Set current time as the delivery time
+    fDocRegistry.SaveTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,DateTimeToStr(Now));
+
     //sgProgress.Value := iRecord * 90;
     MoveProgressBar;
     // -- Write every entry
@@ -750,6 +740,19 @@ begin
       Report('SENT','Successfully sent ' + SmtpEmail.EmailFiles.Strings[xc-1]);
 
     SmtpEmail.Quit;
+
+    // -- Now change the document status to sent
+    if Assigned(fLatestpl) then
+    begin
+      // -- Change the status
+      fLatestpl.Local_Status_Code := GTD_AUDITCD_SND;
+
+      // -- Save it back in the registry
+      fDocRegistry.Save(fLatestpl,GTD_AUDITCD_SND,'Document sent by email');
+      
+    end;
+
+    fProcessing := False;
   end
   else if (RqType = smtpQuit) and (ErrorCode = 0) then
   begin
@@ -761,12 +764,6 @@ begin
     sgProgress.Visible := False;
     Report('SHOW','Product Data Mailed Successfully to ' + SmtpEmail.HdrTo);
 
-    // -- Set current time as the delivery time
-    fDocRegistry.SaveTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,DateTimeToStr(Now));
-
-    rdoGenerateForHowMany.Enabled    := True;
-    btnGenerateAll.Enabled  := True;
-    Screen.Cursor           := crDefault;
     fProcessing             := False;
   end
   else if (ErrorCode <> 0) then
@@ -805,7 +802,17 @@ end;
 
 procedure TPricelistGenerator.Report(const msgType, msgText : String);
 begin
+  if (msgType = 'STATUS') then
+  begin
+    // --
+    lblStatus.Caption := msgText;
+    lblStatus.Update;
+  end
+  else begin
+    // -- Display it in the box
     mmoErrLog.Lines.Add(msgtype + ' - ' + msgText);
+    mmoErrLog.Update;
+  end;
 end;
 
 procedure TPricelistGenerator.SetPriceListTimer(ASeconds: Integer);
@@ -813,12 +820,26 @@ begin
   Scheduler.Enabled   := False;
   Scheduler.Interval  := 1000 * ASeconds;
   Scheduler.Enabled   := True;
+
+  if Scheduler.Enabled then
+    Report('STATUS','Waiting on Scheduler')
+  else
+    Report('STATUS','Ready');
+
 end;
 
 procedure TPricelistGenerator.SchedulerTimer(Sender: TObject);
 begin
   if Not fDistributing then
-    GenerateForAll;
+    SendToAll;
+end;
+
+procedure TPricelistGenerator.lsvCustomerListChange(Sender: TObject;
+  Item: TListItem; Change: TItemChange);
+begin
+  if (Item = lsvCustomerList.Selected) and (Change = ctState) then
+  begin
+  end;
 end;
 
 end.

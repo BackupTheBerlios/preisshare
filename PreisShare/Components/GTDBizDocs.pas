@@ -1329,7 +1329,7 @@ const
 
     GTD_DOC_LIST_SEPERATOR      = ';';
 
-    GTD_LANGUAGE                = '<?PreisMarkup(tm) Version#=2.0 encoding&="UTF-8" LangID&="EN">';
+    GTD_LANGUAGE                = '<?EuroMarkup(tm) Version#=1.0 encoding&="UTF-8" LangID&="EN">';
 
 	PRODUCT_UPDATE_ADDITION     = 'Addition';
     PRODUCT_UPDATE_REMOVAL      = 'Removal';
