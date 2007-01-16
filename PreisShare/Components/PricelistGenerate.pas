@@ -37,6 +37,7 @@ type
     rdoGenerateForHowMany: TbsSkinRadioGroup;
     Scheduler: TTimer;
     lsvCustomerList: TbsSkinListView;
+    cbxShowDetails: TbsSkinCheckRadioBox;
     procedure btnGenerateAllClick(Sender: TObject);
     procedure btnListClick(Sender: TObject);
     procedure SmtpEmailSinuDisplay(Sender: TObject; Msg: String);
@@ -49,6 +50,7 @@ type
     procedure SchedulerTimer(Sender: TObject);
     procedure lsvCustomerListChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
+    procedure cbxShowDetailsClick(Sender: TObject);
   private
 	  { Private declarations }
 	  fSkinData           : TbsSkinData;
@@ -147,8 +149,6 @@ begin
     end;
 
     fDistributing := False;
-    
-    SetPriceListTimer(30);
 
     CollectEmailDistributionList; {Collect all traders}
 end;
@@ -173,6 +173,8 @@ begin
   btnPreview.SkinData := Value;
   cbxTemplateName.SkinData := Value;
   lblTemplateName.SkinData := Value;
+  cbxShowDetails.SkinData := Value;
+  
 end;
 
 function TPricelistGenerator.SendToAll:Boolean;
@@ -470,20 +472,25 @@ begin
       fTimeDiff   := DaysBetween(Now ,dLastSent);
       sFrequency  := UpperCase(Trim(sFrequency));
 
+      bNeedToProcess := False;
+
       // -- Check the last sent date. Here it is a little complicated
       if (fLatestpl.Document_Date > dLastSent) then
       begin
         // -- Time to send ?
         bNeedToProcess := ((sFrequency = UpperCase(PL_DELIV_FREQ_DAILY)) and (fTimeDiff >= 1)) or
                 ((sFrequency = UpperCase(PL_DELIV_FREQ_WEEKLY)) and (fTimeDiff >= 7)) or
-                ((sFrequency = UpperCase(PL_DELIV_FREQ_FORTNIGHT)) and (fTimeDiff >= 14));
+                ((sFrequency = UpperCase(PL_DELIV_FREQ_FORTNIGHT)) and (fTimeDiff >= 14)) or
+                (sFrequency = UpperCase(PL_DELIV_FREQ_INSTANT));
       end
       else begin
         // -- Check if it was a forced send
         bNeedToProcess := ForcedSend;
-        if not bNeedToProcess then
-          Report('SHOW','No changes since last send.');
       end;
+
+      // -- Display the results
+      if not bNeedToProcess then
+        Report('SHOW','No changes since last send.');
 
       if not bNeedToProcess then
       begin
@@ -819,7 +826,12 @@ procedure TPricelistGenerator.SetPriceListTimer(ASeconds: Integer);
 begin
   Scheduler.Enabled   := False;
   Scheduler.Interval  := 1000 * ASeconds;
-  Scheduler.Enabled   := True;
+
+  // -- Turn off the schedular with a 0 or -1 value
+  if (ASeconds <> 0) and (ASeconds <> -1) then
+    Scheduler.Enabled := True
+  else
+    Scheduler.Enabled := False;
 
   if Scheduler.Enabled then
     Report('STATUS','Waiting on Scheduler')
@@ -839,6 +851,19 @@ procedure TPricelistGenerator.lsvCustomerListChange(Sender: TObject;
 begin
   if (Item = lsvCustomerList.Selected) and (Change = ctState) then
   begin
+  end;
+end;
+
+procedure TPricelistGenerator.cbxShowDetailsClick(Sender: TObject);
+begin
+  if not cbxShowDetails.Checked then
+  begin
+    // --
+    lsvCustomerList.Visible := True;
+  end
+  else begin
+    // --
+    lsvCustomerList.Visible := False;
   end;
 end;
 

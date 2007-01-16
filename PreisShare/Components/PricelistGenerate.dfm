@@ -456,9 +456,9 @@ object PricelistGenerator: TPricelistGenerator
       Caption = 'Processing Log'
       object mmoErrLog: TbsSkinMemo
         Left = 6
-        Top = 29
-        Width = 339
-        Height = 132
+        Top = 16
+        Width = 336
+        Height = 145
         Color = clWhite
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -688,9 +688,9 @@ object PricelistGenerator: TPricelistGenerator
     end
     object rdoGenerateForHowMany: TbsSkinRadioGroup
       Left = 172
-      Top = 200
+      Top = 192
       Width = 149
-      Height = 89
+      Height = 73
       TabOrder = 3
       SkinDataName = 'groupbox'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -763,6 +763,30 @@ object PricelistGenerator: TPricelistGenerator
       SkinDataName = 'listview'
       DefaultColor = clWindow
       OnChange = lsvCustomerListChange
+    end
+    object cbxShowDetails: TbsSkinCheckRadioBox
+      Left = 168
+      Top = 272
+      Width = 150
+      Height = 25
+      TabOrder = 5
+      SkinDataName = 'checkbox'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      ImageIndex = 0
+      Flat = True
+      CanFocused = True
+      Radio = False
+      Checked = False
+      GroupIndex = 0
+      Caption = 'Show Details'
+      OnClick = cbxShowDetailsClick
     end
   end
   object sgProgress: TbsSkinGauge
