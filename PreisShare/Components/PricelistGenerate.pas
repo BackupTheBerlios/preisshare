@@ -541,7 +541,9 @@ begin
     if (sFormat = PL_DELIV_CSV) then
       fDocRegistry.GetTraderSettingInt('/CSV Pricelist Output','Column_Count',iColCount)
     else if (sFormat = PL_DELIV_XLS) then
-      fDocRegistry.GetTraderSettingInt('/XLS Pricelist Output','Column_Count',iColCount);
+      fDocRegistry.GetTraderSettingInt('/XLS Pricelist Output','Column_Count',iColCount)
+    else if (sFormat = PL_DELIV_XML) then
+      fDocRegistry.GetTraderSettingInt('/XML OutputFormat','Column_Count',iColCount);
 
     if iColCount = 0 then
       // -- There were no standard columns defined
@@ -592,6 +594,17 @@ begin
 
       MoveProgressBar;
 
+    end
+    else if (sFormat = PL_DELIV_XML) then
+    begin
+      sFileName := sFileName + '.xml';
+      
+      Report('STATUS','Converting pricelist to XML');
+
+      // -- Save the price list in xls format
+      fLatestpl.ExportAsXML(fDocRegistry,sFileName,sColumns);
+
+      MoveProgressBar;
     end;
 
     // -- Send the file to the customer
