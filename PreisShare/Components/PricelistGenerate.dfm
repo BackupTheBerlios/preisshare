@@ -736,11 +736,11 @@ object PricelistGenerator: TPricelistGenerator
           Width = 160
         end
         item
-          Caption = 'Status'
+          Caption = 'Updated'
           Width = 100
         end
         item
-          Caption = 'Updated'
+          Caption = 'Sent'
           Width = 100
         end>
       Font.Charset = DEFAULT_CHARSET
@@ -781,6 +781,7 @@ object PricelistGenerator: TPricelistGenerator
       UseSkinFont = True
       ImageIndex = 0
       Flat = True
+      TabStop = True
       CanFocused = True
       Radio = False
       Checked = False
@@ -869,8 +870,8 @@ object PricelistGenerator: TPricelistGenerator
     Top = 16
   end
   object PageProducer1: TPageProducer
-    Left = 440
-    Top = 12
+    Left = 272
+    Top = 276
   end
   object Scheduler: TTimer
     Enabled = False

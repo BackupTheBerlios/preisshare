@@ -105,7 +105,7 @@ const
   PL_DELIV_LAST_SENT     = 'Last_Sent';
 
 implementation
-  uses DateUtils;
+  uses DateUtils, Main;
 
 {$R *.DFM}
 
@@ -230,6 +230,10 @@ begin
   else
     Report('STATUS','Ready');
 
+  // -- Cleanup
+  Screen.Cursor := crDefault;
+  btnGenerateAll.Enabled := True;
+
 end;
 
 procedure TPricelistGenerator.btnGenerateAllClick(Sender: TObject);
@@ -263,7 +267,9 @@ end;
 function TPricelistGenerator.CollectEmailDistributionList:Boolean;
 var
     newItem : TListItem;
-    ListCount : Integer;
+    ListCount,tid : Integer;
+    v : String;
+    dt : TDateTime;
 begin
   {Select all traders from the trader table}
 	with qryFindTargets do
@@ -288,13 +294,38 @@ begin
     ListCount :=0;
     while not Eof do
     begin
-      // -- Add the company to the list
-      newItem := lsvCustomerList.Items.Add;
-      newItem.Caption := FieldByName(GTD_DB_COL_COMPANY_NAME).AsString;
-      newItem.SubItems.Add('Not Started');
-      newItem.SubItems.Add('');
 
-      newItem.SubItems.Add(FieldByName(GTD_DB_COL_TRADER_ID).AsString);
+      tid := FieldByName(GTD_DB_COL_TRADER_ID).AsInteger;
+
+      // -- Open this Trader
+      if frmMain.DocRegistry.OpenForTraderNumber(tid) then
+      begin
+
+        // -- Add the company to the list
+        newItem := lsvCustomerList.Items.Add;
+        newItem.Caption := frmMain.DocRegistry.Trader_Name;
+
+        // -- Last run
+        v := '';
+        frmMain.DocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_RUN,v);
+        if v = '' then
+        begin
+            dt := frmMain.DocRegistry.GetLatestPriceListDateTime;
+            if (dt = 0) then
+                v := 'Never'
+            else
+                v := DateTimeToStr(dt);
+        end;
+        newItem.SubItems.Add(v);
+
+        // -- Last sent
+        v := '';
+        frmMain.DocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,v);
+        newItem.SubItems.Add(v);
+
+        newItem.SubItems.Add(FieldByName(GTD_DB_COL_TRADER_ID).AsString);
+
+      end;
 
       Next;
     end;
