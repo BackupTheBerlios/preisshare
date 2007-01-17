@@ -15,7 +15,8 @@ uses
   {$ENDIF}
   GTDBizDocs,
   {Sinu added for vtkExport}
-  BIFF8_Types, vteExcel, vteExcelTypes, vteWriters
+  BIFF8_Types, vteExcel, vteExcelTypes, vteWriters,
+  xmldom, XMLIntf, msxmldom, XMLDoc
   {Sinu}
   ;
 
@@ -49,6 +50,7 @@ type
       procedure EndItemIterator;
       procedure FlagCurrentItem(FlagValue : Integer);   // -- Set the flag of the current item
       function  GetCurrentItemFlag:Integer;             // -- Read the flag of the current item
+      function  GetCurrentItemProductGroupName:String;
 
       procedure SaveItemsToFile(aFilename : String);
 
@@ -74,7 +76,26 @@ type
 	published
   end;
 
+  TXMLOp = class
+  private
+    FXMLDoc : TXMLDocument;
+    FFileName: String;
+    procedure SetFileName(const Value: String);
+
+  public
+    constructor CreateXMLOp(AOwner: TComponent; AFileName : String);
+    destructor Destroy;override;
+
+    function AddRootNode(ACaption : String):IXMLNode;
+    function AddChildNode(AParentNode : IXMLNode; ACaption , AText : String):IXMLNode;
+    procedure SetTextValue(ANode : IXMLNode; AValue : String);
+    procedure SaveFile;
+
+    property FileName : String read FFileName write SetFileName;
+  end;
+
 implementation
+uses FastStrings;
 
 // ----------------------------------------------------------------------------
 
@@ -96,7 +117,7 @@ begin
 	end;
 
 	aListView.Items.Clear;
-	
+
 	while ProductGroupNode.FindTag(GTD_PL_PRODUCTGROUP_TAG) do
 	begin
 
@@ -299,7 +320,13 @@ end;
 
 function GTDPricelist.GetCurrentItemFlag:Integer;             // -- Read the flag of the current item
 begin
-    Result := Integer(ItemList.Objects[iteratorLineNumber-1]);
+  Result := Integer(ItemList.Objects[iteratorLineNumber-1]);
+end;
+
+function GTDPricelist.GetCurrentItemProductGroupName:String;
+begin
+  // -- busted
+  Result := ''; // ProductGroupNode.ReadStringField(GTD_PL_ELE_GROUP_NAME);
 end;
 
 procedure GTDPricelist.SaveItemsToFile(aFilename : String);
@@ -497,6 +524,11 @@ begin
               sh.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
           end;
 
+        end
+        else if (sField = '<Product Group>') then
+        begin
+          // -- Extract the product group
+          sh.Ranges[iCol,iRow,iCol,iRow].Value := tmpProduct.ReadStringField(GTD_PL_PRODUCTGROUP_TAG);
         end;
 
         // -- Advance the column number
@@ -537,8 +569,70 @@ begin
 end;
 
 // -- Output the pricelist in XML format
-procedure GTDPricelist.ExportAsXML(aRegistry : GTDDocumentRegistry; aFilename,columnList : String);
+procedure GTDPricelist.ExportAsXML(aRegistry : GTDDocumentRegistry; aFilename, columnList : String);
+
+  // -- Function to remove spaces so that they work as xml tags
+  function AsXMLTag(const aString : String):String;
+  var
+    s : String;
+  begin
+    s := FastReplace(aString,' ','_');
+    Result := s;
+  end;
+
+var
+  fc : Integer;
+  sColumns,sField,sFieldValue : String;
+  fFloatField : Double;
+  tmpProduct : GTDNode;
+  XMLOpObj : TXMLOp;
+  PriceList , PInfo , PriceGrp , PrdItem , Product: IXMLNode;
 begin
+  tmpProduct := GTDNode.Create;
+
+  // -- Create the top level nodes
+  XMLOpObj  :=  TXMLOp.CreateXMLOp(Self, aFilename);
+  PriceList :=  XMLOpObj.AddRootNode(AsXMLTag(GTD_PL_PRICELIST_TAG));
+  PInfo     :=  XMLOpObj.AddChildNode(PriceList,asXMLTag(GTD_PL_PRODUCTINFO_TAG),'');
+  PriceGrp  :=  XMLOpObj.AddChildNode(PInfo,asXMLTag(GTD_PL_PRODUCTGROUP_TAG),'');
+
+  try
+    ReStartItemIterator;
+
+    while NextItemIteration(tmpProduct) do
+    begin
+      //Reload the columnlist for every item
+      sColumns  := ColumnList;
+      PrdItem := XMLOpObj.AddChildNode(PriceGrp,asXMLTag(GTD_PL_PRODUCTITEM_TAG),'');
+      repeat
+        //Extract the next field name
+        sField := Parse(sColumns,';');
+
+        //Now extract the value of that field
+        if (sField[1] <> '<') then
+        begin
+          //if amount, readnumberfield is used.
+          if (sField = GTD_PL_ELE_PRODUCT_LIST) or (sField = GTD_PL_ELE_PRODUCT_ACTUAL) then
+          begin
+            fFloatField := tmpProduct.ReadNumberField(sField,0);
+            XMLOpObj.AddChildNode(PrdItem,sField,FormatFloat('###########.##',fFloatField));
+          end
+          else
+          begin
+            //All non-price fields get stored as strings
+            sFieldValue := tmpProduct.ReadStringField(sField);
+            XMLOpObj.AddChildNode(PrdItem,sField,sFieldValue);
+          end;
+        end
+      until (sColumns = '');
+    end;//while
+
+    XMLOpObj.SaveFile;
+
+  finally
+    FreeAndNil(XMLOpObj);
+    tmpProduct.Destroy;
+  end;
 end;
 
 // -- CSV Output
@@ -640,6 +734,66 @@ begin
   until (AColumns = '');
 
   Result := iCount;
+end;
+
+{ TXMLOp }
+
+function TXMLOp.AddChildNode(AParentNode: IXMLNode; ACaption,
+  AText: String): IXMLNode;
+begin
+  Result := Nil;
+
+  if Assigned(AParentNode) then
+  if Trim(ACaption) <> '' then
+  begin
+    Result      := AParentNode.AddChild(ACaption);
+    if Trim(AText) <> '' then
+      Result.Text := AText;
+  end;
+end;
+
+function TXMLOp.AddRootNode(ACaption: String): IXMLNode;
+begin
+  Result := Nil;
+
+  if Assigned(FXMLDoc) then
+  if Trim(ACaption) <> '' then
+    Result := FXMLDoc.AddChild(ACaption);
+end;
+
+constructor TXMLOp.CreateXMLOp(AOwner: TComponent; AFileName : String);
+begin
+  inherited Create;
+  FXMLDoc   := TXMLDocument.Create(AOwner);
+  FFileName := AFileName;
+  FXMLDoc.Active    := True;
+end;
+
+destructor TXMLOp.Destroy;
+begin
+  FXMLDoc.Active := False;
+  
+  if Assigned(FXMLDoc) then
+    FreeAndNil(FXMLDoc);
+
+  inherited;
+end;
+
+procedure TXMLOp.SaveFile;
+begin
+  FXMLDoc.SaveToFile(FFileName);
+end;
+
+procedure TXMLOp.SetFileName(const Value: String);
+begin
+  FFileName         := Value;
+  FXMLDoc.FileName  := FFileName;
+end;
+
+procedure TXMLOp.SetTextValue(ANode: IXMLNode; AValue: String);
+begin
+  if Assigned(ANode) then
+    ANode.Text := AValue;
 end;
 
 end.
