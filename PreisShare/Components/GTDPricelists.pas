@@ -586,15 +586,30 @@ var
   fFloatField : Double;
   tmpProduct : GTDNode;
   XMLOpObj : TXMLOp;
-  PriceList , PInfo , PriceGrp , PrdItem , Product: IXMLNode;
+  PriceList , PInfo , PVendorInfo, PriceGrp ,
+  PrdItems , Product: IXMLNode;
 begin
   tmpProduct := GTDNode.Create;
 
   // -- Create the top level nodes
   XMLOpObj  :=  TXMLOp.CreateXMLOp(Self, aFilename);
   PriceList :=  XMLOpObj.AddRootNode(AsXMLTag(GTD_PL_PRICELIST_TAG));
+  PVendorInfo :=  XMLOpObj.AddChildNode(PriceList,asXMLTag(GTD_PL_VENDORINFO_TAG),'');
   PInfo     :=  XMLOpObj.AddChildNode(PriceList,asXMLTag(GTD_PL_PRODUCTINFO_TAG),'');
   PriceGrp  :=  XMLOpObj.AddChildNode(PInfo,asXMLTag(GTD_PL_PRODUCTGROUP_TAG),'');
+  PrdItems  :=  XMLOpObj.AddChildNode(PriceGrp,asXMLTag(GTD_PL_PRODUCTITEMS_TAG),'');
+
+  // -- Add all the vendor information in
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_COMPANY_CODE,aRegistry.GetGTL);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_COMPANY_NAME,aRegistry.GetCompanyName);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_ADDRESS_LINE_1,aRegistry.GetAddress1);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_ADDRESS_LINE_2,aRegistry.GetAddress2);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_TOWN,aRegistry.GetCity);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_STATE_REGION,aRegistry.GetState);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_POSTALCODE,aRegistry.GetPostcode);
+  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_COUNTRYCODE,aRegistry.GetCountryCode);
+//  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_TELEPHONE,aRegistry.);
+//  XMLOpObj.AddChildNode(PVendorInfo,GTD_PL_ELE_EMAIL_ADDRESS,aRegistry.);
 
   try
     ReStartItemIterator;
@@ -603,7 +618,7 @@ begin
     begin
       //Reload the columnlist for every item
       sColumns  := ColumnList;
-      PrdItem := XMLOpObj.AddChildNode(PriceGrp,asXMLTag(GTD_PL_PRODUCTITEM_TAG),'');
+      Product := XMLOpObj.AddChildNode(PrdItems,asXMLTag(GTD_PL_PRODUCTITEM_TAG),'');
       repeat
         //Extract the next field name
         sField := Parse(sColumns,';');
@@ -615,13 +630,13 @@ begin
           if (sField = GTD_PL_ELE_PRODUCT_LIST) or (sField = GTD_PL_ELE_PRODUCT_ACTUAL) then
           begin
             fFloatField := tmpProduct.ReadNumberField(sField,0);
-            XMLOpObj.AddChildNode(PrdItem,sField,FormatFloat('###########.##',fFloatField));
+            XMLOpObj.AddChildNode(Product,sField,FormatFloat('###########.##',fFloatField));
           end
           else
           begin
             //All non-price fields get stored as strings
             sFieldValue := tmpProduct.ReadStringField(sField);
-            XMLOpObj.AddChildNode(PrdItem,sField,sFieldValue);
+            XMLOpObj.AddChildNode(Product,sField,sFieldValue);
           end;
         end
       until (sColumns = '');
