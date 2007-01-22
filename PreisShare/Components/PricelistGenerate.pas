@@ -8,7 +8,8 @@ uses
   GTDBizLinks, Variants,
   SmtpProt, bsSkinGrids, bsDBGrids, bsMessages,ShellAPI,
   GTDBuildPricelistFromDBRun,GTDBuildPricelistFromDBConfig,GTDPricelists,
-  Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings ;
+  Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings,
+  FtpCli ;
 
 type
   TPricelistGenerator = class(TFrame)
@@ -38,6 +39,7 @@ type
     Scheduler: TTimer;
     lsvCustomerList: TbsSkinListView;
     cbxShowDetails: TbsSkinCheckRadioBox;
+    FtpClient1: TFtpClient;
     procedure btnGenerateAllClick(Sender: TObject);
     procedure btnListClick(Sender: TObject);
     procedure SmtpEmailSinuDisplay(Sender: TObject; Msg: String);
@@ -105,7 +107,7 @@ const
   PL_DELIV_LAST_SENT     = 'Last_Sent';
 
 implementation
-  uses DateUtils, Main;
+  uses DateUtils,Main;
 
 {$R *.DFM}
 
