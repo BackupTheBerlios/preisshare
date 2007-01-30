@@ -108,37 +108,6 @@ object GTDXLStoPL: TGTDXLStoPL
         Caption = 'Progress..'
         Visible = False
       end
-      object btnView: TbsSkinSpeedButton
-        Left = 16
-        Top = 400
-        Width = 49
-        Height = 21
-        Visible = False
-        SkinDataName = 'toolbutton'
-        DefaultFont.Charset = DEFAULT_CHARSET
-        DefaultFont.Color = clWindowText
-        DefaultFont.Height = 14
-        DefaultFont.Name = 'Arial'
-        DefaultFont.Style = []
-        DefaultWidth = 0
-        DefaultHeight = 0
-        UseSkinFont = True
-        WidthWithCaption = 0
-        WidthWithoutCaption = 0
-        ImageIndex = 0
-        RepeatMode = False
-        RepeatInterval = 100
-        Transparent = False
-        Flat = False
-        AllowAllUp = False
-        Down = False
-        GroupIndex = 0
-        Caption = 'View'
-        ShowCaption = True
-        NumGlyphs = 1
-        Spacing = 1
-        OnClick = bsSkinSpeedButton7Click
-      end
       object pnlSheetOpen: TbsSkinPanel
         Left = 12
         Top = 24
@@ -445,7 +414,7 @@ object GTDXLStoPL: TGTDXLStoPL
         Caption = 'bsSkinPanel2'
       end
       object pnlSheetSettings: TbsSkinPanel
-        Left = 32
+        Left = 8
         Top = 74
         Width = 381
         Height = 231
@@ -474,8 +443,8 @@ object GTDXLStoPL: TGTDXLStoPL
         Spacing = 2
         Caption = 'pnlSheetSettings'
         object bsSkinStdLabel2: TbsSkinStdLabel
-          Left = 8
-          Top = 72
+          Left = 176
+          Top = 28
           Width = 52
           Height = 13
           UseSkinFont = True
@@ -488,8 +457,8 @@ object GTDXLStoPL: TGTDXLStoPL
           Caption = 'Cell Range'
         end
         object bsSkinStdLabel3: TbsSkinStdLabel
-          Left = 124
-          Top = 72
+          Left = 288
+          Top = 28
           Width = 9
           Height = 13
           UseSkinFont = True
@@ -502,10 +471,10 @@ object GTDXLStoPL: TGTDXLStoPL
           Caption = 'to'
         end
         object btnRescan: TbsSkinSpeedButton
-          Left = 224
-          Top = 68
-          Width = 41
-          Height = 21
+          Left = 304
+          Top = 8
+          Width = 65
+          Height = 17
           Visible = False
           SkinDataName = 'toolbutton'
           DefaultFont.Charset = DEFAULT_CHARSET
@@ -532,10 +501,54 @@ object GTDXLStoPL: TGTDXLStoPL
           Spacing = 1
           OnClick = btnRescanClick
         end
+        object bsSkinLabel3: TbsSkinLabel
+          Left = 176
+          Top = 8
+          Width = 129
+          Height = 17
+          TabOrder = 2
+          SkinDataName = 'label'
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          DefaultWidth = 0
+          DefaultHeight = 0
+          UseSkinFont = True
+          BorderStyle = bvFrame
+          Caption = 'Conversion Settings'
+          AutoSize = False
+        end
+        object txtCellEnd: TbsSkinEdit
+          Left = 304
+          Top = 24
+          Width = 65
+          Height = 20
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          UseSkinFont = True
+          DefaultWidth = 0
+          DefaultHeight = 20
+          ButtonMode = False
+          SkinDataName = 'edit'
+          ReadOnly = True
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = 14
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 4
+          OnChange = txtCellStartChange
+        end
         object lblSheetCount: TbsSkinLabel
           Left = 8
           Top = 8
-          Width = 169
+          Width = 161
           Height = 17
           TabOrder = 0
           SkinDataName = 'label'
@@ -554,7 +567,7 @@ object GTDXLStoPL: TGTDXLStoPL
         object cbxSheetList: TbsSkinComboBox
           Left = 8
           Top = 24
-          Width = 169
+          Width = 161
           Height = 20
           TabOrder = 1
           SkinDataName = 'combobox'
@@ -599,28 +612,9 @@ object GTDXLStoPL: TGTDXLStoPL
           Sorted = False
           Style = bscbFixedStyle
         end
-        object bsSkinLabel3: TbsSkinLabel
-          Left = 8
-          Top = 48
-          Width = 357
-          Height = 17
-          TabOrder = 2
-          SkinDataName = 'label'
-          DefaultFont.Charset = DEFAULT_CHARSET
-          DefaultFont.Color = clWindowText
-          DefaultFont.Height = 14
-          DefaultFont.Name = 'Arial'
-          DefaultFont.Style = []
-          DefaultWidth = 0
-          DefaultHeight = 0
-          UseSkinFont = True
-          BorderStyle = bvFrame
-          Caption = 'Conversion Settings'
-          AutoSize = False
-        end
         object txtCellStart: TbsSkinEdit
-          Left = 68
-          Top = 68
+          Left = 236
+          Top = 24
           Width = 49
           Height = 20
           DefaultFont.Charset = DEFAULT_CHARSET
@@ -643,36 +637,11 @@ object GTDXLStoPL: TGTDXLStoPL
           TabOrder = 3
           OnChange = txtCellStartChange
         end
-        object txtCellEnd: TbsSkinEdit
-          Left = 144
-          Top = 68
-          Width = 73
-          Height = 20
-          DefaultFont.Charset = DEFAULT_CHARSET
-          DefaultFont.Color = clWindowText
-          DefaultFont.Height = 14
-          DefaultFont.Name = 'Arial'
-          DefaultFont.Style = []
-          UseSkinFont = True
-          DefaultWidth = 0
-          DefaultHeight = 20
-          ButtonMode = False
-          SkinDataName = 'edit'
-          ReadOnly = True
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = 14
-          Font.Name = 'Arial'
-          Font.Style = []
-          ParentFont = False
-          TabOrder = 4
-          OnChange = txtCellStartChange
-        end
         object lstColMap: TbsSkinListView
           Left = 8
-          Top = 96
+          Top = 56
           Width = 357
-          Height = 125
+          Height = 161
           Columns = <
             item
               Caption = 'Column'
@@ -700,7 +669,7 @@ object GTDXLStoPL: TGTDXLStoPL
           UseSkinFont = True
           SkinDataName = 'listview'
           DefaultColor = clWindow
-          OnClick = lstColMapDblClick
+          OnChange = lstColMapChange
           OnDblClick = lstColMapDblClick
         end
       end
@@ -833,6 +802,37 @@ object GTDXLStoPL: TGTDXLStoPL
           SkinDataName = 'stdlabel'
           Visible = False
         end
+        object btnView: TbsSkinSpeedButton
+          Left = 8
+          Top = 312
+          Width = 49
+          Height = 21
+          Visible = False
+          SkinDataName = 'toolbutton'
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          DefaultWidth = 0
+          DefaultHeight = 0
+          UseSkinFont = True
+          WidthWithCaption = 0
+          WidthWithoutCaption = 0
+          ImageIndex = 0
+          RepeatMode = False
+          RepeatInterval = 100
+          Transparent = False
+          Flat = False
+          AllowAllUp = False
+          Down = False
+          GroupIndex = 0
+          Caption = 'View'
+          ShowCaption = True
+          NumGlyphs = 1
+          Spacing = 1
+          OnClick = bsSkinSpeedButton7Click
+        end
       end
       object bsSkinLabel2: TbsSkinLabel
         Left = 404
@@ -886,6 +886,7 @@ object GTDXLStoPL: TGTDXLStoPL
         Width = 75
         Height = 25
         TabOrder = 8
+        Visible = False
         SkinDataName = 'button'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -906,6 +907,31 @@ object GTDXLStoPL: TGTDXLStoPL
         NumGlyphs = 1
         Spacing = 1
         OnClick = btnBackClick
+      end
+      object btnSaveMappings: TbsSkinCheckRadioBox
+        Left = 8
+        Top = 374
+        Width = 97
+        Height = 25
+        TabOrder = 9
+        Visible = False
+        SkinDataName = 'checkbox'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        ImageIndex = 0
+        Flat = True
+        TabStop = True
+        CanFocused = True
+        Radio = False
+        Checked = False
+        GroupIndex = 0
+        Caption = 'Save Mappings'
       end
     end
   end

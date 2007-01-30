@@ -33,10 +33,58 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     Spacing = 2
     Caption = 'pnlBackGround'
     Align = alClient
+    object Shape3: TShape
+      Left = 368
+      Top = 28
+      Width = 81
+      Height = 33
+      Brush.Color = 16744448
+      Pen.Style = psClear
+    end
+    object Shape6: TShape
+      Left = 368
+      Top = 88
+      Width = 81
+      Height = 33
+      Brush.Color = 16744448
+      Pen.Style = psClear
+    end
+    object Shape5: TShape
+      Left = 232
+      Top = 88
+      Width = 81
+      Height = 33
+      Brush.Color = 16744448
+      Pen.Style = psClear
+    end
+    object Shape4: TShape
+      Left = 96
+      Top = 88
+      Width = 81
+      Height = 33
+      Brush.Color = 16744448
+      Pen.Style = psClear
+    end
+    object Shape2: TShape
+      Left = 232
+      Top = 28
+      Width = 81
+      Height = 33
+      Brush.Color = 16744448
+      Pen.Style = psClear
+    end
+    object Shape1: TShape
+      Left = 96
+      Top = 28
+      Width = 81
+      Height = 32
+      Brush.Color = 16744448
+      Pen.Style = psClear
+    end
     object imgRises: TImage
       Left = 64
-      Top = 24
-      Width = 33
+      Top = 28
+      Width = 32
       Height = 37
       Hint = 'Click here to display Items that have risen in price'
       ParentShowHint = False
@@ -84,8 +132,8 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     end
     object ImgFalls: TImage
       Left = 200
-      Top = 24
-      Width = 41
+      Top = 28
+      Width = 32
       Height = 41
       Hint = 'Click here to display Items that have fallen in price'
       ParentShowHint = False
@@ -115,9 +163,9 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       OnClick = ImgFallsClick
     end
     object txtFallsCount: TLabel
-      Left = 252
+      Left = 236
       Top = 32
-      Width = 69
+      Width = 61
       Height = 25
       Alignment = taCenter
       AutoSize = False
@@ -132,8 +180,8 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     end
     object imgSteady: TImage
       Left = 336
-      Top = 24
-      Width = 37
+      Top = 28
+      Width = 32
       Height = 41
       Hint = 'Click here to display Items that have not changed'
       ParentShowHint = False
@@ -163,7 +211,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       OnClick = imgSteadyClick
     end
     object txtSteadyCount: TLabel
-      Left = 380
+      Left = 372
       Top = 32
       Width = 65
       Height = 25
@@ -197,7 +245,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     object imgDetails: TImage
       Left = 336
       Top = 88
-      Width = 37
+      Width = 32
       Height = 45
       Hint = 'Click here to display Items that have different details'
       ParentShowHint = False
@@ -227,7 +275,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       OnClick = imgDetailsClick
     end
     object txtRemovedCount: TLabel
-      Left = 256
+      Left = 240
       Top = 92
       Width = 65
       Height = 25
@@ -245,7 +293,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     object imgRemoved: TImage
       Left = 200
       Top = 88
-      Width = 41
+      Width = 32
       Height = 41
       Hint = 'Click here to display Items that have been removed'
       ParentShowHint = False
@@ -293,7 +341,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     object imgNew: TImage
       Left = 64
       Top = 88
-      Width = 37
+      Width = 32
       Height = 37
       Hint = 'Click here to display New Items'
       ParentShowHint = False
@@ -323,7 +371,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       OnClick = imgNewClick
     end
     object btnShowSQL: TbsSkinSpeedButton
-      Left = 20
+      Left = 8
       Top = 164
       Width = 77
       Height = 25
@@ -354,7 +402,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       OnClick = btnShowSQLClick
     end
     object btnShowData: TbsSkinSpeedButton
-      Left = 108
+      Left = 100
       Top = 164
       Width = 81
       Height = 25
@@ -385,7 +433,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       OnClick = btnShowDataClick
     end
     object lblProgress: TbsSkinStdLabel
-      Left = 128
+      Left = 144
       Top = 144
       Width = 245
       Height = 13
@@ -401,7 +449,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       Caption = 'Ready to Apply Pricelist to Product Database'
     end
     object barProgress: TbsSkinGauge
-      Left = 127
+      Left = 143
       Top = 164
       Width = 246
       Height = 21
@@ -580,9 +628,9 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       Visible = False
     end
     object mmoProgress: TbsSkinMemo
-      Left = 20
+      Left = 8
       Top = 200
-      Width = 473
+      Width = 505
       Height = 137
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -606,7 +654,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
   object db1: TDatabase
     SessionName = 'Default'
     Left = 197
-    Top = 5
+    Top = 65525
   end
   object qryTemp: TQuery
     Left = 481
@@ -655,7 +703,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
   object qrySourceData: TQuery
     DatabaseName = 'SourceDB'
     Left = 228
-    Top = 4
+    Top = 65524
   end
   object dsSourceData: TDataSource
     DataSet = qrySourceData
@@ -665,7 +713,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
   object dsLoadMappings: TDataSource
     DataSet = qryLoadMappings
     Left = 261
-    Top = 5
+    Top = 65533
   end
   object qryLoadMappings: TQuery
     DatabaseName = 'TRADALOGS'
@@ -689,13 +737,13 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     DatabaseName = 'TRADALOGS'
     IndexName = 'ByRevision_Key1'
     TableName = 'Product_Updates.DB'
-    Left = 353
-    Top = 5
+    Left = 329
+    Top = 65533
   end
   object dsProductUpdates: TDataSource
     DataSet = tblProductUpdates
-    Left = 385
-    Top = 5
+    Left = 361
+    Top = 65533
   end
   object qryPurgeRevisions: TQuery
     DatabaseName = 'TRADALOGS'
@@ -743,12 +791,12 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     DefaultEditFont.Name = 'Arial'
     DefaultEditFont.Style = []
     UseSkinFont = True
-    Left = 300
-    Top = 4
+    Left = 292
+    Top = 65532
   end
   object DSAccess: TDataSource
-    Left = 424
-    Top = 4
+    Left = 400
+    Top = 65532
   end
   object DataSource1: TDataSource
     DataSet = tblSysVal
@@ -1020,7 +1068,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     Options = [opDialog, opFilter, opConnection]
     ADOCommandOption = coTable
     Left = 133
-    Top = 5
+    Top = 65533
   end
   object DQrySuppliers: TDQuery
     FieldDefs = <>

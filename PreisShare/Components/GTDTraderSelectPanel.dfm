@@ -1,14 +1,14 @@
 object pnlTraderGet: TpnlTraderGet
   Left = 0
   Top = 0
-  Width = 406
+  Width = 387
   Height = 297
   TabOrder = 0
   OnResize = FrameResize
   object bsSkinPanel1: TbsSkinPanel
     Left = 0
     Top = 0
-    Width = 406
+    Width = 387
     Height = 297
     TabOrder = 0
     SkinDataName = 'panel'
@@ -54,7 +54,7 @@ object pnlTraderGet: TpnlTraderGet
       AutoSize = False
     end
     object btnSelect: TbsSkinButton
-      Left = 316
+      Left = 308
       Top = 244
       Width = 75
       Height = 25
@@ -83,7 +83,7 @@ object pnlTraderGet: TpnlTraderGet
     object bsSkinDBGrid1: TbsSkinDBGrid
       Left = 8
       Top = 52
-      Width = 381
+      Width = 369
       Height = 165
       TabOrder = 1
       SkinDataName = 'grid'
@@ -135,8 +135,8 @@ object pnlTraderGet: TpnlTraderGet
     object pnlNewTrader: TbsSkinGroupBox
       Left = 8
       Top = 52
-      Width = 385
-      Height = 233
+      Width = 369
+      Height = 173
       TabOrder = 2
       Visible = False
       SkinDataName = 'groupbox'
@@ -163,7 +163,7 @@ object pnlTraderGet: TpnlTraderGet
       Caption = 'Address Details'
       object lblAddress: TbsSkinLabel
         Left = 8
-        Top = 33
+        Top = 25
         Width = 233
         Height = 17
         TabOrder = 0
@@ -182,7 +182,7 @@ object pnlTraderGet: TpnlTraderGet
       end
       object txtAddress1: TbsSkinEdit
         Left = 8
-        Top = 50
+        Top = 42
         Width = 233
         Height = 20
         DefaultFont.Charset = DEFAULT_CHARSET
@@ -205,7 +205,7 @@ object pnlTraderGet: TpnlTraderGet
       end
       object txtAddress2: TbsSkinEdit
         Left = 8
-        Top = 70
+        Top = 62
         Width = 233
         Height = 20
         DefaultFont.Charset = DEFAULT_CHARSET
@@ -228,8 +228,8 @@ object pnlTraderGet: TpnlTraderGet
       end
       object lblState: TbsSkinLabel
         Left = 248
-        Top = 53
-        Width = 125
+        Top = 45
+        Width = 113
         Height = 17
         TabOrder = 3
         SkinDataName = 'label'
@@ -247,8 +247,8 @@ object pnlTraderGet: TpnlTraderGet
       end
       object cbxState: TbsSkinComboBox
         Left = 248
-        Top = 70
-        Width = 125
+        Top = 62
+        Width = 113
         Height = 20
         TabOrder = 4
         SkinDataName = 'combobox'
@@ -294,8 +294,8 @@ object pnlTraderGet: TpnlTraderGet
       end
       object cbxCountry: TbsSkinComboBox
         Left = 248
-        Top = 114
-        Width = 125
+        Top = 106
+        Width = 113
         Height = 20
         TabOrder = 5
         SkinDataName = 'combobox'
@@ -343,8 +343,8 @@ object pnlTraderGet: TpnlTraderGet
       end
       object lblCountry: TbsSkinLabel
         Left = 248
-        Top = 97
-        Width = 125
+        Top = 89
+        Width = 113
         Height = 17
         TabOrder = 6
         SkinDataName = 'label'
@@ -362,7 +362,7 @@ object pnlTraderGet: TpnlTraderGet
       end
       object lblSuburbTown: TbsSkinLabel
         Left = 8
-        Top = 97
+        Top = 89
         Width = 233
         Height = 17
         TabOrder = 7
@@ -381,7 +381,7 @@ object pnlTraderGet: TpnlTraderGet
       end
       object txtSuburbTown: TbsSkinEdit
         Left = 8
-        Top = 114
+        Top = 106
         Width = 233
         Height = 20
         DefaultFont.Charset = DEFAULT_CHARSET
@@ -404,8 +404,8 @@ object pnlTraderGet: TpnlTraderGet
       end
       object txtShortname: TbsSkinEdit
         Left = 8
-        Top = 162
-        Width = 365
+        Top = 146
+        Width = 353
         Height = 20
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -427,8 +427,8 @@ object pnlTraderGet: TpnlTraderGet
       end
       object lblShortName: TbsSkinLabel
         Left = 8
-        Top = 145
-        Width = 365
+        Top = 129
+        Width = 353
         Height = 17
         TabOrder = 10
         SkinDataName = 'label'
@@ -448,7 +448,7 @@ object pnlTraderGet: TpnlTraderGet
     object lblCustomerType: TbsSkinLabel
       Left = 276
       Top = 8
-      Width = 113
+      Width = 101
       Height = 17
       TabOrder = 5
       SkinDataName = 'label'
@@ -466,8 +466,8 @@ object pnlTraderGet: TpnlTraderGet
     end
     object cbxCustomerType: TbsSkinComboBox
       Left = 276
-      Top = 24
-      Width = 113
+      Top = 22
+      Width = 101
       Height = 20
       TabOrder = 6
       SkinDataName = 'combobox'

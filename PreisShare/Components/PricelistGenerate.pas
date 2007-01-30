@@ -6,10 +6,10 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, bsSkinData,bsSkinBoxCtrls, bsSkinCtrls, ComCtrls, Db, DBTables, GTDBizDocs,
   GTDBizLinks, Variants,
-  SmtpProt, bsSkinGrids, bsDBGrids, bsMessages,ShellAPI,
+  SmtpProt, bsSkinGrids, bsDBGrids, bsMessages, ShellAPI,
   GTDBuildPricelistFromDBRun,GTDBuildPricelistFromDBConfig,GTDPricelists,
   Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings,
-  FtpCli ;
+  FtpCli, OleCtrls;
 
 type
   TPricelistGenerator = class(TFrame)
@@ -39,7 +39,10 @@ type
     Scheduler: TTimer;
     lsvCustomerList: TbsSkinListView;
     cbxShowDetails: TbsSkinCheckRadioBox;
-    FtpClient1: TFtpClient;
+    FtpClSendPricelist: TFtpClient;
+    SmtpSummary: TSmtpCli;
+    cbxForce: TbsSkinCheckRadioBox;
+    btnCancel: TbsSkinButton;
     procedure btnGenerateAllClick(Sender: TObject);
     procedure btnListClick(Sender: TObject);
     procedure SmtpEmailSinuDisplay(Sender: TObject; Msg: String);
@@ -53,6 +56,11 @@ type
     procedure lsvCustomerListChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
     procedure cbxShowDetailsClick(Sender: TObject);
+    procedure FtpClSendPricelistStateChange(Sender: TObject);
+    procedure FtpClSendPricelistDisplay(Sender: TObject; var Msg: String);
+    procedure FtpClSendPricelistRequestDone(Sender: TObject;
+      RqType: TFtpRequest; ErrCode: Word);
+    procedure btnCancelClick(Sender: TObject);
   private
 	  { Private declarations }
 	  fSkinData           : TbsSkinData;
@@ -61,6 +69,7 @@ type
     fplBuildConfig      : TBuildPricelistFromDBConfig;
     fLatestpl           : GTDPricelist;
 
+    fNeedToStop,
     fConnectionErr,
     fProcessing ,
     fDistributing       : Boolean; {Sinu}
@@ -70,6 +79,7 @@ type
     function EmailFileSetToCustomer:Boolean;
 
     function SendEmail(AFileName,AEmailId,delivFormat : String; PricelistRef : GTDPricelist):Boolean;
+    function SendFTP(AFileName,delivFormat : String; PricelistRef : GTDPricelist):Boolean;
 
     procedure MoveProgressBar;
   public
@@ -104,10 +114,18 @@ const
   PL_DELIV_FREQ_WEEKLY  = 'Weekly';
   PL_DELIV_FREQ_FORTNIGHT = 'Fortnightly';
   PL_DELIV_LAST_RUN     = 'Last_Run';
-  PL_DELIV_LAST_SENT     = 'Last_Sent';
+  PL_DELIV_LAST_SENT    = 'Last_Sent';
+  PL_DELIV_MECHANISM    = 'Delivery_Mechanism';
+  PL_DELIV_MECH_FTP     = 'FTP';
+  PL_DELIV_MECH_SMTP    = 'SMTP';
+
+  PL_FTP_DELIV_HOST     = 'FTP_Host';
+  PL_FTP_DELIV_USER     = 'FTP_User';
+  PL_FTP_DELIV_PASSWD   = 'FTP_Password';
+  PL_FTP_DELIV_DIR      = 'FTP_Directory';
 
 implementation
-  uses DateUtils,Main;
+  uses DateUtils;
 
 {$R *.DFM}
 
@@ -173,6 +191,7 @@ begin
   cbxNewProducts.SkinData := Value;
   cbxFullPricelist.SkinData := Value;
   btnPreview.SkinData := Value;
+  btnCancel.SkinData := Value;
   cbxTemplateName.SkinData := Value;
   lblTemplateName.SkinData := Value;
   cbxShowDetails.SkinData := Value;
@@ -183,6 +202,22 @@ function TPricelistGenerator.SendToAll:Boolean;
 var
 	iCount : Integer;
 begin
+
+  // -- Take care of some screen things
+  Screen.Cursor           := crHourGlass;
+  rdoGenerateForHowMany.Visible := False;
+  btnGenerateAll.Visible  := False;
+  lsvCustomerList.Visible := False;
+  sgProgress.Visible      := True;
+  sgProgress.Value        := 1;
+  sgProgress.MaxValue     := 11;
+  rdoGenerateForHowMany.Enabled    := False;
+  btnGenerateAll.Enabled  := False;
+  fNeedToStop             := False;
+  btnCancel.Visible       := True;
+
+  Application.ProcessMessages;
+
   // -- Generate pricelists for everybody
   fDistributing       := True;
   fProcessing         := False;
@@ -207,21 +242,24 @@ begin
         MoveProgressBar; {Move position of progress bar}
 
         // -- Generate and send price list for each trader
-        SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger);
+        SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger,cbxForce.Checked);
+
+        // -- repeat this loop until a reply gets from the mail server.
+        //    Call GenerateForTrader and process all messages till gets a reply from mail server.
+        //  After finishing the process of mail sending , loop to do the same for another trader.}
+        repeat
+          Application.ProcessMessages;
+
+          // -- If there is any mail server problem, break from the loop.
+          if fConnectionErr then
+            Break;
+
+        until fProcessing = False;
+
       end;
 
-      // -- repeat this loop until a reply gets from the mail server.
-      //    Call GenerateForTrader and process all messages till gets a reply from mail server.
-      //  After finishing the process of mail sending , loop to do the same for another trader.}
-      repeat
-        Application.ProcessMessages;
-      until fProcessing = False;
-
-      // -- If there is any mail server problem, break from the loop.
-      if fConnectionErr then
-        Break;
-
-      Next; {Take the next trader}
+      // -- Take the next trader
+      Next;
     end;
   end;
 
@@ -235,28 +273,23 @@ begin
   // -- Cleanup
   Screen.Cursor := crDefault;
   btnGenerateAll.Enabled := True;
+  rdoGenerateForHowMany.Visible    := True;
+  lsvCustomerList.Visible := True;
+  sgProgress.Visible      := False;
+  fNeedToStop             := False;
+  btnCancel.Visible := False;
 
 end;
 
 procedure TPricelistGenerator.btnGenerateAllClick(Sender: TObject);
 begin
-    Screen.Cursor           := crHourGlass;
-    lsvCustomerList.Visible := False;
-    sgProgress.Visible      := True;
-    sgProgress.Value        := 1;
-    sgProgress.MaxValue     := 11;
-    rdoGenerateForHowMany.Enabled    := False;
-    btnGenerateAll.Enabled  := False;
-
-    Application.ProcessMessages;
-
     if rdoGenerateForHowMany.ItemIndex = 1 then
         SendToAll
     else begin
         if Assigned(lsvCustomerList.Selected) then
         begin
           if qryFindTargets.Locate(GTD_DB_COL_TRADER_ID,VarArrayOf([StrToInt(lsvCustomerList.Selected.SubItems[2])]),[]) then
-            SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger)
+            SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger,cbxForce.Checked)
           else
             bsSkinMessage1.MessageDlg('Customer not found.',mtError,[mbOk],0);
 
@@ -300,19 +333,19 @@ begin
       tid := FieldByName(GTD_DB_COL_TRADER_ID).AsInteger;
 
       // -- Open this Trader
-      if frmMain.DocRegistry.OpenForTraderNumber(tid) then
+      if fDocRegistry.OpenForTraderNumber(tid) then
       begin
 
         // -- Add the company to the list
         newItem := lsvCustomerList.Items.Add;
-        newItem.Caption := frmMain.DocRegistry.Trader_Name;
+        newItem.Caption := fDocRegistry.Trader_Name;
 
         // -- Last run
         v := '';
-        frmMain.DocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_RUN,v);
+        fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_RUN,v);
         if v = '' then
         begin
-            dt := frmMain.DocRegistry.GetLatestPriceListDateTime;
+            dt := fDocRegistry.GetLatestPriceListDateTime;
             if (dt = 0) then
                 v := 'Never'
             else
@@ -322,7 +355,7 @@ begin
 
         // -- Last sent
         v := '';
-        frmMain.DocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,v);
+        fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,v);
         newItem.SubItems.Add(v);
 
         newItem.SubItems.Add(FieldByName(GTD_DB_COL_TRADER_ID).AsString);
@@ -374,7 +407,7 @@ begin
     // -- Do the mailing
     Report('STATUS','Sending Pricelist');
     Report('SHOW','Mail server connected Successfully.');
-    Report('SHOW','Now price lists can be sent.');
+    Report('SHOW','Sending price list.');
 
     SmtpEMail.Mail;
     sgProgress.Value := 40;
@@ -452,7 +485,7 @@ function TPricelistGenerator.SendToTrader(Trader_ID : Integer; ForcedSend : Bool
   end;
 
 var
-  sFormat,sColName,sColumns,sFileName , sFrequency , sLastSent: String;
+  sFormat,sColName,sColumns,sFileName , sFrequency , sLastSent, sDelType: String;
   dLastSent: TDateTime;
   fTimeDiff : Double;
   i,xd, iColCount : Integer;
@@ -583,6 +616,7 @@ begin
 
       // -- Save the price list in csv format
       fLatestpl.ExportAsStandardCSV(sFileName,sColumns,False);
+
       MoveProgressBar;
     end
     else if (sFormat = PL_DELIV_XLS) then
@@ -600,7 +634,7 @@ begin
     else if (sFormat = PL_DELIV_XML) then
     begin
       sFileName := sFileName + '.xml';
-      
+
       Report('STATUS','Converting pricelist to XML');
 
       // -- Save the price list in xls format
@@ -609,8 +643,20 @@ begin
       MoveProgressBar;
     end;
 
-    // -- Send the file to the customer
-    SendEmail(sFileName,qryFindTargets.FieldByName(GTD_DB_COL_EMAILADDRESS).AsString,sFormat,fLatestpl);
+    // -- Retrieve the delivery mechanism
+    fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_MECHANISM, sDelType);
+
+    if (sDelType = PL_DELIV_MECH_FTP) then
+    begin
+
+      // -- Send te file by FTP
+      SendFTP(sFileName,sFormat,fLatestpl);
+
+    end
+    else
+
+      // -- Send the file to the customer by email
+      SendEmail(sFileName,qryFindTargets.FieldByName(GTD_DB_COL_EMAILADDRESS).AsString,sFormat,fLatestpl);
 
   end;
 
@@ -624,7 +670,12 @@ function TPricelistGenerator.SendEmail(AFileName,AEmailId,delivFormat : String; 
     begin
       SmtpEmail.MailMessage.Clear;
 
-      if fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,'Email_BodyText',s) then
+      fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,'Email_BodyText',s);
+
+      s := Trim(s);
+
+      // -- Check for custom message body, or use standard one
+      if (s <> '') then
       begin
         // -- Custom defined email message body
         SmtpEmail.MailMessage.Add(s);
@@ -740,7 +791,15 @@ begin
   BuildMessageBody;
 
   // -- Now send mail
+  while not (SmtpEmail.State in [smtpReady, smtpInternalReady]) do
+  begin
+    Application.ProcessMessages;
+    Report('Show','Email component not ready');
+  end;
+
+  // -- Now connect
   SmtpEmail.Connect;
+
 end;
 
 procedure TPricelistGenerator.SmtpEmailDisplay(Sender: TObject;
@@ -802,7 +861,7 @@ begin
 
       // -- Save it back in the registry
       fDocRegistry.Save(fLatestpl,GTD_AUDITCD_SND,'Document sent by email');
-      
+
     end;
 
     fProcessing := False;
@@ -911,6 +970,84 @@ begin
     // --
     lsvCustomerList.Visible := False;
   end;
+end;
+
+function TPricelistGenerator.SendFTP(AFileName,delivFormat : String; PricelistRef : GTDPricelist):Boolean;
+var
+  sUser,sPasswd,sHostName,sDir : String;
+begin
+
+  // -- Read the ftp settings from the trader configuration record
+  fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_FTP_DELIV_HOST, sHostName);
+  fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_FTP_DELIV_USER, sUser);
+  fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_FTP_DELIV_PASSWD, sPasswd);
+  fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_FTP_DELIV_DIR, sDir);
+
+  FtpClSendPricelist.UserName := sUser;
+  FtpClSendPricelist.HostName := sHostName;
+  FtpClSendPricelist.PassWord := sPasswd;
+
+  FtpClSendPricelist.LocalFileName := aFileName;
+  FtpClSendPricelist.HostFileName := ExtractFileName(aFileName);
+
+  Report('STATUS','Connecting to FTP Site');
+
+  FtpClSendPricelist.Connect;
+
+  FtpClSendPricelist.Tag := 0;
+
+end;
+
+procedure TPricelistGenerator.FtpClSendPricelistStateChange(
+  Sender: TObject);
+begin
+  Report('Show','State' + IntToStr(Ord(FtpClSendPricelist.State)));
+
+  if fNeedToStop then
+    Exit;
+
+  if ((FtpClSendPricelist.State = ftpReady) and (FtpClSendPricelist.Tag = 0)) then
+  begin
+    Report('STATUS','Uploading file');
+
+    FtpClSendPricelist.Tag := 1;
+    FtpClSendPricelist.Put;
+
+  end;
+
+  if (FtpClSendPricelist.State = ftpNotConnected) then
+    Report('STATUS','Done');
+
+end;
+
+procedure TPricelistGenerator.FtpClSendPricelistDisplay(Sender: TObject;
+  var Msg: String);
+begin
+  Report('Show',Msg);
+//  Report('Status',Msg);
+end;
+
+procedure TPricelistGenerator.FtpClSendPricelistRequestDone(
+  Sender: TObject; RqType: TFtpRequest; ErrCode: Word);
+begin
+  if RqType = ftpPutAsync then
+  begin
+    fProcessing := False;
+
+    Report('Show','Uploaded');
+    Report('STATUS','Done');
+
+    FtpClSendPricelist.Quit;
+
+  end
+  else
+    Report('Show','Request done');
+
+end;
+
+procedure TPricelistGenerator.btnCancelClick(Sender: TObject);
+begin
+  fNeedToStop := True;
 end;
 
 end.

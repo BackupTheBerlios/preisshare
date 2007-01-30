@@ -24,6 +24,12 @@ type
     txtChangedCount: TLabel;
     lsvItems: TbsSkinListView;
     mmoProgress: TbsSkinMemo2;
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape3: TShape;
+    Shape4: TShape;
+    Shape5: TShape;
+    Shape6: TShape;
   private
     { Private declarations }
 	fSkinData           : TbsSkinData;

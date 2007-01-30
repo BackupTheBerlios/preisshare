@@ -33,6 +33,48 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
     Spacing = 2
     Caption = 'pnlMain'
     Align = alClient
+    object Shape6: TShape
+      Left = 288
+      Top = 76
+      Width = 73
+      Height = 33
+      Brush.Color = 16744448
+    end
+    object Shape5: TShape
+      Left = 168
+      Top = 76
+      Width = 73
+      Height = 33
+      Brush.Color = 16744448
+    end
+    object Shape4: TShape
+      Left = 48
+      Top = 76
+      Width = 73
+      Height = 33
+      Brush.Color = 16744448
+    end
+    object Shape3: TShape
+      Left = 288
+      Top = 12
+      Width = 73
+      Height = 33
+      Brush.Color = 16744448
+    end
+    object Shape2: TShape
+      Left = 168
+      Top = 12
+      Width = 73
+      Height = 33
+      Brush.Color = 16744448
+    end
+    object Shape1: TShape
+      Left = 48
+      Top = 12
+      Width = 73
+      Height = 33
+      Brush.Color = 16744448
+    end
     object Image1: TImage
       Left = 16
       Top = 12
@@ -63,7 +105,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
       Transparent = True
     end
     object Image2: TImage
-      Left = 108
+      Left = 140
       Top = 12
       Width = 41
       Height = 41
@@ -91,7 +133,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
         0000}
     end
     object Image3: TImage
-      Left = 200
+      Left = 256
       Top = 12
       Width = 37
       Height = 41
@@ -147,7 +189,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
         0000}
     end
     object Image5: TImage
-      Left = 108
+      Left = 140
       Top = 76
       Width = 41
       Height = 41
@@ -175,8 +217,8 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
         0000}
     end
     object txtRisesCount: TLabel
-      Left = 64
-      Top = 20
+      Left = 72
+      Top = 16
       Width = 13
       Height = 25
       Caption = '0'
@@ -189,7 +231,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
       Transparent = True
     end
     object txtNewCount: TLabel
-      Left = 64
+      Left = 72
       Top = 80
       Width = 13
       Height = 25
@@ -203,7 +245,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
       Transparent = True
     end
     object txtFallsCount: TLabel
-      Left = 164
+      Left = 196
       Top = 16
       Width = 13
       Height = 25
@@ -217,7 +259,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
       Transparent = True
     end
     object txtRemovedCount: TLabel
-      Left = 164
+      Left = 196
       Top = 80
       Width = 13
       Height = 25
@@ -231,7 +273,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
       Transparent = True
     end
     object txtSteadyCount: TLabel
-      Left = 260
+      Left = 324
       Top = 16
       Width = 13
       Height = 25
@@ -245,7 +287,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
       Transparent = True
     end
     object Image6: TImage
-      Left = 200
+      Left = 256
       Top = 76
       Width = 37
       Height = 45
@@ -273,7 +315,7 @@ object GTDPriceUpdateSummary: TGTDPriceUpdateSummary
         0000}
     end
     object txtChangedCount: TLabel
-      Left = 260
+      Left = 324
       Top = 80
       Width = 13
       Height = 25

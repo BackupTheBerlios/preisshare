@@ -536,6 +536,10 @@ begin
 
       until (sColumns = '');
 
+      // -- There is a bug in vteWriters that takes ages with bigger
+      //    sheets. So we slow processor usage away from 100%
+      Sleep(20);
+
       Inc(iRow);
     end;
 
@@ -620,13 +624,13 @@ begin
       sColumns  := ColumnList;
       Product := XMLOpObj.AddChildNode(PrdItems,asXMLTag(GTD_PL_PRODUCTITEM_TAG),'');
       repeat
-        //Extract the next field name
+        // -- Extract the next field name
         sField := Parse(sColumns,';');
 
-        //Now extract the value of that field
+        // -- Now extract the value of that field
         if (sField[1] <> '<') then
         begin
-          //if amount, readnumberfield is used.
+          // -- if amount, readnumberfield is used.
           if (sField = GTD_PL_ELE_PRODUCT_LIST) or (sField = GTD_PL_ELE_PRODUCT_ACTUAL) then
           begin
             fFloatField := tmpProduct.ReadNumberField(sField,0);
@@ -634,7 +638,7 @@ begin
           end
           else
           begin
-            //All non-price fields get stored as strings
+            // -- All non-price fields get stored as strings
             sFieldValue := tmpProduct.ReadStringField(sField);
             XMLOpObj.AddChildNode(Product,sField,sFieldValue);
           end;
@@ -643,6 +647,10 @@ begin
     end;//while
 
     XMLOpObj.SaveFile;
+
+    // -- It seems that the above line takes some time to close the file
+    Sleep(100);
+    Application.ProcessMessages;
 
   finally
     FreeAndNil(XMLOpObj);

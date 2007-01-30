@@ -72,19 +72,19 @@ type
 
     tit1Table1Group_sync,
     tit1Level1Table_sync,
-	tit1Level2Table_sync,
+  	tit1Level2Table_sync,
     tit2Level3Table_sync
 	);
 
   TGTDPricelistExportFrame = class(TFrame)
     db1: TDatabase;
-	qryTemp: TQuery;
+  	qryTemp: TQuery;
     dlgOpen: TbsSkinOpenDialog;
     bsSkinMessage1: TbsSkinMessage;
     qrySourceData: TQuery;
     dsSourceData: TDataSource;
     dsLoadMappings: TDataSource;
-	qryLoadMappings: TQuery;
+	  qryLoadMappings: TQuery;
     tblSysVal: TTable;
     tblProductUpdates: TTable;
     dsProductUpdates: TDataSource;
@@ -93,7 +93,7 @@ type
     DSAccess: TDataSource;
     DataSource1: TDataSource;
     ImageList1: TImageList;
-	pnlBackGround: TbsSkinPanel;
+	  pnlBackGround: TbsSkinPanel;
     DQryGroups: TDQuery;
     DeersoftDB: TDMaster;
     DQryItems: TDQuery;
@@ -121,12 +121,18 @@ type
     mmoSQL: TbsSkinMemo2;
     lstProdGroups: TbsSkinTreeView;
     DQrySuppliers: TDQuery;
-	procedure bsSkinButton8Click(Sender: TObject);
-	procedure btnNext2Click(Sender: TObject);
-	procedure FormCreate(Sender: TObject);
-	procedure btnProcessClick(Sender: TObject);
-	procedure btnShowDataClick(Sender: TObject);
-	procedure lstProdGroupsDblClick(Sender: TObject);
+    Shape1: TShape;
+    Shape2: TShape;
+    Shape4: TShape;
+    Shape5: TShape;
+    Shape6: TShape;
+    Shape3: TShape;
+  	procedure bsSkinButton8Click(Sender: TObject);
+  	procedure btnNext2Click(Sender: TObject);
+  	procedure FormCreate(Sender: TObject);
+  	procedure btnProcessClick(Sender: TObject);
+  	procedure btnShowDataClick(Sender: TObject);
+  	procedure lstProdGroupsDblClick(Sender: TObject);
     procedure btnNext1Click(Sender: TObject);
     procedure pgRunShow(Sender: TObject);
     procedure btnShowSQLClick(Sender: TObject);
@@ -142,32 +148,35 @@ type
 	{ Protected declarations }
   private
 	{ Private declarations }
-	dbProfileName: string;
+  	dbProfileName: string;
 
-	mRevisionNo: Integer;
+	  mRevisionNo: Integer;
 
-    fSQLTrace : TStrings;           // -- Can hold SQL Statements that are issued
+    fDWSActualPriceCalcFormula,         // -- DelphiWebScript price calculation formula
+    fDWSListPriceCalcFormula,           // -- DelphiWebScript price calculation formula
+
+    fSQLTrace : TStrings;               // -- Can hold SQL Statements that are issued
 
     fDocRegistry : GTDDocumentRegistry;
 
     fKeepRunning : Boolean;
     fShowProcessButton : Boolean;
 
-	bdFieldMap	: GTDBizDoc;
+  	bdFieldMap	: GTDBizDoc;
 
-	TextFileFields,
-	TextFileRecord,
-	TextFileData: TStringList;
+	  TextFileFields,
+  	TextFileRecord,
+	  TextFileData: TStringList;
 
-	fSkinData: TbsSkinData;
+  	fSkinData: TbsSkinData;
 
     fShowSQL : Boolean;
 
     dbType,                         // -- Type of database 'Ado', MySQL etc...
 
-	txtBDEAlias,
-	txtdbaseDir,
-	txtAccessdb: String;
+  	txtBDEAlias,
+	  txtdbaseDir,
+  	txtAccessdb: String;
 
     dbExport        : TDatabase;
 
@@ -179,51 +188,61 @@ type
     fGroupOutputTableName,
     fItemOutputTableName   : String;
 
+    // -- Price adjustment for the list price
+    fListAdjustment_pc,
+    fListTax_pc,
+    fListCharges,
+
+    // -- Price adjustment for the actual price
+    fActualAdjustment_pc,
+    fActualTax_pc,
+    fActualCharges            : Double;
+
     // -- These variables are for the handling of multiple suppliers
     fHaveSupplierCode       : Boolean;
     fSupplierCodeSQLEncoded,
     fSupplierColumnName : String;
 
-	procedure LoadFieldList(TableName: string; AddTableName: Boolean;StringListDest: TStrings);
-	procedure SetupProductFieldList;
-	procedure ReadTableNames;
-	procedure DisplayProductTableFields;
-	function FindColumnNameOf(ADefinedElementName: string): string;
+  	procedure LoadFieldList(TableName: string; AddTableName: Boolean;StringListDest: TStrings);
+	  procedure SetupProductFieldList;
+  	procedure ReadTableNames;
+	  procedure DisplayProductTableFields;
+  	function FindColumnNameOf(ADefinedElementName: string): string;
 
-	// -- Procedures for the actual patch run
-	function DetermineUpdateQueries: Boolean;
+	  // -- Procedures for the actual patch run
+  	function DetermineUpdateQueries: Boolean;
 
-	function ExportToCSV: Boolean;
+	  function ExportToCSV: Boolean;
 
-	procedure SetupBlankTableNames;
-	procedure Clear;
-	function  CheckOutputTables(UpdateFlag : Boolean):Boolean;
-	function  CreateAccessDatabase(databasename: wideString): Boolean;
-	function  ConnectAccessDatabase(databasename: wideString): Boolean;
+  	procedure SetupBlankTableNames;
+  	procedure Clear;
+	  function  CheckOutputTables(UpdateFlag : Boolean):Boolean;
+  	function  CreateAccessDatabase(databasename: wideString): Boolean;
+	  function  ConnectAccessDatabase(databasename: wideString): Boolean;
 
     procedure ClearItems;
     function  LoadAllSelectedGroups:Boolean;
     function  LoadItemsFromGroup(NodePath : WideString; CategoryIndex : Integer):Boolean;
 
-	procedure AddProduct(pcode, pdesc, price: string); //for testing
-	function  TableExistsInSelectedDataBase(tablename: WideString):Boolean;
-	function  CreateGroupTable(TableName: wideString): Boolean;
-	function  CreateItemsTable(TableName: wideString): Boolean;
+  	procedure AddProduct(pcode, pdesc, price: string); //for testing
+	  function  TableExistsInSelectedDataBase(tablename: WideString):Boolean;
+  	function  CreateGroupTable(TableName: wideString): Boolean;
+	  function  CreateItemsTable(TableName: wideString): Boolean;
 
     procedure UpdateSuppliers(UpdateFlag : Boolean);
-	procedure UpdateGroups(UpdateFlag : Boolean);
-	procedure UpdateItems(UpdateFlag : Boolean);
+  	procedure UpdateGroups(UpdateFlag : Boolean);
+	  procedure UpdateItems(UpdateFlag : Boolean);
 
     function BuildFieldValue(FieldIndex : Integer; Heirachy : Char='I'; ItemListIndex : Integer=-1):String; overload;
     function BuildFieldValue(FieldIndex : Integer; ProductNode : GTDNode):String; overload;
 
-	procedure DropTempTable(Tablename: WideString);
-	procedure ExecuteSQL(var qc : TQuery; cs: WideString);
-	function  DisplayProductGroups:Boolean;
-	function  DisplayItems:Boolean;
-	procedure SetSkinData(Value: TbsSkinData); {override;}
-	procedure BuildReport(const mType: string; const Msg: string);
-	procedure ReportMessage(Msg: string);
+  	procedure DropTempTable(Tablename: WideString);
+	  procedure ExecuteSQL(var qc : TQuery; cs: WideString);
+  	function  DisplayProductGroups:Boolean;
+	  function  DisplayItems:Boolean;
+  	procedure SetSkinData(Value: TbsSkinData); {override;}
+	  procedure BuildReport(const mType: string; const Msg: string);
+  	procedure ReportMessage(Msg: string);
     procedure ShowStatus(Msg: String);
 
     procedure ClearDisplayCounters;
@@ -246,42 +265,42 @@ type
     procedure SetProcessButtonVisible(ShowIt : Boolean);
 
   public
-	{ Public declarations }
-	Pricelist : GTDPricelist;
+  	{ Public declarations }
+	  Pricelist : GTDPricelist;
 
-	SupplierOutputFieldNames,
-	SupplierOutputFieldMappings,
+  	SupplierOutputFieldNames,
+	  SupplierOutputFieldMappings,
     SupplierOutputFieldTypes,
 
-	GroupOutputFieldNames,
-	GroupOutputFieldMappings,
+  	GroupOutputFieldNames,
+	  GroupOutputFieldMappings,
     GroupOutputFieldTypes,
 
-	ItemOutputFieldNames,
-	ItemOutputFieldMappings,
+  	ItemOutputFieldNames,
+	  ItemOutputFieldMappings,
     ItemOutputFieldTypes	: TStringList;
 
     WorkingNode             : GTDNode;
 
-	UpdateFlag : Boolean;
+  	UpdateFlag : Boolean;
 
-	constructor Create(AOwner: TComponent); override;
-	destructor Destroy; override;
+	  constructor Create(AOwner: TComponent); override;
+  	destructor Destroy; override;
 
-	function  OpenUserdb: Boolean;
-	procedure CloseUserdb;
-	procedure Init;
+	  function  OpenUserdb: Boolean;
+  	procedure CloseUserdb;
+	  procedure Init;
 
     // -- This function loads the definitions required for
     //    the system defined product database.
     function  LoadSystemExportMap:Boolean;
     function  LoadExportMapping(ExportMap: TStringList): Boolean; overload;
-	function  LoadExportMapping(MapName: string): Boolean; overload;
-	function  SaveExportMapping(MapName: string): Boolean;
+  	function  LoadExportMapping(MapName: string): Boolean; overload;
+	  function  SaveExportMapping(MapName: string): Boolean;
 
-	function  LoadSuppliersPricelist(Supplier_ID : Integer): Boolean;
-	function  LoadPricelist(myDoc: GTDBizDoc): Boolean;
-	function  LoadfromFile(filename : String): Boolean;
+  	function  LoadSuppliersPricelist(Supplier_ID : Integer): Boolean;
+	  function  LoadPricelist(myDoc: GTDBizDoc): Boolean;
+  	function  LoadfromFile(filename : String): Boolean;
 
     procedure ClearSupplierMappings;
     procedure AddSupplierFieldMapping(DatabaseFieldName, PricelistFieldName, SQLFieldFormat : String);
@@ -295,11 +314,11 @@ type
     function  GetADOVersion: Double;
     procedure SetADOOutput(MDBFileName : String);
 
-	function  Run: Boolean;
+	  function  Run: Boolean;
     function  ExportToTSF(filename : String; pGauge : TbsSkinGauge = nil): Boolean;
 
   published
-	property SkinData: TbsSkinData read fSkinData write SetSkinData;
+  	property SkinData: TbsSkinData read fSkinData write SetSkinData;
 
     property DocRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
 
@@ -315,6 +334,15 @@ type
     property NewProductsCount : Integer read GetNewProductsCount;
     property RemovedProductsCount : Integer read GetRemovedProductsCount;
     property ChangedDetailsCount : Integer read GetChangedDetailsCount;
+
+    property List_AdjustmentPercentage : Double read fListAdjustment_pc write fListAdjustment_pc;
+    property List_Charges : Double read fListCharges write fListCharges;
+    property List_TaxPercentage : Double read fListTax_pc write fListTax_pc;
+    property List_DWSPriceFormula : TStrings read fDWSListPriceCalcFormula write fDWSListPriceCalcFormula;
+    property Actual_AdjustmentPercentage : Double read fActualAdjustment_pc write fActualAdjustment_pc;
+    property Actual_Charges : Double read fActualCharges write fActualCharges;
+    property Actual_TaxPercentage : Double read fActualTax_pc write fActualTax_pc;
+    property Actual_DWSPriceFormula : TStrings read fDWSActualPriceCalcFormula write fDWSActualPriceCalcFormula;
 
   end;
 
@@ -337,41 +365,42 @@ begin
 
 	SupplierOutputFieldNames := TStringList.Create;
 	SupplierOutputFieldMappings := TStringList.Create;
-    SupplierOutputFieldTypes := TStringList.Create;
+  SupplierOutputFieldTypes := TStringList.Create;
 
 	GroupOutputFieldNames	 := TStringList.Create;
 	GroupOutputFieldMappings := TStringList.Create;
-    GroupOutputFieldTypes    := TStringList.Create;
+  GroupOutputFieldTypes    := TStringList.Create;
 
 	ItemOutputFieldNames	 := TStringList.Create;
 	ItemOutputFieldMappings  := TStringList.Create;
-    ItemOutputFieldTypes     := TStringList.Create;
+  ItemOutputFieldTypes     := TStringList.Create;
 
-    WorkingNode              := GTDNode.Create;
+  WorkingNode              := GTDNode.Create;
 
-    btnCancel.Left := btnCancel.Left;
-    btnCancel.Top := btnProcess.Top;
+  btnCancel.Left := btnCancel.Left;
+  btnCancel.Top := btnProcess.Top;
 
 end;
 // ----------------------------------------------------------------------------
 destructor TGTDPricelistExportFrame.Destroy;
 begin
-	Pricelist.Free;
-    WorkingNode.Destroy;
+  Pricelist.Free;
+  WorkingNode.Destroy;
 
 	SupplierOutputFieldNames.Destroy;
 	SupplierOutputFieldMappings.Destroy;
-    SupplierOutputFieldTypes.Destroy;
+  SupplierOutputFieldTypes.Destroy;
 
 	GroupOutputFieldNames.Destroy;
 	GroupOutputFieldMappings.Destroy;
-    GroupOutputFieldTypes.Destroy;
+  GroupOutputFieldTypes.Destroy;
 
 	ItemOutputFieldNames.Destroy;
 	ItemOutputFieldMappings.Destroy;
-    ItemOutputFieldTypes.Destroy;
+  ItemOutputFieldTypes.Destroy;
 
 	inherited Destroy;
+  
 end;
 // ----------------------------------------------------------------------------
 procedure TGTDPricelistExportFrame.FormCreate(Sender: TObject);
@@ -1715,9 +1744,9 @@ var
 begin
 	// -- Initilaise varaiables
     i := 0;
-	barProgress.MinValue := 0;
-	barProgress.Value := 30;
-	lsvItems.SmallImages := ImageList1;
+  	barProgress.MinValue := 0;
+	  barProgress.Value := 30;
+  	lsvItems.SmallImages := ImageList1;
 
     PriceCompareField := FindItemActualColumn;
     CodeLookupColumn  := FindItemCodeColumn;
@@ -1764,7 +1793,7 @@ begin
         // comapring data of list view with selected table
         Pricelist.StartItemIterator;
 
-    	barProgress.MaxValue := Pricelist.ItemList.count;
+      	barProgress.MaxValue := Pricelist.ItemList.count;
 
         // -- Build this value here instead of inside the loop
         if fHaveSupplierCode then
@@ -1777,7 +1806,16 @@ begin
             //    lots of places
             ItemProductCode := thisProduct.ReadStringField(GTD_PL_ELE_PRODUCT_CODE);
             ItemProductName := thisProduct.ReadStringField(GTD_PL_ELE_PRODUCT_NAME);
-            pricelistActualPrice := thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_ACTUAL,0);;
+
+            // -- Price adjustment for the Actual price
+            pricelistActualPrice := ((100 + fActualAdjustment_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_ACTUAL,0) / 100) +
+                                  fActualCharges +
+                                  ((100 + fActualTax_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_ACTUAL,0) / 100);
+
+            // -- Price adjustment for the list price
+            pricelistListPrice := ((100 + fListAdjustment_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_LIST,0) / 100) +
+                                  fListCharges +
+                                  ((100 + fListTax_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_LIST,0) / 100);
 
             // --
             if CheckingByProductCode then
@@ -1941,29 +1979,29 @@ begin
         thisProduct.Destroy;
     end;
 
-	barProgress.value := i;
+  	barProgress.value := i;
 
     // -- It worked to here so now time to show some buttons
     btnShowSQL.Visible := True;
     btnShowData.Visible := True;
 
-	// -- Display the number of inserts & updates to memo compo   as a report
+  	// -- Display the number of inserts & updates to memo compo   as a report
     ShowStatus('');
-	barProgress.Visible := False;
+	  barProgress.Visible := False;
 
-	ReportMessage('Process completed');
-	if UpdateFlag then {//if user had selected to update records}
-	begin
-		ReportMessage((IntToStr(txtNewCount.Tag) + ' Record(s) Added'));  //show log message for adding new records to  Access table   from Listview data
-		ReportMessage((IntToStr(txtRisesCount.Tag + txtFallsCount.Tag + txtChangedCount.Tag) + ' Record(s) Updated'));  //show log message for updating  records in  Access table   from Listview data
-		ReportMessage((IntToStr(txtSteadyCount.Tag) + ' Record(s) Steady'));  //show log message for updating  records in  Access table   from Listview data
-    end
-	else //if user had not selected to update records
-	begin
-		ReportMessage((IntToStr(txtNewCount.Tag) + ' Record(s) to be Added  '));  //show log message for No of new records likely to be added to  Access table   from Listview data
-		ReportMessage((IntToStr(txtRisesCount.Tag + txtFallsCount.Tag + txtChangedCount.Tag) + ' Record(s) to be Updated  '));  //show log message for No of records likely to be updated in  Access table   from Listview data
-		ReportMessage((IntToStr(txtSteadyCount.Tag) + ' Record(s) Steady  '));  //show log message for No of records likely to be updated in  Access table   from Listview data
-	end
+  	ReportMessage('Process completed');
+	  if UpdateFlag then {//if user had selected to update records}
+  	begin
+	  	ReportMessage((IntToStr(txtNewCount.Tag) + ' Record(s) Added'));  //show log message for adding new records to  Access table   from Listview data
+  		ReportMessage((IntToStr(txtRisesCount.Tag + txtFallsCount.Tag + txtChangedCount.Tag) + ' Record(s) Updated'));  //show log message for updating  records in  Access table   from Listview data
+  		ReportMessage((IntToStr(txtSteadyCount.Tag) + ' Record(s) Steady'));  //show log message for updating  records in  Access table   from Listview data
+      end
+  	else //if user had not selected to update records
+	  begin
+  		ReportMessage((IntToStr(txtNewCount.Tag) + ' Record(s) to be Added  '));  //show log message for No of new records likely to be added to  Access table   from Listview data
+	  	ReportMessage((IntToStr(txtRisesCount.Tag + txtFallsCount.Tag + txtChangedCount.Tag) + ' Record(s) to be Updated  '));  //show log message for No of records likely to be updated in  Access table   from Listview data
+  		ReportMessage((IntToStr(txtSteadyCount.Tag) + ' Record(s) Steady  '));  //show log message for No of records likely to be updated in  Access table   from Listview data
+	  end
 end;
 // ----------------------------------------------------------------------------
 // -- for deleting a table.Presemtly this is not being called any where

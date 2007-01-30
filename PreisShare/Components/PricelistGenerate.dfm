@@ -748,6 +748,7 @@ object PricelistGenerator: TPricelistGenerator
       Font.Height = 14
       Font.Name = 'Arial'
       Font.Style = []
+      HideSelection = False
       ReadOnly = True
       RowSelect = True
       ParentFont = False
@@ -767,7 +768,7 @@ object PricelistGenerator: TPricelistGenerator
     object cbxShowDetails: TbsSkinCheckRadioBox
       Left = 168
       Top = 272
-      Width = 150
+      Width = 97
       Height = 25
       TabOrder = 5
       SkinDataName = 'checkbox'
@@ -788,6 +789,59 @@ object PricelistGenerator: TPricelistGenerator
       GroupIndex = 0
       Caption = 'Show Details'
       OnClick = cbxShowDetailsClick
+    end
+    object cbxForce: TbsSkinCheckRadioBox
+      Left = 168
+      Top = 296
+      Width = 97
+      Height = 17
+      TabOrder = 6
+      SkinDataName = 'checkbox'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      ImageIndex = 0
+      Flat = True
+      TabStop = True
+      CanFocused = True
+      Radio = False
+      Checked = True
+      GroupIndex = 0
+      Caption = 'Force Send'
+      OnClick = cbxShowDetailsClick
+    end
+    object btnCancel: TbsSkinButton
+      Left = 400
+      Top = 260
+      Width = 75
+      Height = 25
+      TabOrder = 7
+      Visible = False
+      SkinDataName = 'button'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      RepeatMode = False
+      RepeatInterval = 100
+      AllowAllUp = False
+      TabStop = True
+      CanFocused = True
+      Down = False
+      GroupIndex = 0
+      Caption = 'Cancel'
+      NumGlyphs = 1
+      Spacing = 1
+      OnClick = btnCancelClick
     end
   end
   object sgProgress: TbsSkinGauge
@@ -866,8 +920,8 @@ object PricelistGenerator: TPricelistGenerator
     OwnHeaders = False
     OnDisplay = SmtpEmailDisplay
     OnRequestDone = SmtpEmailRequestDone
-    Left = 256
-    Top = 16
+    Left = 232
+    Top = 8
   end
   object PageProducer1: TPageProducer
     Left = 272
@@ -878,5 +932,44 @@ object PricelistGenerator: TPricelistGenerator
     OnTimer = SchedulerTimer
     Left = 376
     Top = 176
+  end
+  object FtpClSendPricelist: TFtpClient
+    Timeout = 15
+    MultiThreaded = False
+    Port = 'ftp'
+    DataPortRangeStart = 0
+    DataPortRangeEnd = 0
+    LocalAddr = '0.0.0.0'
+    DisplayFileFlag = False
+    Binary = True
+    ShareMode = ftpShareExclusive
+    Options = [ftpAcceptLF]
+    ConnectionType = ftpDirect
+    OnDisplay = FtpClSendPricelistDisplay
+    OnRequestDone = FtpClSendPricelistRequestDone
+    OnStateChange = FtpClSendPricelistStateChange
+    BandwidthLimit = 10000
+    BandwidthSampling = 1000
+    Left = 264
+    Top = 8
+  end
+  object SmtpSummary: TSmtpCli
+    Tag = 0
+    ShareMode = smtpShareDenyWrite
+    LocalAddr = '0.0.0.0'
+    Port = 'smtp'
+    AuthType = smtpAuthNone
+    ConfirmReceipt = False
+    HdrPriority = smtpPriorityNone
+    CharSet = 'iso-8859-1'
+    SendMode = smtpToSocket
+    DefaultEncoding = smtpEnc7bit
+    Allow8bitChars = True
+    FoldHeaders = False
+    WrapMessageText = False
+    ContentType = smtpPlainText
+    OwnHeaders = False
+    Left = 232
+    Top = 40
   end
 end

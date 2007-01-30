@@ -42,13 +42,13 @@ type
     procedure btnSelectClick(Sender: TObject);
   private
     { Private declarations }
-	fSkinData       : TbsSkinData;
+  	fSkinData       : TbsSkinData;
     fTraderID       : Integer;
     fDocRegistry    : GTDDocumentRegistry;
     fOnTraderSelected : TOnTraderSelectedEvent;
 
     procedure SetRegistry(NewRegistry : GTDDocumentRegistry);
-	procedure SetSkinData(Value: TbsSkinData); {override;}
+  	procedure SetSkinData(Value: TbsSkinData); {override;}
 
   public
     { Public declarations }
@@ -57,7 +57,7 @@ type
 
   published
     property DocRegistry : GTDDocumentRegistry read fDocRegistry write SetRegistry;
-	property SkinData   : TbsSkinData read fSkinData write SetSkinData;
+  	property SkinData   : TbsSkinData read fSkinData write SetSkinData;
     property TraderID : Integer read fTraderID write fTraderID;
     property OnTraderSelected : TOnTraderSelectedEvent read fOnTraderSelected write fOnTraderSelected; 
   end;
@@ -110,27 +110,27 @@ begin
 	bsSkinLabel1.SkinData := Value;
 	bsSkinDBGrid1.SkinData := Value;
 	btnSelect.SkinData := Value;
-    txtEnterTraderName.SkinData := Value;
-    cbxCustomerType.SkinData := Value;
-    lblCustomerType.SkinData := Value;
-    pnlNewTrader.SkinData := Value;
+  txtEnterTraderName.SkinData := Value;
+  cbxCustomerType.SkinData := Value;
+  lblCustomerType.SkinData := Value;
+  pnlNewTrader.SkinData := Value;
 
-    lblAddress.SkinData := Value;
-    txtAddress1.SkinData := Value;
-    txtAddress2.SkinData := Value;
-    cbxState.SkinData := Value;
-    cbxCountry.SkinData := Value;
-    txtEnterTraderName.SkinData := Value;
-    lblState.SkinData := Value;
-    lblCountry.SkinData := Value;
-    lblSuburbTown.SkinData := Value;
-    txtSuburbTown.SkinData := Value;
+  lblAddress.SkinData := Value;
+  txtAddress1.SkinData := Value;
+  txtAddress2.SkinData := Value;
+  cbxState.SkinData := Value;
+  cbxCountry.SkinData := Value;
+  txtEnterTraderName.SkinData := Value;
+  lblState.SkinData := Value;
+  lblCountry.SkinData := Value;
+  lblSuburbTown.SkinData := Value;
+  txtSuburbTown.SkinData := Value;
 
-    lblShortName.SkinData := Value;
-    txtShortName.SkinData := Value;
-    
-    dlg1.CtrlSkinData := Value;
-    dlg1.SkinData := Value;
+  lblShortName.SkinData := Value;
+  txtShortName.SkinData := Value;
+
+  dlg1.CtrlSkinData := Value;
+  dlg1.SkinData := Value;
 
 end;
 
