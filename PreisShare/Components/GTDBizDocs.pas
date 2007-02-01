@@ -563,30 +563,33 @@ published
 		function SaveSettingString(SectionName,ElementName : String; ValueStr : String):Boolean;
 		function SaveSettingInt(SectionName,ElementName : String; ValueInt : Integer):Boolean;
 
-        function RenameSettingRecord(SectionName,ElementName,NewElementName : String):Boolean;
-        function DeleteSettingRecord(SectionName,ElementName : String):Boolean;
+    function RenameSettingRecord(SectionName,ElementName,NewElementName : String):Boolean;
+    function DeleteSettingRecord(SectionName,ElementName : String):Boolean;
 
-        //    These functions read and write to the memo field within
-        //    the current configuration record
-   		function GetSettingMemoString(NodePath, ElementName : String; var ValueStr : String):Boolean;
-   		function GetSettingMemoInt(NodePath, ElementName : String; var ValueInt : Integer):Boolean;
-   		function GetSettingMemoBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
-		function SaveSettingMemoString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
-		function SaveSettingMemoInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean):Boolean;
-        //    Retrieve a list of all available items into a list for a given section
-   		function GetSettingItemList(SectionName : String; ElementNames : TStrings):Boolean;
+    //    These functions read and write to the memo field within
+    //    the current configuration record
+    function GetSettingMemoString(NodePath, ElementName : String; var ValueStr : String):Boolean;
+    function GetSettingMemoInt(NodePath, ElementName : String; var ValueInt : Integer):Boolean;
+    function GetSettingMemoBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
+    function SaveSettingMemoString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
+    function SaveSettingMemoInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean = True):Boolean;
 
-        // -- These functions read and write to the memo field
-        //    "settings" on the currently select trader_record
-   		function GetTraderSettingString(NodePath, ElementName : String; var ValueStr : String):Boolean;
-   		function GetTraderSettingInt(NodePath, ElementName : String; var ValueInt : Integer):Boolean;
-   		function GetTraderSettingBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
-		function SaveTraderSettingString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
-		function SaveTraderSettingInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean = True):Boolean;
+    //    Retrieve a list of all available items into a list for a given section
+    function GetSettingItemList(SectionName : String; ElementNames : TStrings):Boolean;
 
-		function ExtractDocDetails(aDocument : GTDBizDoc):String;
+    // -- These functions read and write to the memo field
+    //    "settings" on the currently select trader_record
+    function GetTraderSettingString(NodePath, ElementName : String; var ValueStr : String):Boolean;
+    function GetTraderSettingInt(NodePath, ElementName : String; var ValueInt : Integer):Boolean;
+    function GetTraderSettingBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
+    function GetTraderSettingNumber(NodePath, ElementName : String; var ValueDbl : Double):Boolean;
+    function SaveTraderSettingString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
+    function SaveTraderSettingInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean = True):Boolean;
+    function SaveTraderSettingNumber(NodePath, ElementName : String; ValueDbl : Double; FinalSave : Boolean = True):Boolean;
 
-        function GetVendorShortnameList(aList : TStringList):Boolean;
+    function ExtractDocDetails(aDocument : GTDBizDoc):String;
+
+    function GetVendorShortnameList(aList : TStringList):Boolean;
 
 	private
 		fSessionName,
@@ -7326,6 +7329,28 @@ begin
 
 end;
 //---------------------------------------------------------------------------
+function GTDDocumentRegistry.GetTraderSettingNumber(NodePath, ElementName : String; var ValueDbl : Double):Boolean;
+var
+    tempDoc : GTDBizDoc;
+begin
+  Result := False;
+
+  // -- This function only works when the table is open
+  if not fTraderTbl.Active then
+  begin
+    Exit;
+  end;
+
+  tempDoc := GTDBizDoc.Create(Self);
+
+  //	myMemo := TMemoField(FieldByName('SETTINGS'));
+  tempDoc.XML.Assign(TMemoField(fTraderTbl.FieldByName('SETTINGS')));
+
+  Result := tempDoc.ReadNumberElement(NodePath, ElementName, ValueDbl);
+
+  tempDoc.Destroy;
+end;
+//---------------------------------------------------------------------------
 function GTDDocumentRegistry.GetTraderSettingBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
 begin
 end;
@@ -7400,6 +7425,41 @@ begin
     if FinalSave then
         fTraderTbl.Post;
 
+end;
+
+function GTDDocumentRegistry.SaveTraderSettingNumber(NodePath, ElementName : String; ValueDbl : Double; FinalSave : Boolean):Boolean;
+var
+    tempDoc : GTDBizDoc;
+begin
+  Result := False;
+
+  // -- This function only works when the table is open
+  if not fTraderTbl.Active then
+  begin
+    Exit;
+  end;
+
+  // -- Put the record into Edit mode
+  if not (fTraderTbl.State in [dsEdit]) then
+  begin
+    fTraderTbl.Edit;
+  end;
+  tempDoc := GTDBizDoc.Create(Self);
+
+  // -- Read the whole memo into memory
+  tempDoc.XML.Assign(TMemoField(fTraderTbl.FieldByName('SETTINGS')));
+
+  // -- Change the required element
+  Result := tempDoc.SetNumberElement(NodePath, ElementName, ValueDbl);
+
+  // -- Write the whole thing back
+  TMemoField(fTraderTbl.FieldByName('SETTINGS')).Assign(tempDoc.XML);
+
+  tempDoc.Destroy;
+
+  // -- If the record must be saved then do so
+  if FinalSave then
+      fTraderTbl.Post;
 end;
 
 //---------------------------------------------------------------------------

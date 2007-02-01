@@ -414,8 +414,8 @@ object GTDXLStoPL: TGTDXLStoPL
         Caption = 'bsSkinPanel2'
       end
       object pnlSheetSettings: TbsSkinPanel
-        Left = 8
-        Top = 74
+        Left = 24
+        Top = 250
         Width = 381
         Height = 231
         TabOrder = 3
@@ -669,7 +669,6 @@ object GTDXLStoPL: TGTDXLStoPL
           UseSkinFont = True
           SkinDataName = 'listview'
           DefaultColor = clWindow
-          OnChange = lstColMapChange
           OnDblClick = lstColMapDblClick
         end
       end
@@ -908,35 +907,10 @@ object GTDXLStoPL: TGTDXLStoPL
         Spacing = 1
         OnClick = btnBackClick
       end
-      object btnSaveMappings: TbsSkinCheckRadioBox
-        Left = 8
-        Top = 374
-        Width = 97
-        Height = 25
-        TabOrder = 9
-        Visible = False
-        SkinDataName = 'checkbox'
-        DefaultFont.Charset = DEFAULT_CHARSET
-        DefaultFont.Color = clWindowText
-        DefaultFont.Height = 14
-        DefaultFont.Name = 'Arial'
-        DefaultFont.Style = []
-        DefaultWidth = 0
-        DefaultHeight = 0
-        UseSkinFont = True
-        ImageIndex = 0
-        Flat = True
-        TabStop = True
-        CanFocused = True
-        Radio = False
-        Checked = False
-        GroupIndex = 0
-        Caption = 'Save Mappings'
-      end
     end
   end
   object ExcelApplication1: TExcelApplication
-    AutoConnect = True
+    AutoConnect = False
     ConnectKind = ckRunningOrNew
     AutoQuit = True
     Left = 140

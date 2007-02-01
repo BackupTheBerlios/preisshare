@@ -9,7 +9,8 @@ uses
   ExtCtrls, bsSkinTabs, GTDBizDocs, Buttons, HCMngr,
   bsSkinShellCtrls, bsMessages, bsCalendar, bsDialogs,
   bsdbctrls, comObj, ActiveX, DBCtrls, ADODB2000,
-  ImgList, GTDPricelists, DMaster, DDB, DTables;
+  ImgList, GTDPricelists, DMaster, DDB, DTables, SynEditHighlighter,
+  SynHighlighterSQL, SynEdit, SynMemo;
 
 const
     PRICELIST_DBTYPE_ADO   = 'ADO';
@@ -118,7 +119,6 @@ type
     mmoProgress: TbsSkinMemo;
     btnProcess: TbsSkinButton;
     lsvItems: TbsSkinListView;
-    mmoSQL: TbsSkinMemo2;
     lstProdGroups: TbsSkinTreeView;
     DQrySuppliers: TDQuery;
     Shape1: TShape;
@@ -127,6 +127,8 @@ type
     Shape5: TShape;
     Shape6: TShape;
     Shape3: TShape;
+    mmoSQL: TSynMemo;
+    SynSQLSyn1: TSynSQLSyn;
   	procedure bsSkinButton8Click(Sender: TObject);
   	procedure btnNext2Click(Sender: TObject);
   	procedure FormCreate(Sender: TObject);
@@ -237,7 +239,7 @@ type
     function BuildFieldValue(FieldIndex : Integer; ProductNode : GTDNode):String; overload;
 
   	procedure DropTempTable(Tablename: WideString);
-	  procedure ExecuteSQL(var qc : TQuery; cs: WideString);
+	  function  ExecuteSQL(var qc : TQuery; cs: WideString):Boolean;
   	function  DisplayProductGroups:Boolean;
 	  function  DisplayItems:Boolean;
   	procedure SetSkinData(Value: TbsSkinData); {override;}
@@ -377,8 +379,22 @@ begin
 
   WorkingNode              := GTDNode.Create;
 
-  btnCancel.Left := btnCancel.Left;
-  btnCancel.Top := btnProcess.Top;
+//  btnCancel.Left := btnProcess.Left;
+//  btnCancel.Top := btnProcess.Top;
+
+  // -- The sql log
+  mmoSQL.Top  := mmoProgress.Top;
+  mmoSQL.Left := mmoProgress.Left;
+  mmoSQL.Height := mmoProgress.Height;
+  mmoSQL.Width := mmoProgress.Width;
+
+  lsvItems.Top  := mmoProgress.Top;
+  lsvItems.Left := mmoProgress.Left;
+  lsvItems.Height := mmoProgress.Height;
+  lsvItems.Width := mmoProgress.Width;
+
+  fDWSActualPriceCalcFormula := TStrings.Create;
+  fDWSListPriceCalcFormula := TStrings.Create;
 
 end;
 // ----------------------------------------------------------------------------
@@ -398,6 +414,9 @@ begin
 	ItemOutputFieldNames.Destroy;
 	ItemOutputFieldMappings.Destroy;
   ItemOutputFieldTypes.Destroy;
+
+  fDWSActualPriceCalcFormula.Destroy;
+  fDWSListPriceCalcFormula.Destroy;
 
 	inherited Destroy;
   
@@ -1049,7 +1068,7 @@ begin
 //  nbkMain.ActivePageIndex := 2;
 end;
 // ----------------------------------------------------------------------------
-procedure TGTDPricelistExportFrame.ExecuteSQL(var qc : TQuery; cs: WideString);
+function TGTDPricelistExportFrame.ExecuteSQL(var qc : TQuery; cs: WideString):Boolean;
 begin
 
     // -- Keep a track of every SQL statement issued
@@ -1059,36 +1078,46 @@ begin
         fSQLTrace.Add(cs);
     end;
 
-    // -- Run the SQL
-    if DeersoftDB.Connected then
-    begin
-        if (qc = TQuery(DQrySuppliers)) then
-        with DQrySuppliers do
-        begin
-            Active := False;
-            Params.Clear();
-            SQL.Text := cs;
-            ExecSQL(cs);
-        end
-        else if (qc = TQuery(DQryGroups)) then
-        with DQryGroups do
-        begin
-            Active := False;
-            Params.Clear();
-            SQL.Text := cs;
-            ExecSQL(cs);
-        end
-        else if (qc = TQuery(DQryItems)) then
-        with DQryItems do
-        begin
-            Active := False;
-            Params.Clear();
-            SQL.Clear;
-            SQL.Add(cs);
-            ExecSQL(cs);
-        end;
-    end;
+    try
 
+      Result := False;
+
+      // -- Run the SQL
+      if DeersoftDB.Connected then
+      begin
+          if (qc = TQuery(DQrySuppliers)) then
+          with DQrySuppliers do
+          begin
+              Active := False;
+              Params.Clear();
+              SQL.Text := cs;
+              ExecSQL(cs);
+          end
+          else if (qc = TQuery(DQryGroups)) then
+          with DQryGroups do
+          begin
+              Active := False;
+              Params.Clear();
+              SQL.Text := cs;
+              ExecSQL(cs);
+          end
+          else if (qc = TQuery(DQryItems)) then
+          with DQryItems do
+          begin
+              Active := False;
+              Params.Clear();
+              SQL.Clear;
+              SQL.Add(cs);
+              ExecSQL(cs);
+          end;
+      end;
+
+      Result := True;
+
+  except
+    on E: Exception do
+      ReportMessage('Error - Unable to run SQL ' + cs);
+  end;
 end;
 // ----------------------------------------------------------------------------
 // this procedure will create a MS Access database (.mdb) based on the name given in the database edit box
@@ -1194,7 +1223,7 @@ begin
     qs := Copy(qs,1,Length(qs)-1) + ')';
 
     // -- create the table by executing the query
-    ExecuteSQL(qryGroupUpdate,qs);
+    Result := ExecuteSQL(qryGroupUpdate,qs);
 
 //  cs := 'CREATE INDEX idxPrimary ON ' + TableName + '( Code ) WITH PRIMARY';
 //  create index    by executing the query
@@ -1793,7 +1822,7 @@ begin
         // comapring data of list view with selected table
         Pricelist.StartItemIterator;
 
-      	barProgress.MaxValue := Pricelist.ItemList.count;
+        barProgress.MaxValue := Pricelist.ItemList.count;
 
         // -- Build this value here instead of inside the loop
         if fHaveSupplierCode then
@@ -1846,7 +1875,9 @@ begin
                 continue;
 
             // -- Now execute the query to find the item
-            ExecuteSQL(qryItemUpdate,qs);
+            if not ExecuteSQL(qryItemUpdate,qs) then
+              Break;
+
             qryItemUpdate.Open;
             qryItemUpdate.First;
 
@@ -1891,7 +1922,8 @@ begin
                 if UpdateFlag then
                     // Insert query will will be excuted only if user has asked for inserts}
                     // by selecting the check box Report and Updatees
-                    ExecuteSQL(qryItemUpdate,qs);
+                    if not ExecuteSQL(qryItemUpdate,qs) then
+                      break;
 
                 // -- Update the display counter
                 IncDisplayNew;
@@ -1957,7 +1989,8 @@ begin
 
                     end;
                     if UpdateFlag then
-                        ExecuteSQL(qryItemUpdate,qs);
+                        if not ExecuteSQL(qryItemUpdate,qs) then
+                          break;
 
                 end;
             end;
@@ -2377,34 +2410,34 @@ end;
 // ----------------------------------------------------------------------------
 function TGTDPricelistExportFrame.Run: Boolean;
 begin
-    // -- Load up the configuration
-    LoadSystemExportMap;
+  // -- Load up the configuration
+  LoadSystemExportMap;
 
-	// -- check if database & table exists.If yes display them else create them,load data from list view & then display them
-	if not CheckOutputTables(UpdateFlag) then
+  // -- check if database & table exists.If yes display them else create them,load data from list view & then display them
+  if not CheckOutputTables(UpdateFlag) then
         Exit;
 
-	barProgress.Visible := True;          //show the progressbar
+  barProgress.Visible := True;          //show the progressbar
 
-	//check the radio buttons status to find out
-	//whether user wants a report only or update & Insert also
-	//the default check boxis only for reports
+  try
 
-    try
+      Screen.Cursor := crHourglass;
+      btnCancel.Visible := True;
 
-        Screen.Cursor := crHourglass;
-        mmoProgress.Lines.Clear;
+      mmoProgress.Lines.Clear;
+      mmoSQL.Lines.Clear;
 
-        // -- call the procedue for comapring,insertin,Updating & generating report
-        UpdateSuppliers(UpdateFlag);
-        UpdateGroups(UpdateFlag);
-        UpdateItems(UpdateFlag);
+      // -- call the procedue for comapring,insertin,Updating & generating report
+      UpdateSuppliers(UpdateFlag);
+      UpdateGroups(UpdateFlag);
+      UpdateItems(UpdateFlag);
 
-        Result := True;
+      Result := True;
 
-    finally
-        Screen.Cursor := crDefault;
-    end;
+  finally
+      btnCancel.Visible := False;
+      Screen.Cursor := crDefault;
+  end;
 
 end;
 // ----------------------------------------------------------------------------
@@ -2754,6 +2787,7 @@ end;
 procedure TGTDPricelistExportFrame.btnCancelClick(Sender: TObject);
 begin
     fKeepRunning := False;
+    ReportMessage('User Cancelling update run');
 end;
 
 end.

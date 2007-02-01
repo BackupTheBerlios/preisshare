@@ -9,7 +9,6 @@ uses
   bsSkinTabs, Buttons, ExcelXP, Variants,
   GTDUpdateSummary, GTDProductDBUpdate, PricelistExport, jpeg, ExtCtrls;
 
-
 type
   TGTDXLStoPL = class(TFrame)
     ExcelApplication1: TExcelApplication;
@@ -51,7 +50,6 @@ type
     Image1: TImage;
     procedure bsSkinSpeedButton3Click(Sender: TObject);
     procedure bsSkinSpeedButton4Click(Sender: TObject);
-    procedure bsSkinSpeedButton2Click(Sender: TObject);
     procedure bsSkinSpeedButton5Click(Sender: TObject);
     procedure bsSkinSpeedButton6Click(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
@@ -59,33 +57,29 @@ type
     procedure lstColMapDblClick(Sender: TObject);
     procedure btnConvertClick(Sender: TObject);
     procedure txtSpreadsheetNameChange(Sender: TObject);
-    procedure SpeedButton1Click(Sender: TObject);
-    procedure SpeedButton2Click(Sender: TObject);
-    procedure SpeedButton3Click(Sender: TObject);
-    procedure SpeedButton4Click(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure txtCellStartChange(Sender: TObject);
     procedure btnRescanClick(Sender: TObject);
   private
     { Private declarations }
     lcid: integer;
-    plcvt : GTDPricefileConvertor;
     fDocReg : GTDDocumentRegistry;
-    tsel : TpnlTraderGet;
     pnlUpdSum: TGTDPriceUpdateSummary;
 //    pnldbUpdate : TGTDProductDBUpdateFrame;
-    pnldbUpdate : TGTDPricelistExportFrame;
     fStepNumber : Integer;
 
-    SheetFileName : String;
 
-	fSkinData: TbsSkinData;
+    fSkinData: TbsSkinData;
 
-	procedure SetSkinData(Value: TbsSkinData);
+    procedure SetSkinData(Value: TbsSkinData);
 
   public
     { Public declarations }
     NeedToStop : Boolean;
+    pnldbUpdate : TGTDPricelistExportFrame;
+    plcvt : GTDPricefileConvertor;
+    tsel : TpnlTraderGet;
+    SheetFileName : String;
 
     function Initialise:Boolean;
     function OpenPriceSpreadsheet(const XLSFileName : String):Boolean;
@@ -99,8 +93,12 @@ type
     procedure GotoNextStep;
     function GotoStep(StepNumber : Integer):Boolean;
 
+    function LookupSpreadsheetByName(const aFileName : String):Boolean;
+    procedure LoadSheetMapping;
+    procedure SaveSheetMapping;
+
   published
-	property SkinData: TbsSkinData read fSkinData write SetSkinData;
+    property SkinData: TbsSkinData read fSkinData write SetSkinData;
     property DocRegistry : GTDDocumentRegistry read fDocReg write fDocReg;
   end;
 
@@ -153,7 +151,7 @@ begin
             Top := pnlSheetOpen.Top;
             Left := pnlSheetOpen.Left;
             Width := pnlSheetOpen.Width;
-            Height := pnlSheetOpen.Height;
+          Height := pnlSheetOpen.Height;
 
             Parent := Self;
             Visible := False;
@@ -188,8 +186,8 @@ begin
     // --
     pnlSheetSettings.Top  := pnlSheetOpen.Top;
     pnlSheetSettings.Left := pnlSheetOpen.Left;
-    pnlUpdSum.Top       := pnlSheetOpen.Top;
-    pnlUpdSum.Left      := pnlSheetOpen.Left;
+    pnlUpdSum.Top         := pnlSheetOpen.Top;
+    pnlUpdSum.Left        := pnlSheetOpen.Left;
     lblStep2Text.Top      := lblStep1Text.Top;
     lblStep2Text.Left     := lblStep1Text.Left;
     lblStep3Text.Top      := lblStep1Text.Top;
@@ -214,6 +212,12 @@ begin
     // -- Set the filename
     SheetFileName := XLSFileName;
 
+    // -- See if we have converted this sheet before
+    if LookupSpreadsheetByName(SheetFileName) then
+    begin
+        plcvt.ReportMessage('Report','Using saved mapping from ' + fDocReg.Trader_Name);
+    end;
+
     // -- Connect and open the sheet
     {$IFDEF VER100}
       // -- Delphi 5
@@ -236,9 +240,6 @@ begin
   ExcelApplication1.Disconnect;
 end;
 
-procedure TGTDXLStoPL.bsSkinSpeedButton2Click(Sender: TObject);
-begin
-end;
 // --
 //
 // Notes:
@@ -305,7 +306,6 @@ var
             end;
 
         end;
-
 
         Result := True;
     end;
@@ -823,10 +823,11 @@ begin
     begin
         // -- Open the file
         if OpenPriceSpreadsheet(txtSpreadSheetName.Text) then
-
+        begin
             // -- Open in examination mode
             plcvt.ReportMessage('Show',txtSpreadSheetName.Text + ' selected.');
             plcvt.ReportMessage('Show','Ready to begin Sheet examination.');
+        end;
     end;
 end;
 
@@ -1012,27 +1013,6 @@ begin
     end;
 end;
 
-procedure TGTDXLStoPL.SpeedButton1Click(Sender: TObject);
-begin
-    Initialise;
-    GotoStep(1);
-end;
-
-procedure TGTDXLStoPL.SpeedButton2Click(Sender: TObject);
-begin
-    GotoStep(2);
-end;
-
-procedure TGTDXLStoPL.SpeedButton3Click(Sender: TObject);
-begin
-    GotoStep(3);
-end;
-
-procedure TGTDXLStoPL.SpeedButton4Click(Sender: TObject);
-begin
-    GotoStep(4);
-end;
-
 procedure TGTDXLStoPL.btnBackClick(Sender: TObject);
 begin
     GotoPreviousStep;
@@ -1045,8 +1025,99 @@ end;
 
 procedure TGTDXLStoPL.btnRescanClick(Sender: TObject);
 begin
-    // -- Rescan the sheet
-    ProcessSheet(True);
+  // -- Rescan the sheet
+  ProcessSheet(True);
+end;
+
+function TGTDXLStoPL.LookupSpreadsheetByName(const aFileName : String):Boolean;
+var
+  s : String;
+  tid : Integer;
+begin
+  Result := False;
+
+  // -- See if the spreadsheet is in our recently used list
+  if fDocReg.GetSettingString('XLS Pricelists', 'Recently Received',s) then
+  begin
+    // -- Look for that particular sheet
+    if fDocReg.GetSettingMemoInt('/' + ExtractFileName(aFileName),'Trader_ID',tid) then
+    begin
+
+      Result := fDocReg.OpenForTraderNumber(tid);
+
+    end;
+
+    Result := tid <> 0;
+    
+  end;
+  // function SaveSettingMemoString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
+
+end;
+
+procedure TGTDXLStoPL.LoadSheetMapping;
+var
+  d : Double;
+begin
+  // -- Save the markup calculation figures
+  if fDocReg.GetTraderSettingNumber('/Pricelist Markups','List_Adjustment_Percentage',d) then
+    pnldbUpdate.List_AdjustmentPercentage := d
+  else
+    pnldbUpdate.List_AdjustmentPercentage := 0;
+    
+  if fDocReg.GetTraderSettingNumber('/Pricelist Markups','List_Charges',d) then
+    pnldbUpdate.List_Charges := d
+  else
+    pnldbUpdate.List_Charges := 0;
+
+  if fDocReg.GetTraderSettingNumber('/Pricelist Markups','List_Tax_Percentage',d) then
+    pnldbUpdate.List_TaxPercentage := d
+  else
+    pnldbUpdate.List_TaxPercentage := 0;
+
+  if fDocReg.GetTraderSettingNumber('/Pricelist Markups','Actual_Adjustment_Percentage',d) then
+    pnldbUpdate.Actual_AdjustmentPercentage := d
+  else
+    pnldbUpdate.Actual_AdjustmentPercentage := 0;
+
+  if fDocReg.GetTraderSettingNumber('/Pricelist Markups','Actual_Charges',d) then
+    pnldbUpdate.Actual_Charges := d
+  else
+    pnldbUpdate.Actual_Charges := 0;
+
+  if fDocReg.GetTraderSettingNumber('/Pricelist Markups','Actual_Tax_Percentage',d) then
+    pnldbUpdate.Actual_TaxPercentage := d
+  else
+    pnldbUpdate.Actual_TaxPercentage := 0;
+
+//  fDocReg.GetTraderSettingString('/Pricelist Markups','List_DWSPriceCalcFormula',pnldbUpdate.List_DWSPriceFormula);
+//  fDocReg.GetTraderSettingString('/PriceActual Markups','Actual_DWSPriceCalcFormula',pnldbUpdate.Actual_DWSPriceFormula.Text);
+
+end;
+
+procedure TGTDXLStoPL.SaveSheetMapping;
+begin
+  // -- See if the spreadsheet is in our recently used list
+  if fDocReg.SaveSettingString('XLS Pricelists', 'Recently Received','') then
+  begin
+    // -- Look for that particular sheet
+    if fDocReg.SaveSettingMemoInt('/' + ExtractFileName(SheetFileName),'Trader_ID',fDocReg.Trader_ID) then
+    begin
+
+    end;
+  end;
+
+  // -- Save the markup calculation figures
+  fDocReg.SaveTraderSettingNumber('/Pricelist Markups','List_Adjustment_Percentage',pnldbUpdate.List_AdjustmentPercentage,false);
+  fDocReg.SaveTraderSettingNumber('/Pricelist Markups','List_Charges',pnldbUpdate.List_Charges,false);
+  fDocReg.SaveTraderSettingNumber('/Pricelist Markups','List_Tax_Percentage',pnldbUpdate.List_TaxPercentage,false);
+
+  fDocReg.SaveTraderSettingNumber('/Pricelist Markups','Actual_Adjustment_Percentage',pnldbUpdate.Actual_AdjustmentPercentage,false);
+  fDocReg.SaveTraderSettingNumber('/Pricelist Markups','Actual_Charges',pnldbUpdate.Actual_Charges,false);
+  fDocReg.SaveTraderSettingNumber('/Pricelist Markups','Actual_Tax_Percentage',pnldbUpdate.Actual_TaxPercentage);
+
+//  fDocReg.SaveTraderSettingString('/Pricelist Markups','List_DWSPriceCalcFormula',pnldbUpdate.List_DWSPriceFormula);
+//  fDocReg.SaveTraderSettingString('/PriceActual Markups','Actual_DWSPriceCalcFormula',pnldbUpdate.Actual_DWSPriceFormula.Text);
+
 end;
 
 end.
