@@ -604,14 +604,32 @@ end;
 //---------------------------------------------------------------------------
 function GTDPricefileConvertor.LooksLikeaColumnHeading(aLine : String):Boolean;
 var
-    xc : Integer;
+    xc,tic : Integer;
     l,s,w : String;
 begin
-    l := StdAllWords;
+    Result := False;
+
+    // -- Firstly, there should be text in more than one column
+    if (DataFormat = pltDataLayout) then
+    begin
+      l := aLine;
+      tic := 0;
+      // -- Count up the number of columns with text
+      repeat
+        w := Parse(l,Chr(9));
+        if (Length(w) <> 0) then
+          Inc(tic);
+      until Length(l) = 0;
+
+      // -- If text is in only one column then it cannot be
+      if (tic <= 1) then
+        Exit;
+    end;
 
     // -- If any column heading word is found, return true
     //    note, this function should really return true only
     //    if several words are found
+    l := StdAllWords;
     w := Parse(l,';');
     while w <> '' do
     begin
