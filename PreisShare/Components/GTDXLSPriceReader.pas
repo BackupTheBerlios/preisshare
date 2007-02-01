@@ -7,7 +7,9 @@ uses
   OleServer, StdCtrls, bsSkinCtrls, bsSkinBoxCtrls, bsSkinData,
   bsSkinShellCtrls,GTDTextToPricefile, GTDBizDocs, GTDTraderSelectPanel, Mask, bsDialogs, ComCtrls,
   bsSkinTabs, Buttons, ExcelXP, Variants,
-  GTDUpdateSummary, GTDProductDBUpdate, PricelistExport, jpeg, ExtCtrls;
+  GTDUpdateSummary, GTDProductDBUpdate, GTDSupplierPriceParams,
+  PricelistExport, jpeg, ExtCtrls;
+
 
 type
   TGTDXLStoPL = class(TFrame)
@@ -21,7 +23,6 @@ type
     pnlBackground: TbsSkinPanel;
     bsSkinPanel2: TbsSkinPanel;
     lblProgress: TbsSkinStdLabel;
-    btnView: TbsSkinSpeedButton;
     bsSkinLabel4: TbsSkinLabel;
     ssgProgress: TbsSkinGauge;
     bsSkinPanel3: TbsSkinPanel;
@@ -46,10 +47,13 @@ type
     lblStep3Text: TbsSkinTextLabel;
     lblStep4Text: TbsSkinTextLabel;
     btnBack: TbsSkinButton;
-    btnRescan: TbsSkinSpeedButton;
     Image1: TImage;
+    btnSaveMappings: TbsSkinCheckRadioBox;
+    btnView: TbsSkinSpeedButton;
+    btnRescan: TbsSkinSpeedButton;
     procedure bsSkinSpeedButton3Click(Sender: TObject);
     procedure bsSkinSpeedButton4Click(Sender: TObject);
+    procedure bsSkinSpeedButton2Click(Sender: TObject);
     procedure bsSkinSpeedButton5Click(Sender: TObject);
     procedure bsSkinSpeedButton6Click(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
@@ -57,29 +61,37 @@ type
     procedure lstColMapDblClick(Sender: TObject);
     procedure btnConvertClick(Sender: TObject);
     procedure txtSpreadsheetNameChange(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+    procedure SpeedButton2Click(Sender: TObject);
+    procedure SpeedButton3Click(Sender: TObject);
+    procedure SpeedButton4Click(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure txtCellStartChange(Sender: TObject);
     procedure btnRescanClick(Sender: TObject);
+    procedure lstColMapChange(Sender: TObject; Item: TListItem;
+      Change: TItemChange);
   private
     { Private declarations }
     lcid: integer;
+    plcvt : GTDPricefileConvertor;
     fDocReg : GTDDocumentRegistry;
-    pnlUpdSum: TGTDPriceUpdateSummary;
-//    pnldbUpdate : TGTDProductDBUpdateFrame;
     fStepNumber : Integer;
 
+    SheetFileName : String;
 
-    fSkinData: TbsSkinData;
+	  fSkinData: TbsSkinData;
 
     procedure SetSkinData(Value: TbsSkinData);
 
   public
     { Public declarations }
     NeedToStop : Boolean;
-    pnldbUpdate : TGTDPricelistExportFrame;
-    plcvt : GTDPricefileConvertor;
+
     tsel : TpnlTraderGet;
-    SheetFileName : String;
+    pnlUpdSum: TGTDPriceUpdateSummary;
+    priceparams : TSupplierPriceParamsFrame;
+//    pnldbUpdate : TGTDProductDBUpdateFrame;
+    pnldbUpdate : TGTDPricelistExportFrame;
 
     function Initialise:Boolean;
     function OpenPriceSpreadsheet(const XLSFileName : String):Boolean;
@@ -89,16 +101,16 @@ type
     function Close:Boolean;
     function SavePricelist(Trader_ID : Integer):Boolean;
 
-    procedure GotoPreviousStep;
-    procedure GotoNextStep;
-    function GotoStep(StepNumber : Integer):Boolean;
-
     function LookupSpreadsheetByName(const aFileName : String):Boolean;
     procedure LoadSheetMapping;
     procedure SaveSheetMapping;
 
+    procedure GotoPreviousStep;
+    procedure GotoNextStep;
+    function GotoStep(StepNumber : Integer):Boolean;
+
   published
-    property SkinData: TbsSkinData read fSkinData write SetSkinData;
+	property SkinData: TbsSkinData read fSkinData write SetSkinData;
     property DocRegistry : GTDDocumentRegistry read fDocReg write fDocReg;
   end;
 
@@ -151,7 +163,7 @@ begin
             Top := pnlSheetOpen.Top;
             Left := pnlSheetOpen.Left;
             Width := pnlSheetOpen.Width;
-          Height := pnlSheetOpen.Height;
+            Height := pnlSheetOpen.Height;
 
             Parent := Self;
             Visible := False;
@@ -181,13 +193,32 @@ begin
         pnldbUpdate.SkinData := SkinData;
     end;
 
+    // -- Create the price parameters frame
+    if not Assigned(priceparams) then
+    begin
+      priceparams := TSupplierPriceParamsFrame.Create(Self);
+      with priceparams do
+      begin
+        Parent := Self;
+        Top := bsSkinPanel3.Top;
+        Left := bsSkinPanel3.Left;
+        Width := bsSkinPanel3.Width;
+        Height := bsSkinPanel3.Height;
+
+        Visible := False;
+      end;
+
+      priceparams.SkinData := SkinData;
+      
+    end;
+
     lstColMap.Items.Clear;
 
     // --
     pnlSheetSettings.Top  := pnlSheetOpen.Top;
     pnlSheetSettings.Left := pnlSheetOpen.Left;
-    pnlUpdSum.Top         := pnlSheetOpen.Top;
-    pnlUpdSum.Left        := pnlSheetOpen.Left;
+    pnlUpdSum.Top       := pnlSheetOpen.Top;
+    pnlUpdSum.Left      := pnlSheetOpen.Left;
     lblStep2Text.Top      := lblStep1Text.Top;
     lblStep2Text.Left     := lblStep1Text.Left;
     lblStep3Text.Top      := lblStep1Text.Top;
@@ -240,6 +271,9 @@ begin
   ExcelApplication1.Disconnect;
 end;
 
+procedure TGTDXLStoPL.bsSkinSpeedButton2Click(Sender: TObject);
+begin
+end;
 // --
 //
 // Notes:
@@ -288,6 +322,7 @@ var
                 txtCellEnd.Text := 'R' + IntToStr(UsedRows) + 'C' + IntToStr(UsedCols);
 
             btnRescan.Visible := False;
+            bsSkinLabel3.Width := 193;
 
             if (plcvt.ColCount = 0) and (lstColMap.Items.Count = 0) then
             begin
@@ -306,6 +341,7 @@ var
             end;
 
         end;
+
 
         Result := True;
     end;
@@ -365,6 +401,7 @@ var
             txtCellStart.ReadOnly := False;
             txtCellEnd.ReadOnly := False;
             btnRescan.Visible := True;
+            bsSkinLabel3.Width := 129;
         end;
     end;
 
@@ -373,7 +410,7 @@ var
         xc : Integer;
     begin
 
-        plcvt.ClearColumnMappings;    
+        plcvt.ClearColumnMappings;
 
         // -- Save the Column mappings from the screen
         for xc := 1 to lstColMap.Items.Count do
@@ -541,6 +578,9 @@ begin
             // -- Add it to the list
             cbxSheetList.Items.Add(ws.Name);
 
+            if ExamineFormatOnly then
+                plcvt.ClearDiscoveredColumns;
+
             if not FindUsedRowsAndCols then
                 Exit;
 
@@ -550,7 +590,6 @@ begin
             begin
                 plcvt.LineItemLayout := plilTabbed;
                 plcvt.DataFormat := pltDataLayout;
-                plcvt.ClearDiscoveredColumns;
             end
             else
                 SetupConversionInfo;
@@ -761,11 +800,14 @@ begin
 
     if bsSkinSelectValueDialog1.Execute('Column Mapping','Select the logical field to map this column to:',xc) then
     begin
-
         // -- Select that particular field
         lstColMap.Selected.SubItems[0] := bsSkinSelectValueDialog1.SelectValues.Strings[xc];// IntToStr(xc);
 
+        // --
+        lstColMapChange(Sender,lstColMap.Selected,ctState);
+
     end;
+
 end;
 
 procedure TGTDXLStoPL.bsSkinSpeedButton3Click(Sender: TObject);
@@ -823,11 +865,10 @@ begin
     begin
         // -- Open the file
         if OpenPriceSpreadsheet(txtSpreadSheetName.Text) then
-        begin
+
             // -- Open in examination mode
             plcvt.ReportMessage('Show',txtSpreadSheetName.Text + ' selected.');
             plcvt.ReportMessage('Show','Ready to begin Sheet examination.');
-        end;
     end;
 end;
 
@@ -869,7 +910,10 @@ begin
             lblStepUpTo.Caption := 'Step 1 of 4';
             btnConvert.Caption := 'Next >>';
             btnConvert.Visible := True;
-            btnBack.Visible := True;
+            btnBack.Visible := False;
+            btnSaveMappings.Visible := False;
+
+            priceparams.Visible := False;
 
             lblStep1Text.Visible := True;
             lblStep2Text.Visible := False;
@@ -880,14 +924,14 @@ begin
             bsSkinLabel2.Visible := True;
 
             pnldbUpdate.Visible := False;
-            
+
             if Assigned(tsel) then
                 tsel.Visible := false;
 
             fStepNumber := 1;
 
             txtSpreadsheetName.SetFocus;
-            
+
             Result := True;
          end;
      2 : begin
@@ -905,11 +949,12 @@ begin
                     Inc(fStepNumber);
                     Result := True;
                 end;
-                
+
                 pnlSheetOpen.Visible := False;
                 pnlSheetSettings.Visible := True;
                 pnlUpdSum.Visible := False;
 
+                btnBack.Visible := True;
                 tsel.Visible := false;
                 lblStepUpTo.Caption := 'Step 2 of 4';
                 btnConvert.Caption := 'Next >>';
@@ -921,6 +966,9 @@ begin
                 txtCellStart.ReadOnly := False;
                 txtCellEnd.ReadOnly := False;
                 btnRescan.Visible := False;
+                bsSkinLabel3.Width := 129;
+
+                btnSaveMappings.Visible := True;
 
             end;
          end;
@@ -938,11 +986,16 @@ begin
             lblStep2Text.Visible := False;
             lblStep3Text.Visible := True;
             lblStep4Text.Visible := False;
+            btnSaveMappings.Visible := True;
+
+            btnBack.Visible := True;
 
             // -- These all get turned on if successful
             pnlSheetSettings.Visible := False;
             pnlSheetOpen.Visible := False;
             pnlUpdSum.Visible := False;
+
+            priceparams.Visible := False;
 
             // -- Select the company
             tsel.SkinData := fSkinData;
@@ -979,6 +1032,8 @@ begin
                 lblStep2Text.Visible := False;
                 lblStep3Text.Visible := False;
                 lblStep4Text.Visible := True;
+                btnBack.Visible := True;
+                btnSaveMappings.Visible := False;
 
                 tsel.Visible := False;
 
@@ -1002,7 +1057,7 @@ begin
             if pnldbUpdate.Run then
             begin
                 btnConvert.Visible := False;
-                btnBack.Visible := False;
+//                btnBack.Visible := False;
                 lblStepUpTo.Caption := 'Finished';
                 fStepNumber := 0;
                 Result := True;
@@ -1011,6 +1066,27 @@ begin
     else
         ;
     end;
+end;
+
+procedure TGTDXLStoPL.SpeedButton1Click(Sender: TObject);
+begin
+    Initialise;
+    GotoStep(1);
+end;
+
+procedure TGTDXLStoPL.SpeedButton2Click(Sender: TObject);
+begin
+    GotoStep(2);
+end;
+
+procedure TGTDXLStoPL.SpeedButton3Click(Sender: TObject);
+begin
+    GotoStep(3);
+end;
+
+procedure TGTDXLStoPL.SpeedButton4Click(Sender: TObject);
+begin
+    GotoStep(4);
 end;
 
 procedure TGTDXLStoPL.btnBackClick(Sender: TObject);
@@ -1025,8 +1101,20 @@ end;
 
 procedure TGTDXLStoPL.btnRescanClick(Sender: TObject);
 begin
-  // -- Rescan the sheet
-  ProcessSheet(True);
+    // -- Rescan the sheet
+    ProcessSheet(True);
+end;
+
+procedure TGTDXLStoPL.lstColMapChange(Sender: TObject; Item: TListItem;
+  Change: TItemChange);
+begin
+  if (Change = ctState) and (Item = lstColMap.Selected) then
+  begin
+    if (lstColMap.Selected.SubItems[0] = GTD_PL_ELE_PRODUCT_LIST) or (lstColMap.Selected.SubItems[0] = GTD_PL_ELE_PRODUCT_ACTUAL) then
+      priceparams.Visible := True
+    else
+      priceparams.Visible := False;
+  end;
 end;
 
 function TGTDXLStoPL.LookupSpreadsheetByName(const aFileName : String):Boolean;
@@ -1092,9 +1180,16 @@ begin
 //  fDocReg.GetTraderSettingString('/Pricelist Markups','List_DWSPriceCalcFormula',pnldbUpdate.List_DWSPriceFormula);
 //  fDocReg.GetTraderSettingString('/PriceActual Markups','Actual_DWSPriceCalcFormula',pnldbUpdate.Actual_DWSPriceFormula.Text);
 
+
+
+
+
+
+
 end;
 
 procedure TGTDXLStoPL.SaveSheetMapping;
+
 begin
   // -- See if the spreadsheet is in our recently used list
   if fDocReg.SaveSettingString('XLS Pricelists', 'Recently Received','') then
