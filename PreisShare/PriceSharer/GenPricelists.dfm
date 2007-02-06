@@ -1,10 +1,10 @@
 object frmGeneratePL: TfrmGeneratePL
   Left = 201
   Top = 107
-  AutoScroll = False
   BorderIcons = []
+  BorderStyle = bsDialog
   Caption = 'Generate Pricelists'
-  ClientHeight = 426
+  ClientHeight = 385
   ClientWidth = 558
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

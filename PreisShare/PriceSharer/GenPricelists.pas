@@ -33,6 +33,7 @@ begin
 
     myList := TPricelistGenerator.Create(Self);
 
+    // -- Create the generator object
     with myList do
     begin
         Top := 10;
@@ -44,6 +45,7 @@ begin
         Init;
         SendToBack;
     end;
+
 
 end;
 

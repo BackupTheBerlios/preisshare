@@ -94,7 +94,7 @@ OutputDir=
 UnitOutputDir=
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=d:\Components;d:\Components\ALMDev;D:\Components\ICS\Delphi\Vc32;D:\Components\Dec\Source;D:\Components\DeersoftADO
+SearchPath=..\Components;..\Components\Almdev;..\Components\Dec\Source;..\Components\DeersoftADO;..\Components\ICS\Delphi\Vc32;..\Components\Almdev;..\Components\Dec\Source;..\Components\DeersoftADO;..\Components\vtkexp\Source
 Packages=Vcl50;Vclx50;VclSmp50;Qrpt50;Vcldb50;Vclbde50;ibevnt50;vcldbx50;TeeUI50;TeeDB50;Tee50;TeeQR50;VCLIB50;vclie50;Inetdb50;Inet50;NMFast50;dclocx50;dclaxserver50;BSFD5;TradalogComponents
 Conditionals=
 DebugSourceDirs=
@@ -135,14 +135,17 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 [Excluded Packages]
-c:\program files\borland\delphi7\Projects\Bpl\ComputerGrid_D7.bpl=(untitled)
+C:\Program Files\Borland\Delphi7\Bin\dclaxserver70.bpl=Microsoft Office 97 Sample Automation Server Wrapper Components
 [HistoryLists\hlUnitAliases]
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=5
-Item0=D:\Components;D:\Components\Almdev;D:\Components\Dec\Source;D:\Components\DeersoftADO
-Item1=D:\Components;D:\Components\Almdev;D:\Components\Dec\Source
-Item2=D:\Components
-Item3=D:\Components\Almdev;D:\Components\Dec\Source
-Item4=D:\Components\Almdev
+Count=8
+Item0=..\Components;..\Components\Almdev;..\Components\Dec\Source;..\Components\DeersoftADO;..\Components\ICS\Delphi\Vc32;..\Components\Almdev;..\Components\Dec\Source;..\Components\DeersoftADO;..\Components\vtkexp\Source
+Item1=..\Components;..\Components\Almdev;..\Components\Dec\Source;..\Components\DeersoftADO;..\Components\ICS\Delphi\Vc32
+Item2=..\Components;..\Components\Almdev;..\Components\Dec\Source;..\Components\DeersoftADO
+Item3=D:\Components;D:\Components\Almdev;D:\Components\Dec\Source;D:\Components\DeersoftADO
+Item4=D:\Components;D:\Components\Almdev;D:\Components\Dec\Source
+Item5=D:\Components
+Item6=D:\Components\Almdev;D:\Components\Dec\Source
+Item7=D:\Components\Almdev

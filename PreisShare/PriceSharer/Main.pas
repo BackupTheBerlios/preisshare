@@ -92,6 +92,7 @@ type
     Load1: TMenuItem;
     EmailPricelists1: TMenuItem;
     Configuration1: TMenuItem;
+    Vie1: TMenuItem;
     procedure Restore1Click(Sender: TObject);
 	procedure Shutdown1Click(Sender: TObject);
     procedure bsSkinButton1Click(Sender: TObject);
@@ -121,6 +122,7 @@ type
     procedure Load1Click(Sender: TObject);
     procedure EmailPricelists1Click(Sender: TObject);
     procedure Configuration1Click(Sender: TObject);
+    procedure Vie1Click(Sender: TObject);
   private
     { Private declarations }
 	myConnections : TCustomerTcpListener;
@@ -142,7 +144,7 @@ implementation
 {$R *.DFM}
 Uses Data, Accounts, Settings, Search, NetworkSearches, ProductEdit,
      AdoAPI, ActiveX, ComObj, CustomerAdd, SpreadSheetImport, GenPricelists,
-     NewsLetter, BuildDBPricelist, Config;
+     NewsLetter, BuildDBPricelist, Config, LogView;
 
 procedure TfrmMain.Restore1Click(Sender: TObject);
 begin
@@ -490,6 +492,11 @@ end;
 procedure TfrmMain.Configuration1Click(Sender: TObject);
 begin
     frmConfig.SHowModal;
+end;
+
+procedure TfrmMain.Vie1Click(Sender: TObject);
+begin
+  frmLogView.ShowModal;
 end;
 
 end.
