@@ -126,7 +126,7 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = btnPreviewClick
     end
     object btnGenerateAll: TbsSkinSpeedButton
-      Left = 342
+      Left = 390
       Top = 260
       Width = 77
       Height = 23
@@ -766,10 +766,10 @@ object PricelistGenerator: TPricelistGenerator
       OnChange = lsvCustomerListChange
     end
     object cbxShowDetails: TbsSkinCheckRadioBox
-      Left = 168
+      Left = 256
       Top = 272
       Width = 97
-      Height = 25
+      Height = 17
       TabOrder = 5
       SkinDataName = 'checkbox'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -791,9 +791,9 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = cbxShowDetailsClick
     end
     object cbxForce: TbsSkinCheckRadioBox
-      Left = 168
-      Top = 296
-      Width = 97
+      Left = 176
+      Top = 272
+      Width = 81
       Height = 17
       TabOrder = 6
       SkinDataName = 'checkbox'
@@ -816,7 +816,7 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = cbxShowDetailsClick
     end
     object btnCancel: TbsSkinButton
-      Left = 400
+      Left = 392
       Top = 260
       Width = 75
       Height = 25
@@ -907,8 +907,6 @@ object PricelistGenerator: TPricelistGenerator
     Port = 'smtp'
     AuthType = smtpAuthLogin
     ConfirmReceipt = False
-    RcptName.Strings = (
-      'sinu@preisshare.net')
     HdrPriority = smtpPriorityNone
     CharSet = 'iso-8859-1'
     SendMode = smtpToSocket
@@ -924,8 +922,8 @@ object PricelistGenerator: TPricelistGenerator
     Top = 8
   end
   object PageProducer1: TPageProducer
-    Left = 272
-    Top = 276
+    Left = 464
+    Top = 12
   end
   object Scheduler: TTimer
     Enabled = False
@@ -969,7 +967,7 @@ object PricelistGenerator: TPricelistGenerator
     WrapMessageText = False
     ContentType = smtpPlainText
     OwnHeaders = False
-    Left = 232
-    Top = 40
+    Left = 296
+    Top = 8
   end
 end

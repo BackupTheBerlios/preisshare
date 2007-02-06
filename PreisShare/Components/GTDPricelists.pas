@@ -534,6 +534,9 @@ begin
         // -- Advance the column number
         Inc(iCol);
 
+        if (iRow mod 100) = 0 then
+          Application.ProcessMessages;
+          
       until (sColumns = '');
 
       // -- There is a bug in vteWriters that takes ages with bigger

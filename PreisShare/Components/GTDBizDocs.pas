@@ -1094,20 +1094,22 @@ const
     GTD_DB_AUDIT_CDE_PRCLST_RCV = 'PriceList Received';
     GTD_AUDITCD_CRT             = 'Create';
     GTD_AUDITDS_CRT             = 'Document Created';
-	GTD_AUDITCD_UPD             = 'Updated';
+    GTD_AUDITCD_UPD             = 'Updated';
     GTD_AUDITDS_UPD             = 'Document Updated';
     GTD_AUDITCD_RCV             = 'Received';
     GTD_AUDITDS_RCV             = 'Document Received';
-	GTD_AUDITCD_SND             = 'Sent';
-	GTD_AUDITDS_SND             = 'Document Sent';
+    GTD_AUDITCD_SND             = 'Sent';
+    GTD_AUDITDS_SND             = 'Document Sent';
     GTD_AUDITCD_STAT            = 'Status';
-	GTD_AUDITDS_STAT            = 'Status Changed';
-	GTD_AUDITCD_CMTS            = 'Comments';
+    GTD_AUDITDS_STAT            = 'Status Changed';
+    GTD_AUDITCD_CMTS            = 'Comments';
     GTD_AUDITDS_CMTS            = 'Comments Changed';
     GTD_AUDITCD_STCM            = 'Status/Comments';
     GTD_AUDITDS_STCM            = 'Comments/Status Changed';
     GTD_AUDITCD_SYNC            = 'Synch';
     GTD_AUDITDS_SYNC            = 'Trading Partner Updated';
+    GTD_AUDITCD_NOTSNT          = 'Not Sent';
+    GTD_AUDITDS_NOTSNT          = 'Document not sent';
 
     // -- Document registry specifications
 	Base_Dir                    = '\Program Files\BestComputerPrices'; // ** Use GetSoftwareInstallDir

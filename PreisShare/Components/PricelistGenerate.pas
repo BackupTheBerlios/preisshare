@@ -74,6 +74,8 @@ type
     fProcessing ,
     fDistributing       : Boolean; {Sinu}
 
+    fPricelistFormat    : String;
+
     function CollectEmailDistributionList:Boolean;
     function CreateHTMLEmailfromTemplate(TemplateFileName : String):Boolean;
     function EmailFileSetToCustomer:Boolean;
@@ -133,12 +135,14 @@ function TPricelistGenerator.Init:Boolean;
 var
   sStatus : String;
 begin
+    // -- Create a new registry object if one isn't assigned
     if not Assigned(fDocRegistry) then
     begin
         fDocRegistry := GTDDocumentRegistry.Create(Self);
         fDocRegistry.Visible := False;
     end;
 
+    // -- Open the registry
     fDocRegistry.OpenRegistry('',sStatus);
 
     if not Assigned(fplBuildConfig) then
@@ -571,6 +575,9 @@ begin
 
     iColCount := 0;
 
+    // -- Save this for later
+    fPricelistFormat := sFormat;
+
     // -- Depending on the format required
     iColCount := 0;
     if (sFormat = PL_DELIV_CSV) then
@@ -814,7 +821,7 @@ procedure TPricelistGenerator.SmtpEmailRequestDone(Sender: TObject;
   RqType: TSmtpRequest; ErrorCode: Word);
 var
   xc : Integer;
-
+  s : String;
 begin
   fConnectionErr := False;
 
@@ -860,7 +867,14 @@ begin
       fLatestpl.Local_Status_Code := GTD_AUDITCD_SND;
 
       // -- Save it back in the registry
-      fDocRegistry.Save(fLatestpl,GTD_AUDITCD_SND,'Document sent by email');
+      s := fPricelistFormat + ' Pricelist sent to ';
+      for xc := 0 to SmtpEmail.RcptName.Count-1 do
+      begin
+        s := s + SmtpEmail.RcptName[xc] + ',';
+      end;
+
+      // -- Save the updated pricelist
+      fDocRegistry.Save(fLatestpl,GTD_AUDITCD_SND,s);
 
     end;
 
