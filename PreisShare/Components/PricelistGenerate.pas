@@ -11,6 +11,13 @@ uses
   Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings,
   FtpCli, OleCtrls;
 
+const
+    GTTM_SETUP            = WM_APP + 405;
+    GTTM_PROCESS_CURRENT  = WM_APP + 406;
+    GTTM_MOVE_NEXT        = WM_APP + 407;
+    GTTM_CLEANUP          = WM_APP + 408;
+    GTTM_ERRSTART         = WM_APP + 409;
+
 type
   TPricelistGenerator = class(TFrame)
     sgProgress: TbsSkinGauge;
@@ -72,7 +79,7 @@ type
     fNeedToStop,
     fConnectionErr,
     fProcessing ,
-    fDistributing       : Boolean; {Sinu}
+    fSendToAll          : Boolean; {Sinu}
 
     fPricelistFormat    : String;
 
@@ -94,6 +101,14 @@ type
 
     procedure SetSkinData(Value: TbsSkinData);
     procedure SetPriceListTimer(ASeconds : Integer);
+
+    procedure ProcessSetup(var aMsg : TMsg); message GTTM_SETUP;
+    procedure ProcessCurrent(var aMsg : TMsg); message GTTM_PROCESS_CURRENT;
+    procedure ProcessMoveNext(var aMsg : TMsg); message GTTM_MOVE_NEXT;
+    procedure ProcessFinalCleanup(var aMsg : TMsg); message GTTM_CLEANUP;
+    {
+    procedure ProcessErrorStart(var aMsg : TMsg); message GTTM_ERRSTART;
+    }
 
   published
     property SkinData   : TbsSkinData read fSkinData write SetSkinData;
@@ -172,7 +187,7 @@ begin
         end;
     end;
 
-    fDistributing := False;
+    fSendToAll := False;
 
     CollectEmailDistributionList; {Collect all traders}
 end;
@@ -199,7 +214,7 @@ begin
   cbxTemplateName.SkinData := Value;
   lblTemplateName.SkinData := Value;
   cbxShowDetails.SkinData := Value;
-  
+
 end;
 
 function TPricelistGenerator.SendToAll:Boolean;
@@ -207,81 +222,14 @@ var
 	iCount : Integer;
 begin
 
-  // -- Take care of some screen things
-  Screen.Cursor           := crHourGlass;
-  rdoGenerateForHowMany.Visible := False;
-  btnGenerateAll.Visible  := False;
-  lsvCustomerList.Visible := False;
-  sgProgress.Visible      := True;
-  sgProgress.Value        := 1;
-  sgProgress.MaxValue     := 11;
-  rdoGenerateForHowMany.Enabled    := False;
-  btnGenerateAll.Enabled  := False;
-  fNeedToStop             := False;
-  btnCancel.Visible       := True;
-
-  Application.ProcessMessages;
-
   // -- Generate pricelists for everybody
-  fDistributing       := True;
-  fProcessing         := False;
+  fSendToAll          := True;
   iCount              := 0;
-  with qryFindTargets do
-  begin
-    First;
-    while (Not Eof) do
-    begin
-      if Not fProcessing then
-      begin
-        // -- Initialize progress bar for sending each mail
-        sgProgress.Value       := 1;
-        sgProgress.MaxValue    := lsvCustomerList.Items.Count * 10;
-        sgProgress.Visible     := True;
 
-        fProcessing            := True;
-        rdoGenerateForHowMany.Enabled   := False;
-        btnGenerateAll.Enabled := False;
-        Screen.Cursor          := crHourGlass;
+  qryFindTargets.First;
 
-        MoveProgressBar; {Move position of progress bar}
-
-        // -- Generate and send price list for each trader
-        SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger,cbxForce.Checked);
-
-        // -- repeat this loop until a reply gets from the mail server.
-        //    Call GenerateForTrader and process all messages till gets a reply from mail server.
-        //  After finishing the process of mail sending , loop to do the same for another trader.}
-        repeat
-          Application.ProcessMessages;
-
-          // -- If there is any mail server problem, break from the loop.
-          if fConnectionErr then
-            Break;
-
-        until fProcessing = False;
-
-      end;
-
-      // -- Take the next trader
-      Next;
-    end;
-  end;
-
-  fDistributing := False;
-
-  if Scheduler.Enabled then
-    Report('STATUS','Waiting on Scheduler')
-  else
-    Report('STATUS','Ready');
-
-  // -- Cleanup
-  Screen.Cursor := crDefault;
-  btnGenerateAll.Enabled := True;
-  rdoGenerateForHowMany.Visible    := True;
-  lsvCustomerList.Visible := True;
-  sgProgress.Visible      := False;
-  fNeedToStop             := False;
-  btnCancel.Visible := False;
+  // -- Send to the currently selected trader
+  PostMessage(Handle,GTTM_PROCESS_CURRENT,0,0);
 
 end;
 
@@ -292,6 +240,7 @@ begin
     else begin
         if Assigned(lsvCustomerList.Selected) then
         begin
+          // -- Lookup the TraderID
           if qryFindTargets.Locate(GTD_DB_COL_TRADER_ID,VarArrayOf([StrToInt(lsvCustomerList.Selected.SubItems[2])]),[]) then
             SendToTrader(qryFindTargets.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger,cbxForce.Checked)
           else
@@ -560,11 +509,11 @@ begin
 
       // -- Display the results
       if not bNeedToProcess then
-        Report('SHOW','No changes since last send.');
+        Report('SHOW','No changes since sent last.');
 
       if not bNeedToProcess then
       begin
-        ResetBeforeExit;
+        PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
         Exit;
       end
 
@@ -891,21 +840,20 @@ begin
     Report('SHOW','Product Data Mailed Successfully to ' + SmtpEmail.HdrTo);
 
     fProcessing             := False;
+
+    PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
+
   end
   else if (ErrorCode <> 0) then
   begin
     fConnectionErr      := True;
 
-    sgProgress.Visible  := False;
     Screen.Cursor       := crDefault;
 
     if (ErrorCode = 11004) then
     begin
       if mrYes = bsSkinMessage1.MessageDlg('You are not Connected: Do you want to generate files to manually email anyway?',mtConfirmation,[mbYes, mbNo, mbCancel],0) then
       begin
-        sgProgress.Value := sgProgress.MaxValue;
-        sgProgress.Visible := False;
-
         Report('NOT SENT','Product Data generated but not sent.');
       end;
     end
@@ -916,8 +864,9 @@ begin
     end;
     fProcessing := False;
 
-    rdoGenerateForHowMany.Enabled    := True;
-    btnGenerateAll.Enabled  := True;
+    // -- Better luck with the next record
+    PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
+
   end;
 end;
 
@@ -961,7 +910,7 @@ end;
 
 procedure TPricelistGenerator.SchedulerTimer(Sender: TObject);
 begin
-  if Not fDistributing then
+  if Not fSendToAll then
     SendToAll;
 end;
 
@@ -1053,6 +1002,9 @@ begin
 
     FtpClSendPricelist.Quit;
 
+    // -- Move onto the next record
+    PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
+
   end
   else
     Report('Show','Request done');
@@ -1063,6 +1015,67 @@ procedure TPricelistGenerator.btnCancelClick(Sender: TObject);
 begin
   fNeedToStop := True;
 end;
+
+procedure TPricelistGenerator.ProcessSetup(var aMsg : TMsg);
+begin
+  // -- Take care of some screen things
+  Screen.Cursor           := crHourGlass;
+  rdoGenerateForHowMany.Visible := False;
+  btnGenerateAll.Visible  := False;
+  lsvCustomerList.Visible := False;
+  sgProgress.Visible      := True;
+  sgProgress.Value        := 1;
+  sgProgress.MaxValue     := 11;
+  rdoGenerateForHowMany.Enabled    := False;
+  btnGenerateAll.Enabled  := False;
+  fNeedToStop             := False;
+  btnCancel.Visible       := True;
+
+  Application.ProcessMessages;
+
+end;
+
+procedure TPricelistGenerator.ProcessCurrent(var aMsg : TMsg);
+begin
+  SendToTrader(qryFindTargets.FieldByName('Trader_ID').AsInteger);
+end;
+
+procedure TPricelistGenerator.ProcessMoveNext(var aMsg : TMsg);
+begin
+  if fSendToAll then
+  begin
+    // -- Advance to the next record in the set
+    qryFindTargets.Next;
+    if not qryFindTargets.Eof then
+    begin
+      // -- Initiate the next transfer
+      PostMessage(Handle,GTTM_PROCESS_CURRENT,0,0);
+    end
+    else begin
+      // -- Looks like we are finished so do a cleanup
+      PostMessage(Handle,GTTM_CLEANUP,0,0);
+    end;
+  end else
+    // -- Looks like we are finished so do a cleanup
+    PostMessage(Handle,GTTM_CLEANUP,0,0);
+end;
+
+procedure TPricelistGenerator.ProcessFinalCleanup(var aMsg : TMsg);
+begin
+  // -- Cleanup
+  Screen.Cursor := crDefault;
+  btnGenerateAll.Enabled := True;
+  rdoGenerateForHowMany.Visible    := True;
+  lsvCustomerList.Visible := True;
+  sgProgress.Visible      := False;
+  fNeedToStop             := False;
+  btnCancel.Visible := False;
+  fSendToAll := False;
+
+  Report('STATUS','Completed.');
+
+end;
+
 
 end.
 

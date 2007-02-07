@@ -8,8 +8,8 @@ uses
     QDialogs, QStdCtrls, DateUtils,QExtCtrls,
   {$ELSE}
     Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-	StdCtrls, ToolWin, ComCtrls, FileCtrl, Db, DbTables, BDE, ShlObj,
-	ShellAPI,
+    StdCtrls, ToolWin, ComCtrls, FileCtrl, Db, DbTables, BDE, ShlObj,
+    ShellAPI,
     {$IFNDEF HW_SIMPLE} jpeg ,GTDColorButtonList, {$ENDIF}
     extctrls, HCMngr, DiffUnit,
   {$ENDIF}
@@ -23,7 +23,7 @@ uses
   IdTCPClient, IdFTP;
 
 const
-	GTTM_START_SEND = WM_APP + 306;
+    GTTM_START_SEND = WM_APP + 306;
     GTTM_CLEANUP    = WM_APP + 307;
     GTTM_ERRSTART   = WM_APP + 308;
     GTTM_RUNNEXT    = WM_APP + 309;
@@ -79,17 +79,17 @@ type
     fTestEmailDest,
     fMainFile    : String;
 
-	fSkinData   : TbsSkinData;
+    fSkinData   : TbsSkinData;
 
     currentDisplayItem : TListItem;
     runningAll : Boolean;
     runningItemNumber : Integer;
 
-	procedure SetSkinData(newSkin : TbsSkinData);
+    procedure SetSkinData(newSkin : TbsSkinData);
 
   published
 
-	property SkinData : TbsSkinData read fSkinData write SetSkinData;
+    property SkinData : TbsSkinData read fSkinData write SetSkinData;
     property TestEmailDest : String read fTestEmailDest write fTestEmailDest;
 
   public
@@ -105,9 +105,9 @@ type
     function StartFTPDespatch:Boolean;
     procedure Report(const Msgtype : String; Const Description : String);
 
-	procedure ProcessNextCommand(var aMsg : TMsg); message GTTM_START_SEND;
-	procedure ProcessCleanup(var aMsg : TMsg); message GTTM_CLEANUP;
-	procedure ProcessErrorStart(var aMsg : TMsg); message GTTM_ERRSTART;
+    procedure ProcessNextCommand(var aMsg : TMsg); message GTTM_START_SEND;
+    procedure ProcessCleanup(var aMsg : TMsg); message GTTM_CLEANUP;
+    procedure ProcessErrorStart(var aMsg : TMsg); message GTTM_ERRSTART;
     procedure ProcessRunNext(var aMsg : TMsg); message GTTM_RUNNEXT;
     procedure ProcessFTP(var aMsg : TMsg); message GTTM_FTPEVENT;
     procedure DisplayJobList;

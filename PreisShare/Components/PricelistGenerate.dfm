@@ -816,7 +816,7 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = cbxShowDetailsClick
     end
     object btnCancel: TbsSkinButton
-      Left = 392
+      Left = 416
       Top = 260
       Width = 75
       Height = 25
