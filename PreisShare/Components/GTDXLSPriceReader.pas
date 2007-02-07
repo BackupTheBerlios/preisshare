@@ -73,11 +73,8 @@ type
   private
     { Private declarations }
     lcid: integer;
-    plcvt : GTDPricefileConvertor;
     fDocReg : GTDDocumentRegistry;
     fStepNumber : Integer;
-
-    SheetFileName : String;
 
 	  fSkinData: TbsSkinData;
 
@@ -87,11 +84,13 @@ type
     { Public declarations }
     NeedToStop : Boolean;
 
+    // -- These really should be private, or published, add to the todo list
+    SheetFileName : String;
     tsel : TpnlTraderGet;
     pnlUpdSum: TGTDPriceUpdateSummary;
     priceparams : TSupplierPriceParamsFrame;
-//    pnldbUpdate : TGTDProductDBUpdateFrame;
     pnldbUpdate : TGTDPricelistExportFrame;
+    plcvt : GTDPricefileConvertor;
 
     function Initialise:Boolean;
     function OpenPriceSpreadsheet(const XLSFileName : String):Boolean;

@@ -936,7 +936,7 @@ object GTDXLStoPL: TGTDXLStoPL
     end
   end
   object ExcelApplication1: TExcelApplication
-    AutoConnect = True
+    AutoConnect = False
     ConnectKind = ckRunningOrNew
     AutoQuit = True
     Left = 140
