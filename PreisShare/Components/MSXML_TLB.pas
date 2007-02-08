@@ -11,7 +11,7 @@ unit MSXML_TLB;
 // manual modifications will be lost.                                         
 // ************************************************************************ //
 
-// PASTLWTR : $Revision: 1.1 $
+// PASTLWTR : $Revision: 1.2 $
 // File generated on 3/22/01 10:40:13 AM from Type Library described below.
 
 // ************************************************************************ //

@@ -9,7 +9,7 @@ uses
   SmtpProt, bsSkinGrids, bsDBGrids, bsMessages, ShellAPI,
   GTDBuildPricelistFromDBRun,GTDBuildPricelistFromDBConfig,GTDPricelists,
   Buttons, Grids, DBGrids, HTTPApp, HTTPProd, jpeg, ExtCtrls, FastStrings,
-  FtpCli, OleCtrls;
+  FtpCli, OleCtrls, ImgList;
 
 const
     GTTM_SETUP            = WM_APP + 405;
@@ -37,7 +37,7 @@ type
     lblTemplateName: TbsSkinLabel;
     btnPreview: TbsSkinSpeedButton;
     SmtpEmail: TSmtpCli;
-    btnGenerateAll: TbsSkinSpeedButton;
+    btnProcess: TbsSkinSpeedButton;
     gbErrorLog: TbsSkinGroupBox;
     mmoErrLog: TbsSkinMemo;
     PageProducer1: TPageProducer;
@@ -50,7 +50,8 @@ type
     SmtpSummary: TSmtpCli;
     cbxForce: TbsSkinCheckRadioBox;
     btnCancel: TbsSkinButton;
-    procedure btnGenerateAllClick(Sender: TObject);
+    ImageList1: TImageList;
+    procedure btnProcessClick(Sender: TObject);
     procedure btnListClick(Sender: TObject);
     procedure SmtpEmailSinuDisplay(Sender: TObject; Msg: String);
     procedure SmtpEmailSinuRequestDone(Sender: TObject; RqType: TSmtpRequest;
@@ -68,6 +69,11 @@ type
     procedure FtpClSendPricelistRequestDone(Sender: TObject;
       RqType: TFtpRequest; ErrCode: Word);
     procedure btnCancelClick(Sender: TObject);
+    procedure FtpClSendPricelistError(Sender: TObject; var Msg: String);
+    procedure lsvCustomerListChanging(Sender: TObject; Item: TListItem;
+      Change: TItemChange; var AllowChange: Boolean);
+    procedure FtpClSendPricelistProgress(Sender: TObject; Count: Integer;
+      var Abort: Boolean);
   private
 	  { Private declarations }
 	  fSkinData           : TbsSkinData;
@@ -80,6 +86,8 @@ type
     fConnectionErr,
     fProcessing ,
     fSendToAll          : Boolean; {Sinu}
+
+    fUploadSize         : Integer;
 
     fPricelistFormat    : String;
 
@@ -97,7 +105,7 @@ type
     function SendToAll:Boolean;
     function SendToTrader(Trader_ID : Integer; ForcedSend : Boolean = False):Boolean;
     function Cancel:Boolean;
-    procedure Report(const msgType, msgText : String);
+    procedure Report(const msgType, msgText : String; newState : Integer = -1);
 
     procedure SetSkinData(Value: TbsSkinData);
     procedure SetPriceListTimer(ASeconds : Integer);
@@ -141,8 +149,15 @@ const
   PL_FTP_DELIV_PASSWD   = 'FTP_Password';
   PL_FTP_DELIV_DIR      = 'FTP_Directory';
 
+  // -- Display states, these correspond to the states in the icon
+  PL_CLNT_STATE_READY   = 0;
+  PL_CLNT_STATE_BUSY    = 1;
+  PL_CLNT_STATE_SEND    = 2;
+  PL_CLNT_STATE_ERROR   = 3;
+  PL_CLNT_STATE_DONE    = 4;
+
 implementation
-  uses DateUtils;
+  uses DateUtils,FastStringFuncs;
 
 {$R *.DFM}
 
@@ -201,7 +216,7 @@ begin
 
   lsvCustomerList.SkinData := Value;
   rdoGenerateForHowMany.SkinData := Value;
-  btnGenerateAll.SkinData := Value;
+  btnProcess.SkinData := Value;
   sgProgress.SkinData := Value;
 
   btnList.SkinData := Value;
@@ -226,14 +241,19 @@ begin
   fSendToAll          := True;
   iCount              := 0;
 
+  // -- Start at the top
   qryFindTargets.First;
+  lsvCustomerList.Selected := lsvCustomerList.Items[0];
+
+  // -- Get the window to disable all the appropriate controls   
+  PostMessage(Handle,GTTM_SETUP,0,0);
 
   // -- Send to the currently selected trader
   PostMessage(Handle,GTTM_PROCESS_CURRENT,0,0);
 
 end;
 
-procedure TPricelistGenerator.btnGenerateAllClick(Sender: TObject);
+procedure TPricelistGenerator.btnProcessClick(Sender: TObject);
 begin
     if rdoGenerateForHowMany.ItemIndex = 1 then
         SendToAll
@@ -292,6 +312,7 @@ begin
         // -- Add the company to the list
         newItem := lsvCustomerList.Items.Add;
         newItem.Caption := fDocRegistry.Trader_Name;
+        newItem.StateIndex := 0;
 
         // -- Last run
         v := '';
@@ -358,7 +379,7 @@ begin
   if (RqType = smtpConnect) and (ErrorCode = 0) then
   begin
     // -- Do the mailing
-    Report('STATUS','Sending Pricelist');
+    Report('STATUS','Sending Pricelist',PL_CLNT_STATE_SEND);
     Report('SHOW','Mail server connected Successfully.');
     Report('SHOW','Sending price list.');
 
@@ -381,7 +402,7 @@ begin
     Report('SHOW','Session closed Successfully');
     sgProgress.Visible := False;
     Report('SHOW','Product Data Mailed Successfully');
-    Report('STATUS','Complete');
+    Report('STATUS','Complete',PL_CLNT_STATE_DONE);
 
     fProcessing := False;
   end
@@ -397,13 +418,13 @@ begin
         sgProgress.Value := 100;
         sgProgress.Visible := False;
 
-        Report('NOT SENT','Product Data generated but not sent.');
+        Report('NOT SENT','Product Data generated but not sent.',PL_CLNT_STATE_ERROR);
       end;
     end
     else
     begin
       // -- Display the error message
-      Report('ERROR','Error ' + IntToStr(ErrorCode) + ' encountered');
+      Report('ERROR','Error ' + IntToStr(ErrorCode) + ' encountered',PL_CLNT_STATE_ERROR);
     end;
     fProcessing := False;
   end;
@@ -434,7 +455,7 @@ function TPricelistGenerator.SendToTrader(Trader_ID : Integer; ForcedSend : Bool
     sgProgress.Visible  := False;
     Screen.Cursor       := crDefault;
 
-    btnGenerateAll.Enabled  := True;
+    btnProcess.Enabled  := True;
   end;
 
 var
@@ -456,7 +477,7 @@ begin
     MoveProgressBar;
 
     // -- Progess display
-    Report('STATUS','Checking Pricelist');
+    Report('STATUS','Checking Pricelist',PL_CLNT_STATE_BUSY);
     Report('SHOW','Checking pricelist for ' + fDocRegistry.Trader_Name);
 
     // -- Create a pricelist if not already done
@@ -509,7 +530,7 @@ begin
 
       // -- Display the results
       if not bNeedToProcess then
-        Report('SHOW','No changes since sent last.');
+        Report('SHOW','No changes since sent last.',PL_CLNT_STATE_READY);
 
       if not bNeedToProcess then
       begin
@@ -761,9 +782,7 @@ end;
 procedure TPricelistGenerator.SmtpEmailDisplay(Sender: TObject;
   Msg: String);
 begin
-  sgProgress.ProgressText := Msg;
-  //mmoLog.Lines.Add(Msg); Sinu
-  //mmoErrLog.Lines.Add(Msg); {Sinu}
+  Report('Show',Msg);
 end;
 
 procedure TPricelistGenerator.SmtpEmailRequestDone(Sender: TObject;
@@ -782,12 +801,12 @@ begin
   begin
     fConnectionErr          := False;
     rdoGenerateForHowMany.Enabled    := False;
-    btnGenerateAll.Enabled  := False;
+    btnProcess.Enabled  := False;
     Screen.Cursor           := crHourGlass;
 
     // -- Do the mailing
     Report('SHOW','Connected to Mail server.');
-    Report('STATUS','Sending Pricelist.');
+    Report('STATUS','Sending Pricelist.',PL_CLNT_STATE_SEND);
     MoveProgressBar;
     SmtpEMail.Mail;
 
@@ -796,7 +815,7 @@ begin
   else if (RqType = smtpMail) and (ErrorCode = 0) then
   begin
 
-    Report('SHOW','Pricelist sent.');
+    Report('SHOW','Pricelist sent.',PL_CLNT_STATE_DONE);
 
     // -- Set current time as the delivery time
     fDocRegistry.SaveTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,DateTimeToStr(Now));
@@ -854,13 +873,13 @@ begin
     begin
       if mrYes = bsSkinMessage1.MessageDlg('You are not Connected: Do you want to generate files to manually email anyway?',mtConfirmation,[mbYes, mbNo, mbCancel],0) then
       begin
-        Report('NOT SENT','Product Data generated but not sent.');
+        Report('NOT SENT','Product Data generated but not sent.',PL_CLNT_STATE_ERROR);
       end;
     end
     else
     begin
       // -- Display the error message
-      Report('ERROR','Error ' + IntToStr(ErrorCode) + ' encountered');
+      Report('ERROR','Error ' + IntToStr(ErrorCode) + ' encountered',PL_CLNT_STATE_ERROR);
     end;
     fProcessing := False;
 
@@ -875,7 +894,7 @@ begin
   sgProgress.Value := sgProgress.Value + 1;
 end;
 
-procedure TPricelistGenerator.Report(const msgType, msgText : String);
+procedure TPricelistGenerator.Report(const msgType, msgText : String; newState : Integer);
 begin
   if (msgType = 'STATUS') then
   begin
@@ -888,6 +907,13 @@ begin
     mmoErrLog.Lines.Add(msgtype + ' - ' + msgText);
     mmoErrLog.Update;
   end;
+
+  if (newState <> -1) then
+  begin
+    if Assigned(lsvCustomerList.Selected) then
+      lsvCustomerList.Selected.StateIndex := newState;
+  end;
+
 end;
 
 procedure TPricelistGenerator.SetPriceListTimer(ASeconds: Integer);
@@ -949,15 +975,17 @@ begin
   FtpClSendPricelist.UserName := sUser;
   FtpClSendPricelist.HostName := sHostName;
   FtpClSendPricelist.PassWord := sPasswd;
+  FtpClSendPricelist.HostDirName := sDir;
 
   FtpClSendPricelist.LocalFileName := aFileName;
   FtpClSendPricelist.HostFileName := ExtractFileName(aFileName);
 
   Report('STATUS','Connecting to FTP Site');
 
-  FtpClSendPricelist.Connect;
-
   FtpClSendPricelist.Tag := 0;
+  fUploadSize := 0;
+
+  FtpClSendPricelist.Connect;
 
 end;
 
@@ -969,11 +997,18 @@ begin
   if fNeedToStop then
     Exit;
 
+  // -- Do we need to change directory
   if ((FtpClSendPricelist.State = ftpReady) and (FtpClSendPricelist.Tag = 0)) then
   begin
-    Report('STATUS','Uploading file');
-
+    FtpClSendPricelist.CwdAsync;
     FtpClSendPricelist.Tag := 1;
+  end;
+
+  if ((FtpClSendPricelist.State = ftpReady) and (FtpClSendPricelist.Tag = 1)) then
+  begin
+    Report('STATUS','Uploading file',PL_CLNT_STATE_SEND);
+
+    FtpClSendPricelist.Tag := 2;
     FtpClSendPricelist.Put;
 
   end;
@@ -985,9 +1020,16 @@ end;
 
 procedure TPricelistGenerator.FtpClSendPricelistDisplay(Sender: TObject;
   var Msg: String);
+var
+  s : String;
 begin
   Report('Show',Msg);
-//  Report('Status',Msg);
+  if Pos('! Upload Size',Msg) <> 0 then
+  begin
+    s := RightStr(Msg,Length(Msg)-14);
+    fUploadSize := StrToInt(s);
+  end;
+
 end;
 
 procedure TPricelistGenerator.FtpClSendPricelistRequestDone(
@@ -997,17 +1039,39 @@ begin
   begin
     fProcessing := False;
 
-    Report('Show','Uploaded');
-    Report('STATUS','Done');
+    if ErrCode = 0 then
+    begin
 
-    FtpClSendPricelist.Quit;
+      Report('Show','Uploaded');
+      Report('STATUS','Done',PL_CLNT_STATE_DONE);
+
+      FtpClSendPricelist.Quit;
+    end
+    else begin
+      // -- We had an upload error
+      Report('Error','Error uploading',PL_CLNT_STATE_ERROR);
+    end;
 
     // -- Move onto the next record
     PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
 
   end
-  else
-    Report('Show','Request done');
+  else begin
+
+      if (ErrCode <> 0) then
+      begin
+
+        // -- Report the error
+        Report('Error','Error connecting',PL_CLNT_STATE_ERROR);
+
+        // -- Move onto the next record
+        PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
+
+      end
+      else
+        Report('Show','Request done' + IntToStr(Ord(RqType)));
+
+  end
 
 end;
 
@@ -1021,18 +1085,14 @@ begin
   // -- Take care of some screen things
   Screen.Cursor           := crHourGlass;
   rdoGenerateForHowMany.Visible := False;
-  btnGenerateAll.Visible  := False;
-  lsvCustomerList.Visible := False;
+  btnProcess.Visible  := False;
   sgProgress.Visible      := True;
   sgProgress.Value        := 1;
   sgProgress.MaxValue     := 11;
   rdoGenerateForHowMany.Enabled    := False;
-  btnGenerateAll.Enabled  := False;
+  btnProcess.Enabled  := False;
   fNeedToStop             := False;
   btnCancel.Visible       := True;
-
-  Application.ProcessMessages;
-
 end;
 
 procedure TPricelistGenerator.ProcessCurrent(var aMsg : TMsg);
@@ -1042,12 +1102,16 @@ end;
 
 procedure TPricelistGenerator.ProcessMoveNext(var aMsg : TMsg);
 begin
-  if fSendToAll then
+  if fSendToAll and not(fNeedToStop) then
   begin
     // -- Advance to the next record in the set
     qryFindTargets.Next;
     if not qryFindTargets.Eof then
     begin
+
+      // -- Now move to the next item in the list
+      lsvCustomerList.Selected := lsvCustomerList.Items[lsvCustomerList.Selected.Index + 1];
+
       // -- Initiate the next transfer
       PostMessage(Handle,GTTM_PROCESS_CURRENT,0,0);
     end
@@ -1064,18 +1128,48 @@ procedure TPricelistGenerator.ProcessFinalCleanup(var aMsg : TMsg);
 begin
   // -- Cleanup
   Screen.Cursor := crDefault;
-  btnGenerateAll.Enabled := True;
+  btnProcess.Enabled := True;
+  btnProcess.Visible := True;
+  btnCancel.Visible := False;
   rdoGenerateForHowMany.Visible    := True;
   lsvCustomerList.Visible := True;
   sgProgress.Visible      := False;
   fNeedToStop             := False;
-  btnCancel.Visible := False;
   fSendToAll := False;
 
   Report('STATUS','Completed.');
 
 end;
 
+
+procedure TPricelistGenerator.FtpClSendPricelistError(Sender: TObject;
+  var Msg: String);
+begin
+  Report('ERROR','FTP Error : ' + Msg,PL_CLNT_STATE_ERROR);
+
+  // -- Better luck with the next record
+  PostMessage(Handle,GTTM_MOVE_NEXT,0,0);
+end;
+
+procedure TPricelistGenerator.lsvCustomerListChanging(Sender: TObject;
+  Item: TListItem; Change: TItemChange; var AllowChange: Boolean);
+begin
+  {
+  if fSendToAll then
+    AllowChange := False;
+  }
+end;
+
+procedure TPricelistGenerator.FtpClSendPricelistProgress(Sender: TObject;
+  Count: Integer; var Abort: Boolean);
+begin
+  // Report('PROGRESS',IntToStr(Count div 1024));
+
+  if (fUploadSize <> 0) then
+      Report('STATUS','Uploading ' + IntToStr((Count * 100) div fUploadSize) + '%');
+
+  Abort := fNeedToStop;
+end;
 
 end.
 

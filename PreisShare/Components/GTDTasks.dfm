@@ -330,10 +330,18 @@ object GTDTaskPanel: TGTDTaskPanel
   end
   object SmtpCli1: TSmtpCli
     Tag = 0
+    ShareMode = smtpShareDenyWrite
     LocalAddr = '0.0.0.0'
     Port = 'smtp'
     AuthType = smtpAuthNone
+    ConfirmReceipt = False
+    HdrPriority = smtpPriorityNone
     CharSet = 'iso-8859-1'
+    SendMode = smtpToSocket
+    DefaultEncoding = smtpEnc7bit
+    Allow8bitChars = True
+    FoldHeaders = False
+    WrapMessageText = False
     ContentType = smtpPlainText
     OwnHeaders = False
     OnRequestDone = SmtpCli1RequestDone
