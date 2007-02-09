@@ -57,7 +57,6 @@ type
     procedure SmtpEmailSinuRequestDone(Sender: TObject; RqType: TSmtpRequest;
       ErrorCode: Word);
     procedure btnPreviewClick(Sender: TObject);
-    procedure SmtpEmailDisplay(Sender: TObject; Msg: String);
     procedure SmtpEmailRequestDone(Sender: TObject; RqType: TSmtpRequest;
       ErrorCode: Word);
     procedure SchedulerTimer(Sender: TObject);
@@ -230,6 +229,8 @@ begin
   lblTemplateName.SkinData := Value;
   cbxShowDetails.SkinData := Value;
 
+  bsSkinMessage1.SkinData := Value;
+  bsSkinMessage1.CtrlSkinData := Value;
 end;
 
 function TPricelistGenerator.SendToAll:Boolean;
@@ -779,12 +780,6 @@ begin
 
 end;
 
-procedure TPricelistGenerator.SmtpEmailDisplay(Sender: TObject;
-  Msg: String);
-begin
-  Report('Show',Msg);
-end;
-
 procedure TPricelistGenerator.SmtpEmailRequestDone(Sender: TObject;
   RqType: TSmtpRequest; ErrorCode: Word);
 var
@@ -1131,7 +1126,8 @@ begin
   btnProcess.Enabled := True;
   btnProcess.Visible := True;
   btnCancel.Visible := False;
-  rdoGenerateForHowMany.Visible    := True;
+  rdoGenerateForHowMany.Visible := True;
+  rdoGenerateForHowMany.Enabled := True;
   lsvCustomerList.Visible := True;
   sgProgress.Visible      := False;
   fNeedToStop             := False;

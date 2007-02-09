@@ -211,7 +211,7 @@ begin
         end
         else
         // -- If there is a field then output it depending on field type
-        if (fldno <> 0)then
+        if (fldno <> -1)then
         begin
             case qryGetItems.FieldDefList[fldno].DataType of
 
@@ -242,7 +242,11 @@ begin
                 ftBCD,              // Binary-Coded Decimal field that can be converted to Currency type without a loss of precision.
                 ftCurrency:	        // Money field
                                 s := s + '           ' + EncodeCurrencyField(fldname,qryGetItems.Fields[fldno].AsFloat);
+            else
+              // -- Use string type as fallback
+              s := s + '           ' + EncodeStringField(fldname,qryGetItems.Fields[fldno].AsString);
             end;
+
             if not fAllInOneLine then
                 s := s + newline;
             end;

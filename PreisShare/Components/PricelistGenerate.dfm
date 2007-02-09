@@ -35,7 +35,7 @@ object PricelistGenerator: TPricelistGenerator
     Align = alClient
     object lblStatus: TbsSkinStdLabel
       Left = 172
-      Top = 261
+      Top = 293
       Width = 349
       Height = 13
       UseSkinFont = True
@@ -127,7 +127,7 @@ object PricelistGenerator: TPricelistGenerator
     end
     object btnProcess: TbsSkinSpeedButton
       Left = 302
-      Top = 316
+      Top = 340
       Width = 77
       Height = 23
       SkinDataName = 'toolbutton'
@@ -430,7 +430,7 @@ object PricelistGenerator: TPricelistGenerator
       Left = 172
       Top = 17
       Width = 349
-      Height = 168
+      Height = 264
       TabOrder = 2
       SkinDataName = 'groupbox'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -458,7 +458,7 @@ object PricelistGenerator: TPricelistGenerator
         Left = 6
         Top = 16
         Width = 336
-        Height = 145
+        Height = 241
         Color = clWhite
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -729,7 +729,7 @@ object PricelistGenerator: TPricelistGenerator
       Left = 172
       Top = 16
       Width = 349
-      Height = 233
+      Height = 265
       Columns = <
         item
           Caption = 'Company'
@@ -768,7 +768,7 @@ object PricelistGenerator: TPricelistGenerator
       OnChanging = lsvCustomerListChanging
     end
     object cbxShowDetails: TbsSkinCheckRadioBox
-      Left = 256
+      Left = 172
       Top = 352
       Width = 97
       Height = 17
@@ -793,11 +793,12 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = cbxShowDetailsClick
     end
     object cbxForce: TbsSkinCheckRadioBox
-      Left = 168
+      Left = 432
       Top = 352
       Width = 81
       Height = 17
       TabOrder = 6
+      Visible = False
       SkinDataName = 'checkbox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -818,8 +819,8 @@ object PricelistGenerator: TPricelistGenerator
       OnClick = cbxShowDetailsClick
     end
     object btnCancel: TbsSkinButton
-      Left = 312
-      Top = 316
+      Left = 304
+      Top = 340
       Width = 75
       Height = 25
       TabOrder = 7
@@ -848,7 +849,7 @@ object PricelistGenerator: TPricelistGenerator
   end
   object sgProgress: TbsSkinGauge
     Left = 172
-    Top = 281
+    Top = 313
     Width = 349
     Height = 20
     TabOrder = 0
@@ -918,7 +919,6 @@ object PricelistGenerator: TPricelistGenerator
     WrapMessageText = False
     ContentType = smtpPlainText
     OwnHeaders = False
-    OnDisplay = SmtpEmailDisplay
     OnRequestDone = SmtpEmailRequestDone
     Left = 232
     Top = 8
@@ -978,7 +978,7 @@ object PricelistGenerator: TPricelistGenerator
     Left = 416
     Top = 312
     Bitmap = {
-      494C010105000900040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010105000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000003000000001002000000000000030
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1378,6 +1378,7 @@ object PricelistGenerator: TPricelistGenerator
       FFFFFFFFC0FFFFF7FFFFFFFFC07FEFEFFC3FFC3FE07FE7CFF81FF81FF07FC39F
       F00FF00FF03FC11FF00FF00FF83FC03FF00FF00FFC3BF03FF81FF81FFC03FC1F
       FC3FFC3FFC07F82FFFFFFFFFF007F0C7FFFFFFFFFC0FE0F3FFFFFFFFFFCFFFFC
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
   end
 end
