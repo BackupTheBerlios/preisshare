@@ -129,6 +129,12 @@ type
     Shape3: TShape;
     mmoSQL: TSynMemo;
     SynSQLSyn1: TSynSQLSyn;
+    Shape7: TShape;
+    Shape8: TShape;
+    Shape9: TShape;
+    Shape10: TShape;
+    Shape11: TShape;
+    Shape12: TShape;
   	procedure bsSkinButton8Click(Sender: TObject);
   	procedure btnNext2Click(Sender: TObject);
   	procedure FormCreate(Sender: TObject);

@@ -2,13 +2,13 @@ object ProductdBSearch: TProductdBSearch
   Left = 0
   Top = 0
   Width = 570
-  Height = 511
+  Height = 512
   TabOrder = 0
   object pnlHolder: TbsSkinGroupBox
     Left = 0
     Top = 0
     Width = 570
-    Height = 511
+    Height = 512
     TabOrder = 0
     SkinDataName = 'groupbox'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -159,6 +159,37 @@ object ProductdBSearch: TProductdBSearch
       NumGlyphs = 1
       Spacing = 1
     end
+    object btnBack: TbsSkinSpeedButton
+      Left = 8
+      Top = 476
+      Width = 57
+      Height = 25
+      Visible = False
+      SkinDataName = 'toolbutton'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      WidthWithCaption = 0
+      WidthWithoutCaption = 0
+      ImageIndex = 0
+      RepeatMode = False
+      RepeatInterval = 100
+      Transparent = False
+      Flat = False
+      AllowAllUp = False
+      Down = False
+      GroupIndex = 0
+      Caption = '<< Back'
+      ShowCaption = True
+      NumGlyphs = 1
+      Spacing = 1
+      OnClick = btnBackClick
+    end
     object txtSearchText: TbsSkinEdit
       Left = 8
       Top = 116
@@ -205,12 +236,14 @@ object ProductdBSearch: TProductdBSearch
       PickListBoxCaptionMode = False
       DataSource = DataSource1
       Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit]
+      PopupMenu = mnuProductOps
       ReadOnly = True
       TitleFont.Charset = DEFAULT_CHARSET
       TitleFont.Color = clWindowText
       TitleFont.Height = -11
       TitleFont.Name = 'MS Sans Serif'
       TitleFont.Style = []
+      OnDblClick = grdProductsDblClick
       Columns = <
         item
           Expanded = False
@@ -343,10 +376,10 @@ object ProductdBSearch: TProductdBSearch
       SkinDataName = 'memo'
     end
     object Chart1: TChart
-      Left = 8
-      Top = 184
-      Width = 537
-      Height = 353
+      Left = 168
+      Top = 32
+      Width = 353
+      Height = 185
       AllowPanning = pmNone
       AllowZoom = False
       BackWall.Brush.Color = clWhite
@@ -405,5 +438,12 @@ object ProductdBSearch: TProductdBSearch
     DataSet = qryWordCheck
     Left = 528
     Top = 44
+  end
+  object mnuProductOps: TbsSkinPopupMenu
+    Left = 144
+    Top = 8
+    object AddToPricelist1: TMenuItem
+      Caption = 'Add To Pricelist..'
+    end
   end
 end

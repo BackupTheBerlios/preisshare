@@ -6,7 +6,8 @@ uses
   Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls, bsSkinData, Db,
   bsSkinGrids, bsDBGrids, DDB, DTables, DMaster, DBTables, ADODB,GTDBizDocs,
-  TeEngine, Series, ExtCtrls, TeeProcs, Chart, Buttons, Windows;
+  TeEngine, Series, ExtCtrls, TeeProcs, Chart, Buttons, Windows, Menus,
+  bsSkinMenus,GTDProductDetails;
 
 const
     DBTYPE_ADO   = 1;
@@ -35,6 +36,9 @@ type
     Chart1: TChart;
     Series1: TPieSeries;
     btnImport: TbsSkinSpeedButton;
+    mnuProductOps: TbsSkinPopupMenu;
+    AddToPricelist1: TMenuItem;
+    btnBack: TbsSkinSpeedButton;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
@@ -43,12 +47,15 @@ type
       ValueIndex: Integer; Button: TMouseButton; Shift: TShiftState; X,
       Y: Integer);
     procedure txtSearchTextChange(Sender: TObject);
+    procedure grdProductsDblClick(Sender: TObject);
+    procedure btnBackClick(Sender: TObject);
   private
     { Private declarations }
     fSkinData: TbsSkinData;
     fADOConnectionString : String;
     fVendorList : TStringList;
     fDocRegistry : GTDDocumentRegistry;
+    fProductDetails : TProductDetails;
 
     fdbType : Integer;   //   DBTYPE_ADO   = 1;     DBTYPE_MYSQL = 2;     DBTYPE_IB    = 3;
     fLikeChar : String;
@@ -111,6 +118,21 @@ begin
     grdProducts.Columns[1].FieldName := PName_Col;
     grdProducts.Columns[2].FieldName := PCostPrice;
     grdProducts.Columns[3].FieldName := PSellPrice;
+
+    if not Assigned(fProductDetails) then
+    begin
+      fProductDetails := TProductDetails.Create(Self);
+      with fProductDetails do
+      begin
+        Top    := grdProducts.Top;
+        Left   := grdProducts.Left;
+        Width  := grdProducts.Width;
+        Height := grdProducts.Height;
+        Parent := Self;
+        Visible := False;
+      end;
+      fProductDetails.SkinData := fSkinData;
+    end;
 
     CountItemsInProductDatabase;
 
@@ -265,7 +287,12 @@ begin
     txtSearchText.SkinData := Value;
     btnSearch.SkinData := Value;
     btnImport.SkinData := Value;
+    mnuProductOps.SkinData := Value;
     Memo1.SkinData := Value;
+    btnBack.SkinData := Value;
+
+    // -- Save for later
+    fSkinData := Value;
 end;
 
 procedure TProductdBSearch.bsSkinSpeedButton1Click(Sender: TObject);
@@ -896,11 +923,34 @@ begin
     if txtSearchText.Text = '' then
     begin
         CountItemsInProductDatabase;
-        
+
         Chart1.Visible := True;
         bsSkinScrollBar1.Visible := False;
     end;
 
+end;
+
+procedure TProductdBSearch.grdProductsDblClick(Sender: TObject);
+begin
+  // -- Make the product display panel visible
+  fProductDetails.Visible := True;
+  btnBack.Visible := True;
+  lblItemsCount.Visible := False;
+  bsSkinScrollBar1.Visible := False;
+  btnImport.Visible := False;
+
+  // -- Now load the correct item
+  fProductDetails.DisplayItem(TQuery(qryFindProducts));
+end;
+
+procedure TProductdBSearch.btnBackClick(Sender: TObject);
+begin
+  // -- Hide the product display panel visible after use
+  fProductDetails.Visible := False;
+  btnBack.Visible := False;
+  lblItemsCount.Visible := True;
+  bsSkinScrollBar1.Visible := True;
+  btnImport.Visible := True;
 end;
 
 end.

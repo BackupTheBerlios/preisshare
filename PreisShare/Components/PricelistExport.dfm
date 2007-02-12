@@ -448,6 +448,54 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       AutoSize = False
       Caption = 'Ready to Apply Pricelist to Product Database'
     end
+    object Shape7: TShape
+      Left = 176
+      Top = 28
+      Width = 9
+      Height = 32
+      Brush.Color = 8404992
+      Pen.Style = psClear
+    end
+    object Shape8: TShape
+      Left = 176
+      Top = 88
+      Width = 9
+      Height = 33
+      Brush.Color = 8404992
+      Pen.Style = psClear
+    end
+    object Shape9: TShape
+      Left = 312
+      Top = 28
+      Width = 9
+      Height = 33
+      Brush.Color = 8404992
+      Pen.Style = psClear
+    end
+    object Shape10: TShape
+      Left = 448
+      Top = 28
+      Width = 9
+      Height = 33
+      Brush.Color = 8404992
+      Pen.Style = psClear
+    end
+    object Shape11: TShape
+      Left = 312
+      Top = 88
+      Width = 9
+      Height = 33
+      Brush.Color = 8404992
+      Pen.Style = psClear
+    end
+    object Shape12: TShape
+      Left = 448
+      Top = 88
+      Width = 9
+      Height = 33
+      Brush.Color = 8404992
+      Pen.Style = psClear
+    end
     object barProgress: TbsSkinGauge
       Left = 143
       Top = 164
@@ -753,7 +801,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       #9'(Trader_ID = :TraderNo) and (Revision_Number = :Revision)'
       #9'and (Applied_Flag <> "Y")')
     Left = 165
-    Top = 5
+    Top = 65533
     ParamData = <
       item
         DataType = ftInteger
@@ -1222,7 +1270,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     Options = [opDialog, opFilter, opConnection]
     SQL.Strings = (
       'Select * from Images')
-    Left = 448
+    Left = 512
     Top = 76
   end
   object DeersoftDB: TDMaster
@@ -1230,7 +1278,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=D:\ACCESS100.MDB;Pe' +
       'rsist Security Info=False'
     Connected = False
-    Left = 449
+    Left = 513
     Top = 41
   end
   object DQryItems: TDQuery
