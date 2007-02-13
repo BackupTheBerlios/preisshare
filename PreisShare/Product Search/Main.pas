@@ -34,6 +34,7 @@ type
   public
     { Public declarations }
 //    procedure Search;
+    procedure UpdateSellPrices(Sender : TObject);
   end;
 
 var
@@ -41,7 +42,7 @@ var
 
 implementation
 
-uses SpreadSheetImport;
+uses SpreadSheetImport, UpdateSellPrices;
 
 {$R *.DFM}
 
@@ -91,6 +92,7 @@ begin
                                       'Persist Security Info=False;';
     ADOConnection.Connected := True;
 
+    // -- Create the search component
     productDB := TProductdBSearch.Create(Self);
     with productDB do
     begin
@@ -108,8 +110,11 @@ begin
         Initialise;
     end;
 
-    // -- Here we will assign the onclick to something here
-    productDB.btnImport.OnClick := DocRegistryClick;
+    // -- Here we will assign the onclicks. They need to run from
+    //    somewhere like here because new forms will be created
+    //    and we're not doing it inside the frames
+    productDB.mnuImport.OnClick := DocRegistryClick;
+    productDB.mnuUpdateSellPrices.OnClick := UpdateSellPrices;
 
     ActiveControl := productDB.txtSearchText;
 
@@ -137,6 +142,11 @@ begin
     begin
         bsSkinData1.LoadFromFile(bsOpenSkinDialog1.FileName);
     end;
+end;
+
+procedure TfrmMain.UpdateSellPrices(Sender : TObject);
+begin
+  frmUpdateSellPrices.ShowModal;
 end;
 
 end.
