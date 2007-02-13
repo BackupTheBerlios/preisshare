@@ -7,7 +7,7 @@ uses
   ComCtrls, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls, bsSkinData, Db,
   bsSkinGrids, bsDBGrids, DDB, DTables, DMaster, DBTables, ADODB,GTDBizDocs,
   TeEngine, Series, ExtCtrls, TeeProcs, Chart, Buttons, Windows, Menus,
-  bsSkinMenus,GTDProductDetails;
+  bsSkinMenus,GTDProductDetails, bsDialogs;
 
 const
     DBTYPE_ADO   = 1;
@@ -35,10 +35,17 @@ type
     Shape1: TShape;
     Chart1: TChart;
     Series1: TPieSeries;
-    btnImport: TbsSkinSpeedButton;
     mnuProductOps: TbsSkinPopupMenu;
     AddToPricelist1: TMenuItem;
     btnBack: TbsSkinSpeedButton;
+    AddtoaCustomerQuote1: TMenuItem;
+    AddtoaCustomerInvoice1: TMenuItem;
+    btnTasks: TbsSkinMenuSpeedButton;
+    mnuMaintain: TbsSkinPopupMenu;
+    mnuUpdateSellPrices: TMenuItem;
+    mnuRemoveSupplier: TMenuItem;
+    mnuImport: TMenuItem;
+    dlgSelectValues: TbsSkinSelectValueDialog;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
@@ -49,6 +56,7 @@ type
     procedure txtSearchTextChange(Sender: TObject);
     procedure grdProductsDblClick(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
+    procedure mnuRemoveSupplierClick(Sender: TObject);
   private
     { Private declarations }
     fSkinData: TbsSkinData;
@@ -95,6 +103,8 @@ const
     PSupplierNameCol = 'CompanyName';
 
 procedure TProductdBSearch.Initialise;
+var
+  s : String;
 begin
     // -- Hardcode to use ado right now
     fDbType := DBTYPE_ADO;
@@ -104,8 +114,21 @@ begin
     if not Assigned(fVendorList) then
         fVendorList := TStringList.Create;
 
+    // -- Do some things using the registry
     if Assigned(fDocRegistry) then
+    begin
+        // -- Retreive a list of vendor names
         fDocRegistry.GetVendorShortnameList(fVendorList);
+
+        // -- Retreive the name of this company
+        s := fDocRegistry.GetCompanyName;
+        if (s <> '') then
+        begin
+          // -- Display the company name
+          label3.Caption := s;
+          label4.Caption := '';
+        end;
+    end;
 
     // -- Position the chart
     Chart1.Top := grdProducts.Top;
@@ -119,6 +142,7 @@ begin
     grdProducts.Columns[2].FieldName := PCostPrice;
     grdProducts.Columns[3].FieldName := PSellPrice;
 
+    // -- Setup the product details component
     if not Assigned(fProductDetails) then
     begin
       fProductDetails := TProductDetails.Create(Self);
@@ -133,6 +157,7 @@ begin
       end;
       fProductDetails.SkinData := fSkinData;
     end;
+
 
     CountItemsInProductDatabase;
 
@@ -286,11 +311,15 @@ begin
     SkinaPanel(pnlHolder);
     txtSearchText.SkinData := Value;
     btnSearch.SkinData := Value;
-    btnImport.SkinData := Value;
+    mnuMaintain.SkinData := Value;
     mnuProductOps.SkinData := Value;
     Memo1.SkinData := Value;
     btnBack.SkinData := Value;
+    btnTasks.SkinData := Value;
 
+    dlgSelectValues.SkinData := Value;
+    dlgSelectValues.CtrlSkinData := Value;
+    
     // -- Save for later
     fSkinData := Value;
 end;
@@ -937,7 +966,7 @@ begin
   btnBack.Visible := True;
   lblItemsCount.Visible := False;
   bsSkinScrollBar1.Visible := False;
-  btnImport.Visible := False;
+  btnTasks.Visible := False;
 
   // -- Now load the correct item
   fProductDetails.DisplayItem(TQuery(qryFindProducts));
@@ -950,7 +979,74 @@ begin
   btnBack.Visible := False;
   lblItemsCount.Visible := True;
   bsSkinScrollBar1.Visible := True;
-  btnImport.Visible := True;
+  btnTasks.Visible := True;
+end;
+
+procedure TProductdBSearch.mnuRemoveSupplierClick(Sender: TObject);
+var
+  li,sid : Integer;
+begin
+  // -- Load up the list of vendors
+  dlgSelectValues.SelectValues.Clear;
+  with qryCountStuff do
+  begin
+    Active := False;
+
+    // -- Build the query
+    SQL.Clear;
+    SQL.Add('Select');
+    SQL.Add('   ' + PSupplierIDCol + ', ' + PSupplierNameCol);
+    SQL.Add('from ' + PSupplierTblName);
+
+    Active := True;
+
+    First;
+    while not Eof do
+    begin
+      // -- Add the supplier name to list
+      dlgSelectValues.SelectValues.AddObject(FieldByName(PSupplierNameCol).AsString,TOBject(FieldByName(PSupplierIDCol).AsInteger));
+      Next;
+    end;
+
+    Active := False;
+
+  end;
+
+
+  // -- Now get the user to select one
+  li := -1;
+  if dlgSelectValues.Execute('Remove a Supplier..','Select the Supplier to remove from the database..',li) then
+  begin
+    // -- Now lookup the supplier
+    sid := Integer(dlgSelectValues.SelectValues.Objects[li]);
+
+    // -- Remove items from the items table
+    with qryCountStuff do
+    begin
+      SQL.Clear;
+      SQL.Add('delete from ' + PProdTblName);
+      SQL.Add('where');
+      SQL.Add('  ' + PProdTblName + '.' + PSupplierIDCol + ' = ' + IntToStr(sid));
+
+      ExecSQL;
+    end;
+
+    // -- Remove the Supplier
+    with qryCountStuff do
+    begin
+      SQL.Clear;
+      SQL.Add('delete from ' + PSupplierTblName);
+      SQL.Add('where');
+      SQL.Add('  ' + PSupplierIDCol + ' = ' + IntToStr(sid));
+
+      ExecSQL;
+    end;
+
+    // -- Redisplay
+    CountItemsInProductDatabase;
+
+  end;
+
 end;
 
 end.

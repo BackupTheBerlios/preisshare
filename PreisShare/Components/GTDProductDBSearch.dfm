@@ -81,7 +81,7 @@ object ProductdBSearch: TProductdBSearch
     end
     object Label2: TLabel
       Left = 304
-      Top = 68
+      Top = 60
       Width = 154
       Height = 16
       Caption = 'Product Database Search'
@@ -95,10 +95,11 @@ object ProductdBSearch: TProductdBSearch
       OnClick = Label2Click
     end
     object Label3: TLabel
-      Left = 194
+      Left = 16
       Top = 26
-      Width = 76
+      Width = 489
       Height = 32
+      Alignment = taCenter
       Caption = 'Preis'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWhite
@@ -109,7 +110,7 @@ object ProductdBSearch: TProductdBSearch
       Transparent = True
     end
     object Label4: TLabel
-      Left = 274
+      Left = 290
       Top = 26
       Width = 87
       Height = 32
@@ -129,35 +130,6 @@ object ProductdBSearch: TProductdBSearch
       Top = 212
       Width = 65
       Height = 113
-    end
-    object btnImport: TbsSkinSpeedButton
-      Left = 464
-      Top = 476
-      Width = 81
-      Height = 25
-      SkinDataName = 'toolbutton'
-      DefaultFont.Charset = DEFAULT_CHARSET
-      DefaultFont.Color = clWindowText
-      DefaultFont.Height = 14
-      DefaultFont.Name = 'Arial'
-      DefaultFont.Style = []
-      DefaultWidth = 0
-      DefaultHeight = 0
-      UseSkinFont = True
-      WidthWithCaption = 0
-      WidthWithoutCaption = 0
-      ImageIndex = 0
-      RepeatMode = False
-      RepeatInterval = 100
-      Transparent = False
-      Flat = False
-      AllowAllUp = False
-      Down = False
-      GroupIndex = 0
-      Caption = 'Import more..'
-      ShowCaption = True
-      NumGlyphs = 1
-      Spacing = 1
     end
     object btnBack: TbsSkinSpeedButton
       Left = 8
@@ -189,6 +161,37 @@ object ProductdBSearch: TProductdBSearch
       NumGlyphs = 1
       Spacing = 1
       OnClick = btnBackClick
+    end
+    object btnTasks: TbsSkinMenuSpeedButton
+      Left = 472
+      Top = 476
+      Width = 73
+      Height = 25
+      SkinDataName = 'toolmenubutton'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      WidthWithCaption = 0
+      WidthWithoutCaption = 0
+      ImageIndex = 0
+      RepeatMode = False
+      RepeatInterval = 100
+      Transparent = False
+      Flat = False
+      AllowAllUp = False
+      Down = False
+      GroupIndex = 0
+      Caption = 'Tasks..'
+      ShowCaption = True
+      NumGlyphs = 1
+      Spacing = 1
+      SkinPopupMenu = mnuMaintain
+      TrackButtonMode = False
     end
     object txtSearchText: TbsSkinEdit
       Left = 8
@@ -376,8 +379,8 @@ object ProductdBSearch: TProductdBSearch
       SkinDataName = 'memo'
     end
     object Chart1: TChart
-      Left = 168
-      Top = 32
+      Left = 120
+      Top = 216
       Width = 353
       Height = 185
       AllowPanning = pmNone
@@ -443,7 +446,57 @@ object ProductdBSearch: TProductdBSearch
     Left = 144
     Top = 8
     object AddToPricelist1: TMenuItem
-      Caption = 'Add To Pricelist..'
+      Caption = 'Add To Products we sell..'
+      Enabled = False
     end
+    object AddtoaCustomerQuote1: TMenuItem
+      Caption = 'Add to a Customer Quote..'
+      Enabled = False
+    end
+    object AddtoaCustomerInvoice1: TMenuItem
+      Caption = 'Add to a Customer Invoice..'
+      Enabled = False
+    end
+  end
+  object mnuMaintain: TbsSkinPopupMenu
+    Left = 144
+    Top = 40
+    object mnuUpdateSellPrices: TMenuItem
+      Caption = 'Update Sell Prices by percentage..'
+    end
+    object mnuRemoveSupplier: TMenuItem
+      Caption = 'Remove a Supplier from the Database..'
+      OnClick = mnuRemoveSupplierClick
+    end
+    object mnuImport: TMenuItem
+      Caption = 'Import a Price file..'
+    end
+  end
+  object dlgSelectValues: TbsSkinSelectValueDialog
+    AlphaBlend = False
+    AlphaBlendValue = 200
+    AlphaBlendAnimation = False
+    ButtonSkinDataName = 'button'
+    LabelSkinDataName = 'stdlabel'
+    ComboboxSkinDataName = 'combobox'
+    DefaultValue = -1
+    DefaultLabelFont.Charset = DEFAULT_CHARSET
+    DefaultLabelFont.Color = clWindowText
+    DefaultLabelFont.Height = 14
+    DefaultLabelFont.Name = 'Arial'
+    DefaultLabelFont.Style = []
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    DefaultComboBoxFont.Charset = DEFAULT_CHARSET
+    DefaultComboBoxFont.Color = clWindowText
+    DefaultComboBoxFont.Height = 14
+    DefaultComboBoxFont.Name = 'Arial'
+    DefaultComboBoxFont.Style = []
+    UseSkinFont = True
+    Left = 184
+    Top = 72
   end
 end
