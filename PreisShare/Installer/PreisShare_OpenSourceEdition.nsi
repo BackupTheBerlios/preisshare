@@ -8,10 +8,10 @@
 ;--------------------------------
 
 ; The name of the installer
-Name "PreisShare (Professional Edition)"
+Name "PreisShare (OpenSource Edition)"
 
 ; The file to write
-OutFile "PreisShare_Setup.exe"
+OutFile "PreisShare_OpenSourceEdition.exe"
 Icon "yi-box_install.ico"
 
 ; The default installation directory
@@ -81,13 +81,6 @@ Section "Merchant Program (PriceSharer)"
   File "PriceSharer.exe"
   CreateShortCut "$SMPROGRAMS\PreisShare\PriceSharer.lnk" "$INSTDIR\PriceSharer.exe" "" "$INSTDIR\PriceSharer.exe" 0
   CreateShortCut "$SMSTARTUP\Price Sharer.lnk" "$INSTDIR\PriceSharer.exe" "/TRAY" "$INSTDIR\PriceSharer.exe" 0
-SectionEnd
-
-Section "TradeDesk (ERP GUI)"
-  SetOutPath $INSTDIR
-  File "TradeDesk.exe"
-  CreateShortCut "$SMPROGRAMS\PreisShare\TradeDesk.lnk" "$INSTDIR\TradeDesk.exe" "" "$INSTDIR\TradeDesk.exe" 0
-  CreateShortCut "$DESKTOP\TradeDesk.lnk" "$INSTDIR\TradeDesk.exe" "" "$INSTDIR\TradeDesk.exe" 0
 SectionEnd
 
 Section "ADO Browser"
