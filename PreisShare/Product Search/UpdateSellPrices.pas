@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, bsSkinCtrls, BusinessSkinForm, bsSkinBoxCtrls, DB, ADODB;
+  Dialogs, bsSkinCtrls, BusinessSkinForm, bsSkinBoxCtrls, DB, ADODB,
+  bsMessages;
 
 type
   TfrmUpdateSellPrices = class(TForm)
@@ -14,10 +15,11 @@ type
     btnCancel: TbsSkinButton;
     rdoColumnSelect: TbsSkinRadioGroup;
     bsSkinLabel1: TbsSkinLabel;
-    bsSkinSpinEdit1: TbsSkinSpinEdit;
+    txtMarkupPercentage: TbsSkinSpinEdit;
     lstSupplierList: TbsSkinCheckListBox;
     lblSupplierList: TbsSkinLabel;
     QryDoUpdates: TADOQuery;
+    dlgMessage: TbsSkinMessage;
     procedure FormCreate(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
@@ -26,6 +28,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    procedure RunPriceUpdate;
   end;
 
 var
@@ -57,11 +60,13 @@ begin
   rdoColumnSelect.SkinData := frmMain.bsSkinData1;
   bsSkinGroupBox1.SkinData := frmMain.bsSkinData1;
   bsSkinLabel1.SkinData := frmMain.bsSkinData1;
-  bsSkinSpinEdit1.SkinData := frmMain.bsSkinData1;
+  txtMarkupPercentage.SkinData := frmMain.bsSkinData1;
   btnOk.SkinData := frmMain.bsSkinData1;
   btnCancel.SkinData := frmMain.bsSkinData1;
   lblSupplierList.SkinData := frmMain.bsSkinData1;
   lstSupplierList.SkinData := frmMain.bsSkinData1;
+  dlgMessage.SkinData := frmMain.bsSkinData1;
+  dlgMessage.CtrlSkinData := frmMain.bsSkinData1;
 
   QryDoUpdates.Connection := frmMain.ADOConnection;
 
@@ -74,6 +79,9 @@ end;
 
 procedure TfrmUpdateSellPrices.btnOkClick(Sender: TObject);
 begin
+  // -- Go run the price update
+  RunPriceUpdate;
+
   Close;
 
 end;
@@ -102,6 +110,92 @@ begin
     end;
   end;
 
+end;
+
+procedure TfrmUpdateSellPrices.RunPriceUpdate;
+const
+  UPDATE_USING_COST = 0;
+  UPDATE_USING_LIST = 1;
+var
+  xc,sid : Integer;
+  s : String;
+begin
+  // -- Validate the user input
+  if txtMarkupPercentage.Value = 0 then
+  begin
+    if rdoColumnSelect.ItemIndex = UPDATE_USING_LIST then
+    begin
+      dlgMessage.MessageDlg('Please enter a markup percentage',mtError,[mbOk],0);
+      Exit;
+    end
+    else if mrCancel = dlgMessage.MessageDlg('This will set the Sell price to the same as the Cost price. Do you wish to continue ?',mtConfirmation,[mbYes,mbCancel],0) then
+    begin
+      Exit;
+    end;
+  end;
+
+  // -- Validate that they selected something
+  {
+  if lstSupplierList.SelCount = -1 then
+  begin
+    dlgMessage.MessageDlg('Please select one or more Suppliers',mtError,[mbOk],0);
+    Exit;
+  end;
+  }
+
+  // -- Build and execute the update query
+  with QryDoUpdates do
+  begin
+    Active := False;
+
+    SQL.Clear;
+    SQL.Add('UPDATE');
+    SQL.Add('  ' + PProdTblName);
+    SQL.Add('SET');
+  end;
+
+  // -- Handle updating from the cost price column
+  if rdoColumnSelect.ItemIndex = UPDATE_USING_COST then
+  begin
+      QryDoUpdates.SQL.Add('  ' + PSellPrice + ' = (' + PCostPrice + ' * ' + FloatToStr((100 + txtMarkupPercentage.Value) / 100) + ')');
+  end
+  // -- Handle updating from the list price column
+  else if rdoColumnSelect.ItemIndex = UPDATE_USING_LIST then
+  begin
+      QryDoUpdates.SQL.Add('  ' + PSellPrice + ' = (' + PSellPrice + ' * ' + FloatToStr((100 + txtMarkupPercentage.Value) / 100) + ')');
+  end;
+
+  // -- Now add in the supplier selection stuff
+  with QryDoUpdates do
+  begin
+    SQL.Add('WHERE');
+
+    // -- Build a list of supplierIDs
+    s := '  ' + PSupplierIDCol + ' in (';
+
+    // -- Retrieve all the supplierids from the list
+    for xc := 0 to lstSupplierList.Items.Count-1 do
+    begin
+      if lstSupplierList.Selected[xc] then
+      begin
+        // -- Read out the supplier id
+        sid := Integer(lstSupplierList.Items.Objects[xc]);
+
+        s := s + IntToStr(sid) + ',';
+      end;
+    end;
+    // -- Chop the last comma
+    SetLength(s,Length(s)-1);
+
+    // -- Add in the '['
+    s := s + ')';
+
+    SQL.Add(s);
+
+    // -- Now run the query and hope for the best
+    ExecSQL;
+
+  end;
 
 end;
 

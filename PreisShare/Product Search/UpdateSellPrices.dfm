@@ -65,7 +65,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
       Caption = 'Amount %'
       AutoSize = False
     end
-    object bsSkinSpinEdit1: TbsSkinSpinEdit
+    object txtMarkupPercentage: TbsSkinSpinEdit
       Left = 8
       Top = 40
       Width = 120
@@ -80,7 +80,8 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
       DefaultWidth = 0
       DefaultHeight = 0
       UseSkinFont = True
-      ValueType = vtInteger
+      ValueType = vtFloat
+      Decimal = 3
       Increment = 1.000000000000000000
       EditorEnabled = True
       MaxLength = 0
@@ -296,5 +297,25 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     Parameters = <>
     Left = 208
     Top = 176
+  end
+  object dlgMessage: TbsSkinMessage
+    AlphaBlend = False
+    AlphaBlendAnimation = False
+    AlphaBlendValue = 200
+    ButtonSkinDataName = 'button'
+    MessageLabelSkinDataName = 'stdlabel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    UseSkinFont = True
+    Left = 280
+    Top = 192
   end
 end
