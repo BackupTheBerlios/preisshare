@@ -46,6 +46,10 @@ type
     mnuRemoveSupplier: TMenuItem;
     mnuImport: TMenuItem;
     dlgSelectValues: TbsSkinSelectValueDialog;
+    ChangeView1: TMenuItem;
+    ProductsbyVendorGraph1: TMenuItem;
+    ProductsbyBrandGraph1: TMenuItem;
+    NewProducts1: TMenuItem;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
@@ -156,6 +160,7 @@ begin
         Visible := False;
       end;
       fProductDetails.SkinData := fSkinData;
+      fProductDetails.Initialise;
     end;
 
 

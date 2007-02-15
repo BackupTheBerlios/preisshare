@@ -97,7 +97,7 @@ object ProductdBSearch: TProductdBSearch
     object Label3: TLabel
       Left = 16
       Top = 26
-      Width = 489
+      Width = 76
       Height = 32
       Alignment = taCenter
       Caption = 'Preis'
@@ -470,6 +470,25 @@ object ProductdBSearch: TProductdBSearch
     end
     object mnuImport: TMenuItem
       Caption = 'Import a Price file..'
+    end
+    object ChangeView1: TMenuItem
+      Caption = 'Search Screen Visualisation'
+      Visible = False
+      object ProductsbyVendorGraph1: TMenuItem
+        Caption = 'Products by Vendor'
+        Checked = True
+        RadioItem = True
+      end
+      object ProductsbyBrandGraph1: TMenuItem
+        Caption = 'Products by Brand'
+        Enabled = False
+        RadioItem = True
+      end
+      object NewProducts1: TMenuItem
+        Caption = 'New Products'
+        Enabled = False
+        RadioItem = True
+      end
     end
   end
   object dlgSelectValues: TbsSkinSelectValueDialog

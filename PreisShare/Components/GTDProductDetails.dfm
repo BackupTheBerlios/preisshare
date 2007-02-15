@@ -28,12 +28,11 @@ object ProductDetails: TProductDetails
     SkinDataName = 'tab'
     object bsSkinTabSheet1: TbsSkinTabSheet
       Caption = 'Basic Details'
-      object bsSkinMenuSpeedButton1: TbsSkinMenuSpeedButton
-        Left = 360
-        Top = 24
+      object btnPicOptions: TbsSkinMenuSpeedButton
+        Left = 424
+        Top = 32
         Width = 81
         Height = 25
-        Visible = False
         SkinDataName = 'toolmenubutton'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -263,7 +262,9 @@ object ProductDetails: TProductDetails
         UseSkinFont = True
         BorderStyle = bvFrame
         Caption = 'Picture'
+        PopupMenu = mnuPictureOptions
         AutoSize = False
+        OnClick = lblPictureClick
       end
       object lblCostPrice: TbsSkinLabel
         Left = 8
@@ -421,13 +422,7 @@ object ProductDetails: TProductDetails
         NumGlyphs = 1
         Spacing = 2
         Caption = 'pnlPicture'
-        object Image1: TImage
-          Left = 1
-          Top = 1
-          Width = 223
-          Height = 148
-          Align = alClient
-        end
+        PopupMenu = mnuPictureOptions
         object bsSkinStdLabel1: TbsSkinStdLabel
           Left = 96
           Top = 64
@@ -451,12 +446,41 @@ object ProductDetails: TProductDetails
   end
   object bsSkinPopupMenu1: TbsSkinPopupMenu
     Left = 280
-    Top = 56
+    Top = 32
     object ProductWebsite1: TMenuItem
       Caption = 'Product Website'
     end
     object ManufacturersWebsite1: TMenuItem
       Caption = 'Manufacturers Website'
+    end
+  end
+  object mnuPictureOptions: TbsSkinPopupMenu
+    Left = 336
+    Top = 32
+    object ClearPicture1: TMenuItem
+      Caption = 'Clear Picture'
+    end
+    object Copy1: TMenuItem
+      Caption = 'Copy'
+    end
+    object Paste1: TMenuItem
+      Caption = 'Paste'
+    end
+    object LoadfromFile1: TMenuItem
+      Caption = 'Load from File'
+    end
+    object SavetoFile1: TMenuItem
+      Caption = 'Save to File'
+    end
+  end
+  object bsSkinPopupMenu2: TbsSkinPopupMenu
+    Left = 232
+    Top = 40
+    object One1: TMenuItem
+      Caption = 'One'
+    end
+    object wo1: TMenuItem
+      Caption = 'Two'
     end
   end
 end

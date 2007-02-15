@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  bsSkinCtrls, bsSkinGrids, bsDBGrids, bsSkinData,
+  bsSkinCtrls, bsSkinGrids, bsDBGrids, bsSkinData, Jpeg,
   BusinessSkinForm, Menus, ComCtrls, StdCtrls, Mask, bsSkinBoxCtrls,
   Dialogs, bsSkinTabs, ExtCtrls, DB, DBTables,
-  bsdbctrls, bsSkinMenus;
+  bsdbctrls, bsSkinMenus, DBCtrls,EDBImage;
 
 type
   TProductDetails = class(TFrame)
@@ -17,7 +17,7 @@ type
     ProductWebsite1: TMenuItem;
     nbkProductInfo: TbsSkinPageControl;
     bsSkinTabSheet1: TbsSkinTabSheet;
-    bsSkinMenuSpeedButton1: TbsSkinMenuSpeedButton;
+    btnPicOptions: TbsSkinMenuSpeedButton;
     dbeProductCode: TbsSkinDBEdit;
     dbeProductName: TbsSkinDBEdit;
     dbeCostPrice: TbsSkinDBEdit;
@@ -34,11 +34,23 @@ type
     lblModel: TbsSkinLabel;
     dbeModel: TbsSkinDBEdit;
     pnlPicture: TbsSkinPanel;
-    Image1: TImage;
     bsSkinStdLabel1: TbsSkinStdLabel;
+    mnuPictureOptions: TbsSkinPopupMenu;
+    ClearPicture1: TMenuItem;
+    Copy1: TMenuItem;
+    Paste1: TMenuItem;
+    LoadfromFile1: TMenuItem;
+    SavetoFile1: TMenuItem;
+    bsSkinPopupMenu2: TbsSkinPopupMenu;
+    One1: TMenuItem;
+    wo1: TMenuItem;
+    procedure bsSkinSpeedButton1Click(Sender: TObject);
+    procedure lblPictureClick(Sender: TObject);
   private
     { Private declarations }
     fSkinData: TbsSkinData;
+    fProductImage : TEDBImage;
+
     procedure SetSkinData(Value: TbsSkinData); {override;}
 
   public
@@ -72,7 +84,7 @@ procedure TProductDetails.SetSkinData(Value: TbsSkinData);
 begin
   nbkProductInfo.SkinData := Value;
 
-  bsSkinMenuSpeedButton1.SkinData := Value;
+    btnPicOptions.SkinData := Value;
   dbeProductCode.SkinData := Value;
   dbeProductName.SkinData := Value;
   dbeCostPrice.SkinData := Value;
@@ -89,12 +101,23 @@ begin
   lblModel.SkinData := Value;
   dbeModel.SkinData := Value;
   pnlPicture.SkinData := Value;
-
+  mnuPictureOptions.SkinData := Value;
 end;
 
 procedure TProductDetails.Initialise;
 begin
-
+  fProductImage := TEDBImage.Create(Self);
+  with fProductImage do
+  begin
+    Parent := pnlPicture;
+    Align := alClient;
+    DataSource := dsProductInfo;
+    DataField := 'Picture';
+    BorderStyle := bsNone;
+    Visible := True;
+    Color := 5318157;
+    PopupMenu := mnuPictureOptions;
+  end;
 end;
 
 procedure TProductDetails.DisplayItem(ProductCursor : TQuery);
@@ -126,6 +149,17 @@ begin
   dbeBrand.Enabled := False;
   dbeModel.Enabled := False;
 
+end;
+
+procedure TProductDetails.bsSkinSpeedButton1Click(Sender: TObject);
+var jp: TJPEGImage;
+begin
+    fProductImage.LoadFromFile('d:\truco.jpg');
+end;
+
+procedure TProductDetails.lblPictureClick(Sender: TObject);
+begin
+  mnuPictureOptions.Popup(0,0);
 end;
 
 end.
