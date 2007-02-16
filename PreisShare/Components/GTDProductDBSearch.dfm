@@ -2,13 +2,13 @@ object ProductdBSearch: TProductdBSearch
   Left = 0
   Top = 0
   Width = 570
-  Height = 512
+  Height = 504
   TabOrder = 0
   object pnlHolder: TbsSkinGroupBox
     Left = 0
     Top = 0
     Width = 570
-    Height = 512
+    Height = 504
     TabOrder = 0
     SkinDataName = 'groupbox'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -65,7 +65,7 @@ object ProductdBSearch: TProductdBSearch
     end
     object lblItemsCount: TbsSkinStdLabel
       Left = 8
-      Top = 484
+      Top = 474
       Width = 340
       Height = 13
       UseSkinFont = True
@@ -95,7 +95,7 @@ object ProductdBSearch: TProductdBSearch
       OnClick = Label2Click
     end
     object Label3: TLabel
-      Left = 16
+      Left = 208
       Top = 26
       Width = 76
       Height = 32
@@ -133,7 +133,7 @@ object ProductdBSearch: TProductdBSearch
     end
     object btnBack: TbsSkinSpeedButton
       Left = 8
-      Top = 476
+      Top = 468
       Width = 57
       Height = 25
       Visible = False
@@ -164,7 +164,7 @@ object ProductdBSearch: TProductdBSearch
     end
     object btnTasks: TbsSkinMenuSpeedButton
       Left = 472
-      Top = 476
+      Top = 468
       Width = 73
       Height = 25
       SkinDataName = 'toolmenubutton'
@@ -196,7 +196,7 @@ object ProductdBSearch: TProductdBSearch
     object txtSearchText: TbsSkinEdit
       Left = 8
       Top = 116
-      Width = 457
+      Width = 470
       Height = 28
       DefaultFont.Charset = ANSI_CHARSET
       DefaultFont.Color = clWindowText
@@ -223,7 +223,7 @@ object ProductdBSearch: TProductdBSearch
       Left = 8
       Top = 152
       Width = 537
-      Height = 317
+      Height = 305
       TabOrder = 1
       SkinDataName = 'grid'
       UseSkinFont = True
@@ -237,7 +237,7 @@ object ProductdBSearch: TProductdBSearch
       SaveMultiSelection = False
       PickListBoxSkinDataName = 'listbox'
       PickListBoxCaptionMode = False
-      DataSource = DataSource1
+      DataSource = dsFindProducts
       Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit]
       PopupMenu = mnuProductOps
       ReadOnly = True
@@ -281,7 +281,7 @@ object ProductdBSearch: TProductdBSearch
       Left = 544
       Top = 152
       Width = 19
-      Height = 317
+      Height = 305
       TabOrder = 2
       Visible = False
       SkinDataName = 'vscrollbar'
@@ -330,7 +330,7 @@ object ProductdBSearch: TProductdBSearch
       SkinDataName = 'memo'
     end
     object bsSkinDBGrid1: TbsSkinDBGrid
-      Left = 16
+      Left = 128
       Top = 8
       Width = 121
       Height = 100
@@ -356,7 +356,7 @@ object ProductdBSearch: TProductdBSearch
     end
     object bsSkinMemo1: TbsSkinMemo
       Left = 8
-      Top = 444
+      Top = 428
       Width = 249
       Height = 37
       Font.Charset = DEFAULT_CHARSET
@@ -415,8 +415,41 @@ object ProductdBSearch: TProductdBSearch
         PieValues.Order = loNone
       end
     end
+    object btnNavigator: TbsSkinDBNavigator
+      Left = 312
+      Top = 468
+      Width = 231
+      Height = 25
+      TabOrder = 7
+      Visible = False
+      SkinDataName = 'panel'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      RealHeight = -1
+      AutoEnabledControls = True
+      CheckedMode = False
+      Checked = False
+      DefaultAlignment = taLeftJustify
+      DefaultCaptionHeight = 22
+      BorderStyle = bvNone
+      CaptionMode = False
+      RollUpMode = False
+      RollUpState = False
+      NumGlyphs = 1
+      Spacing = 2
+      AdditionalGlyphs = False
+      DataSource = dsFindProducts
+      VisibleButtons = [nbFirst, nbPrior, nbNext, nbLast, nbEdit, nbPost, nbCancel]
+      BtnSkinDataName = 'button'
+    end
   end
-  object DataSource1: TDataSource
+  object dsFindProducts: TDataSource
     DataSet = qryFindProducts
     Left = 528
     Top = 88

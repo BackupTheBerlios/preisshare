@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, bsSkinCtrls, BusinessSkinForm, bsSkinBoxCtrls, DB, ADODB,
-  bsMessages;
+  bsMessages, SynEdit, SynEditHighlighter, SynHighlighterSQL, bsDialogs,
+  SynMemo;
 
 type
   TfrmUpdateSellPrices = class(TForm)
@@ -20,10 +21,14 @@ type
     lblSupplierList: TbsSkinLabel;
     QryDoUpdates: TADOQuery;
     dlgMessage: TbsSkinMessage;
+    SynSQLSyn1: TSynSQLSyn;
+    dlgSQL: TbsSkinTextDialog;
+    SynMemo1: TSynMemo;
     procedure FormCreate(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure rdoColumnSelectClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -116,10 +121,27 @@ procedure TfrmUpdateSellPrices.RunPriceUpdate;
 const
   UPDATE_USING_COST = 0;
   UPDATE_USING_LIST = 1;
+  UPDATE_USING_SQL = 2;
 var
-  xc,sid : Integer;
+  xc,sid,sc : Integer;
   s : String;
 begin
+  // -- Check for custom sql
+  if rdoColumnSelect.ItemIndex = UPDATE_USING_SQL then
+  begin
+    try
+      Screen.Cursor := crHourglass;
+
+      QryDoUpdates.SQL.Clear;
+      QryDoUpdates.SQL.Assign(SynMemo1.Lines);
+      QryDoUpdates.ExecSQL;
+    finally
+      Screen.Cursor := crDefault;
+    end;
+
+    Exit;
+  end;
+
   // -- Validate the user input
   if txtMarkupPercentage.Value = 0 then
   begin
@@ -134,14 +156,19 @@ begin
     end;
   end;
 
-  // -- Validate that they selected something
-  {
-  if lstSupplierList.SelCount = -1 then
+  // -- Validate that they selected at least one supplier
+  sc := 0;
+  for xc := 0 to lstSupplierList.Items.Count-1 do
   begin
+    if lstSupplierList.Selected[xc] then
+      Inc(sc);
+  end;
+  if (sc = 0) then
+  begin
+    // -- Pop up an error message if no suppliers were selected
     dlgMessage.MessageDlg('Please select one or more Suppliers',mtError,[mbOk],0);
     Exit;
   end;
-  }
 
   // -- Build and execute the update query
   with QryDoUpdates do
@@ -152,6 +179,8 @@ begin
     SQL.Add('UPDATE');
     SQL.Add('  ' + PProdTblName);
     SQL.Add('SET');
+
+    Screen.Cursor := crDefault;
   end;
 
   // -- Handle updating from the cost price column
@@ -192,11 +221,24 @@ begin
 
     SQL.Add(s);
 
-    // -- Now run the query and hope for the best
-    ExecSQL;
+    try
+      Screen.Cursor := crHourglass;
 
+      // -- Now run the query and hope for the best
+      ExecSQL;
+
+      dlgMessage.MessageDlg('Prices successfully updated',mtInformation,[mbOk],0);
+
+    finally
+      Screen.Cursor := crDefault;
+    end;
   end;
 
+end;
+
+procedure TfrmUpdateSellPrices.rdoColumnSelectClick(Sender: TObject);
+begin
+  SynMemo1.Visible := rdoColumnSelect.ItemIndex = 2;
 end;
 
 end.

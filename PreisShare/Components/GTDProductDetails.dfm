@@ -2,13 +2,13 @@ object ProductDetails: TProductDetails
   Left = 0
   Top = 0
   Width = 519
-  Height = 319
+  Height = 303
   TabOrder = 0
   object nbkProductInfo: TbsSkinPageControl
     Left = 0
     Top = 0
     Width = 519
-    Height = 319
+    Height = 303
     ActivePage = bsSkinTabSheet1
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
@@ -28,41 +28,9 @@ object ProductDetails: TProductDetails
     SkinDataName = 'tab'
     object bsSkinTabSheet1: TbsSkinTabSheet
       Caption = 'Basic Details'
-      object btnPicOptions: TbsSkinMenuSpeedButton
-        Left = 424
-        Top = 32
-        Width = 81
-        Height = 25
-        SkinDataName = 'toolmenubutton'
-        DefaultFont.Charset = DEFAULT_CHARSET
-        DefaultFont.Color = clWindowText
-        DefaultFont.Height = 14
-        DefaultFont.Name = 'Arial'
-        DefaultFont.Style = []
-        DefaultWidth = 0
-        DefaultHeight = 0
-        UseSkinFont = True
-        WidthWithCaption = 0
-        WidthWithoutCaption = 0
-        ImageIndex = 0
-        RepeatMode = False
-        RepeatInterval = 100
-        Transparent = False
-        Flat = False
-        AllowAllUp = False
-        PopupMenu = bsSkinPopupMenu1
-        Down = False
-        GroupIndex = 0
-        Caption = 'Other...'
-        ShowCaption = True
-        NumGlyphs = 1
-        Spacing = 1
-        SkinPopupMenu = bsSkinPopupMenu1
-        TrackButtonMode = False
-      end
       object dbeProductCode: TbsSkinDBEdit
         Left = 8
-        Top = 32
+        Top = 33
         Width = 121
         Height = 20
         Text = 'dbeProductCode'
@@ -88,7 +56,7 @@ object ProductDetails: TProductDetails
       end
       object dbeProductName: TbsSkinDBEdit
         Left = 8
-        Top = 80
+        Top = 81
         Width = 257
         Height = 20
         Text = 'dbeProductName'
@@ -114,7 +82,7 @@ object ProductDetails: TProductDetails
       end
       object dbeCostPrice: TbsSkinDBEdit
         Left = 8
-        Top = 264
+        Top = 249
         Width = 97
         Height = 20
         Text = 'dbeCostPrice'
@@ -140,7 +108,7 @@ object ProductDetails: TProductDetails
       end
       object dbeSellPrice: TbsSkinDBEdit
         Left = 120
-        Top = 264
+        Top = 249
         Width = 113
         Height = 20
         Text = 'dbeSellPrice'
@@ -204,9 +172,9 @@ object ProductDetails: TProductDetails
       end
       object dbeProductDescription: TbsSkinDBMemo2
         Left = 8
-        Top = 128
+        Top = 131
         Width = 257
-        Height = 105
+        Height = 97
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = 14
@@ -268,7 +236,7 @@ object ProductDetails: TProductDetails
       end
       object lblCostPrice: TbsSkinLabel
         Left = 8
-        Top = 248
+        Top = 232
         Width = 97
         Height = 17
         TabOrder = 9
@@ -287,7 +255,7 @@ object ProductDetails: TProductDetails
       end
       object lblSellPrice: TbsSkinLabel
         Left = 120
-        Top = 248
+        Top = 232
         Width = 113
         Height = 17
         TabOrder = 10
@@ -306,7 +274,7 @@ object ProductDetails: TProductDetails
       end
       object lblBrand: TbsSkinLabel
         Left = 240
-        Top = 248
+        Top = 232
         Width = 121
         Height = 17
         TabOrder = 11
@@ -325,7 +293,7 @@ object ProductDetails: TProductDetails
       end
       object dbeBrand: TbsSkinDBEdit
         Left = 240
-        Top = 264
+        Top = 249
         Width = 121
         Height = 20
         Text = 'dbeBrand'
@@ -351,7 +319,7 @@ object ProductDetails: TProductDetails
       end
       object lblModel: TbsSkinLabel
         Left = 376
-        Top = 248
+        Top = 232
         Width = 129
         Height = 17
         TabOrder = 13
@@ -370,7 +338,7 @@ object ProductDetails: TProductDetails
       end
       object dbeModel: TbsSkinDBEdit
         Left = 376
-        Top = 264
+        Top = 249
         Width = 129
         Height = 20
         Text = 'dbeModel'
@@ -398,7 +366,7 @@ object ProductDetails: TProductDetails
         Left = 280
         Top = 80
         Width = 225
-        Height = 150
+        Height = 145
         TabOrder = 15
         SkinDataName = 'panel'
         DefaultFont.Charset = DEFAULT_CHARSET

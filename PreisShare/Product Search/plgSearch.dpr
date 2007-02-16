@@ -14,7 +14,8 @@ uses
   GTDTraderSelectPanel in '..\Components\GTDTraderSelectPanel.pas' {pnlTraderGet: TFrame},
   GTDPricelists in '..\Components\GTDPricelists.pas',
   GTDProductDetails in '..\Components\GTDProductDetails.pas' {ProductDetails: TFrame},
-  UpdateSellPrices in 'UpdateSellPrices.pas' {frmUpdateSellPrices};
+  UpdateSellPrices in 'UpdateSellPrices.pas' {frmUpdateSellPrices},
+  EDBImage in '..\Components\edbimage\EDBImage.pas';
 
 {$R *.RES}
 

@@ -4,7 +4,7 @@ object frmMain: TfrmMain
   AutoScroll = False
   BorderIcons = []
   Caption = 'Pricelist Search'
-  ClientHeight = 569
+  ClientHeight = 559
   ClientWidth = 592
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,8 +20,8 @@ object frmMain: TfrmMain
   TextHeight = 13
   object bsSkinButton1: TbsSkinButton
     Left = 504
-    Top = 528
-    Width = 75
+    Top = 522
+    Width = 76
     Height = 25
     TabOrder = 0
     SkinData = bsSkinData1

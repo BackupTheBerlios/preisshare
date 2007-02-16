@@ -4,7 +4,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Update Sell Prices..'
-  ClientHeight = 283
+  ClientHeight = 317
   ClientWidth = 378
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
   TextHeight = 13
   object bsSkinGroupBox1: TbsSkinGroupBox
     Left = 168
-    Top = 96
+    Top = 112
     Width = 193
     Height = 73
     TabOrder = 0
@@ -88,9 +88,9 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     end
   end
   object btnOk: TbsSkinButton
-    Left = 200
-    Top = 248
-    Width = 75
+    Left = 216
+    Top = 272
+    Width = 67
     Height = 25
     TabOrder = 1
     SkinDataName = 'button'
@@ -116,9 +116,9 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     OnClick = btnOkClick
   end
   object btnCancel: TbsSkinButton
-    Left = 288
-    Top = 248
-    Width = 75
+    Left = 296
+    Top = 272
+    Width = 67
     Height = 25
     TabOrder = 2
     SkinDataName = 'button'
@@ -137,7 +137,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     CanFocused = True
     Down = False
     GroupIndex = 0
-    Caption = 'Cancel'
+    Caption = 'Close'
     NumGlyphs = 1
     Spacing = 1
     Cancel = True
@@ -147,7 +147,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     Left = 168
     Top = 8
     Width = 193
-    Height = 73
+    Height = 97
     TabOrder = 3
     SkinDataName = 'groupbox'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -171,6 +171,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     NumGlyphs = 1
     Spacing = 2
     Caption = 'Build Sell prices from which Column?'
+    OnClick = rdoColumnSelectClick
     ButtonSkinDataName = 'radiobox'
     ButtonDefaultFont.Charset = DEFAULT_CHARSET
     ButtonDefaultFont.Color = clWindowText
@@ -180,13 +181,14 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     ItemIndex = 0
     Items.Strings = (
       'Use Cost Price Column'
-      'Use Existing Selling Price Column')
+      'Use Existing Selling Price Column'
+      'or Custom SQL update command')
   end
   object lstSupplierList: TbsSkinCheckListBox
     Left = 8
     Top = 24
     Width = 153
-    Height = 249
+    Height = 273
     TabOrder = 4
     SkinDataName = 'checklistbox'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -250,6 +252,32 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     BorderStyle = bvFrame
     Caption = 'Supplier'
     AutoSize = False
+  end
+  object SynMemo1: TSynMemo
+    Left = 168
+    Top = 112
+    Width = 193
+    Height = 153
+    Color = clSkyBlue
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Style = []
+    TabOrder = 6
+    Visible = False
+    Gutter.DigitCount = 3
+    Gutter.Font.Charset = DEFAULT_CHARSET
+    Gutter.Font.Color = clWindowText
+    Gutter.Font.Height = -11
+    Gutter.Font.Name = 'Courier New'
+    Gutter.Font.Style = []
+    Highlighter = SynSQLSyn1
+    Lines.Strings = (
+      'UPDATE'
+      '  products'
+      'SET '
+      '  OurSellingPrice = ROUND((OurBuyingPrice*1.5)*1.1,2)')
   end
   object bsBusinessSkinForm1: TbsBusinessSkinForm
     ClientWidth = 0
@@ -317,5 +345,33 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     UseSkinFont = True
     Left = 280
     Top = 192
+  end
+  object SynSQLSyn1: TSynSQLSyn
+    Left = 320
+    Top = 144
+  end
+  object dlgSQL: TbsSkinTextDialog
+    ShowToolBar = True
+    ClientWidth = 350
+    ClientHeight = 200
+    Caption = 'Input text'
+    AlphaBlend = False
+    AlphaBlendValue = 200
+    AlphaBlendAnimation = False
+    ButtonSkinDataName = 'button'
+    MemoSkinDataName = 'memo'
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    DefaultMemoFont.Charset = DEFAULT_CHARSET
+    DefaultMemoFont.Color = clWindowText
+    DefaultMemoFont.Height = 14
+    DefaultMemoFont.Name = 'Arial'
+    DefaultMemoFont.Style = []
+    UseSkinFont = True
+    Left = 240
+    Top = 176
   end
 end

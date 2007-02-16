@@ -31,6 +31,9 @@ type
   private
     { Private declarations }
     productDB : TProductdBSearch;
+
+    procedure DisplaySearchMessage(DisplayMsg : String);
+
   public
     { Public declarations }
 //    procedure Search;
@@ -106,7 +109,7 @@ begin
         QryFindProducts.Connection := ADOConnection;
         qryCountStuff.Connection := ADOConnection;
         DocumentRegistry := DocRegistry;
-        
+
         Initialise;
     end;
 
@@ -147,6 +150,11 @@ end;
 procedure TfrmMain.UpdateSellPrices(Sender : TObject);
 begin
   frmUpdateSellPrices.ShowModal;
+end;
+
+procedure TfrmMain.DisplaySearchMessage(DisplayMsg : String);
+begin
+//  lblDisplaySeachMessage.Caption := DisplayMsg;
 end;
 
 end.

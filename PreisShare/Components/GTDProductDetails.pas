@@ -17,7 +17,6 @@ type
     ProductWebsite1: TMenuItem;
     nbkProductInfo: TbsSkinPageControl;
     bsSkinTabSheet1: TbsSkinTabSheet;
-    btnPicOptions: TbsSkinMenuSpeedButton;
     dbeProductCode: TbsSkinDBEdit;
     dbeProductName: TbsSkinDBEdit;
     dbeCostPrice: TbsSkinDBEdit;
@@ -84,7 +83,6 @@ procedure TProductDetails.SetSkinData(Value: TbsSkinData);
 begin
   nbkProductInfo.SkinData := Value;
 
-    btnPicOptions.SkinData := Value;
   dbeProductCode.SkinData := Value;
   dbeProductName.SkinData := Value;
   dbeCostPrice.SkinData := Value;

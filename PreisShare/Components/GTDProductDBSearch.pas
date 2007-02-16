@@ -7,15 +7,18 @@ uses
   ComCtrls, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls, bsSkinData, Db,
   bsSkinGrids, bsDBGrids, DDB, DTables, DMaster, DBTables, ADODB,GTDBizDocs,
   TeEngine, Series, ExtCtrls, TeeProcs, Chart, Buttons, Windows, Menus,
-  bsSkinMenus,GTDProductDetails, bsDialogs;
+  bsSkinMenus,GTDProductDetails, bsDialogs, bsdbctrls;
 
 const
     DBTYPE_ADO   = 1;
     DBTYPE_MYSQL = 2;
     DBTYPE_IB    = 3;
+
 type
+  TProductSearchDisplayEvent = procedure (DisplayMsg : String) of object;
+
   TProductdBSearch = class(TFrame)
-    DataSource1: TDataSource;
+    dsFindProducts: TDataSource;
     pnlHolder: TbsSkinGroupBox;
     btnSearch: TbsSkinSpeedButton;
     txtSearchText: TbsSkinEdit;
@@ -50,6 +53,7 @@ type
     ProductsbyVendorGraph1: TMenuItem;
     ProductsbyBrandGraph1: TMenuItem;
     NewProducts1: TMenuItem;
+    btnNavigator: TbsSkinDBNavigator;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
@@ -68,12 +72,17 @@ type
     fVendorList : TStringList;
     fDocRegistry : GTDDocumentRegistry;
     fProductDetails : TProductDetails;
+    fOnDisplayMessage : TProductSearchDisplayEvent;
 
     fdbType : Integer;   //   DBTYPE_ADO   = 1;     DBTYPE_MYSQL = 2;     DBTYPE_IB    = 3;
+    fdbItemCountText,
+    fdbSearchResultCountText,
     fLikeChar : String;
 
     procedure SetSkinData(Value: TbsSkinData);
     procedure CountItemsInProductDatabase;
+    procedure DisplayMessage(DisplayText : String);
+    procedure RefreshQueryData;
 
   public
     { Public declarations }
@@ -84,8 +93,9 @@ type
     procedure SetConnectionString(ADOConnectionString : String);
 
   published
-  	property SkinData: TbsSkinData read fSkinData write SetSkinData;
+    property SkinData: TbsSkinData read fSkinData write SetSkinData;
     property DocumentRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
+    property OnDisplayMessage : TProductSearchDisplayEvent read fOnDisplayMessage write fOnDisplayMessage;
   end;
 
 implementation
@@ -129,6 +139,7 @@ begin
         if (s <> '') then
         begin
           // -- Display the company name
+          label3.Left := 16;
           label3.Caption := s;
           label4.Caption := '';
         end;
@@ -163,6 +174,7 @@ begin
       fProductDetails.Initialise;
     end;
 
+    lblItemsCount.Caption :='';
 
     CountItemsInProductDatabase;
 
@@ -201,7 +213,9 @@ begin
 
         end;
 
-        lblItemsCount.Caption := 'You currently have ' + IntToStr(ItemsInDB) + ' Products in your Product Database';
+        // -- Update the display
+        fdbItemCountText := 'You currently have ' + IntToStr(ItemsInDB) + ' Products in your Product Database';
+        DisplayMessage(fdbItemCountText);
 
         Active := False;
     end;
@@ -262,7 +276,7 @@ var
 
             Active := True;
 
-            lblItemsCount.Caption := IntToStr(qryFindProducts.RecordCount) + ' Item(s) from ' + Fields[0].AsString + ' Total Items in your Product Database';
+            DisplayMessage(IntToStr(qryFindProducts.RecordCount) + ' Item(s) from ' + Fields[0].AsString + ' Total Items in your Product Database');
 
         end;
     end;
@@ -273,10 +287,13 @@ begin
 
     try
 
-        Search(txtSearchText.Text);
-
         Chart1.Visible := False;
         bsSkinScrollBar1.Visible := True;
+        btnBack.Visible := True;
+        lblItemsCount.Left := 72;
+        btnTasks.Visible := False;
+
+        Search(txtSearchText.Text);
 
         {
         // -- Split up each of the words and load them in the list
@@ -308,7 +325,7 @@ procedure TProductdBSearch.SetSkinData(Value: TbsSkinData);
             TbsSkinControl(Where.Controls[I]).SkinData := Value;
       end;
 
-	TbsSkinControl(where).SkinData := Value;
+    TbsSkinControl(where).SkinData := Value;
 
   end;
 
@@ -866,15 +883,15 @@ begin
     Memo1.Lines.Assign(qryWordCheck.SQL);
 
     // -- The first query justs looks up everything to obtain a wordcount
-	with qryWordCheck do
-	begin
-		Active := False;
-		Screen.Cursor := crHourglass;
-		try
-			Active := True;
-		except
-		 on EDBEngineError do begin
-			MessageDlg(StringListToString(SQL),mtError,[mbOk],0);
+  with qryWordCheck do
+  begin
+    Active := False;
+    Screen.Cursor := crHourglass;
+    try
+      Active := True;
+    except
+     on EDBEngineError do begin
+      MessageDlg(StringListToString(SQL),mtError,[mbOk],0);
 		 end;
 		end;
 		Screen.Cursor := crDefault;
@@ -901,15 +918,17 @@ begin
             // -- Now run the final search
 			Active := True;
 
-			// -- Display the number of items on the screen
-			if RecordCount = 1 then
-				lblItemsCount.Caption := '1 Item.'
-			else
-				lblItemsCount.Caption := IntToStr(RecordCount) + ' Items found.';
+      // -- Display the number of items on the screen
+      if RecordCount = 1 then
+        fdbSearchResultCountText := '1 Item.'
+      else
+        fdbSearchResultCountText := IntToStr(RecordCount) + ' Items found.';
 
-            // -- If there are any records the function returns true
-            if (RecordCount > 0) then
-                Result := True;
+      DisplayMessage(fdbSearchResultCountText);
+
+      // -- If there are any records the function returns true
+      if (RecordCount > 0) then
+        Result := True;
 
 		except
 		 on EDBEngineError do
@@ -969,9 +988,13 @@ begin
   // -- Make the product display panel visible
   fProductDetails.Visible := True;
   btnBack.Visible := True;
-  lblItemsCount.Visible := False;
+  lblItemsCount.Left := 72;
   bsSkinScrollBar1.Visible := False;
   btnTasks.Visible := False;
+  DisplayMessage('');
+  btnTasks.Visible := False;
+
+  btnNavigator.Visible := True;
 
   // -- Now load the correct item
   fProductDetails.DisplayItem(TQuery(qryFindProducts));
@@ -980,11 +1003,28 @@ end;
 procedure TProductdBSearch.btnBackClick(Sender: TObject);
 begin
   // -- Hide the product display panel visible after use
-  fProductDetails.Visible := False;
-  btnBack.Visible := False;
-  lblItemsCount.Visible := True;
-  bsSkinScrollBar1.Visible := True;
-  btnTasks.Visible := True;
+  if fProductDetails.Visible then
+  begin
+    // -- Here we are going back to the search screen
+    fProductDetails.Visible := False;
+    bsSkinScrollBar1.Visible := True;
+    btnNavigator.Visible := False;
+    DisplayMessage(fdbSearchResultCountText);
+    Exit;
+  end;
+
+  // -- Here we are checking to see if the product display grid is showing
+  if not Chart1.Visible then
+  begin
+    // --
+    Chart1.Visible := True;
+    btnTasks.Visible := True;
+    btnBack.Visible := False;
+    lblItemsCount.Left := btnBack.Left;
+    DisplayMessage(fdbItemCountText);
+    Exit;
+  end;
+
 end;
 
 procedure TProductdBSearch.mnuRemoveSupplierClick(Sender: TObject);
@@ -1051,6 +1091,20 @@ begin
     CountItemsInProductDatabase;
 
   end;
+
+end;
+
+procedure TProductdBSearch.DisplayMessage(DisplayText : String);
+begin
+  if Assigned(fOnDisplayMessage) then
+    // fOnDisplayMessage(DisplayText)
+    lblItemsCount.Caption := DisplayText
+  else
+    lblItemsCount.Caption := DisplayText;
+end;
+
+procedure TProductdBSearch.RefreshQueryData;
+begin
 
 end;
 
