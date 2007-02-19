@@ -229,6 +229,7 @@ begin
 
       dlgMessage.MessageDlg('Prices successfully updated',mtInformation,[mbOk],0);
 
+      
     finally
       Screen.Cursor := crDefault;
     end;

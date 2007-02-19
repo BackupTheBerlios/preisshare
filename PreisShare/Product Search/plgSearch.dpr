@@ -15,14 +15,16 @@ uses
   GTDPricelists in '..\Components\GTDPricelists.pas',
   GTDProductDetails in '..\Components\GTDProductDetails.pas' {ProductDetails: TFrame},
   UpdateSellPrices in 'UpdateSellPrices.pas' {frmUpdateSellPrices},
-  EDBImage in '..\Components\edbimage\EDBImage.pas';
+  EDBImage in '..\Components\edbimage\EDBImage.pas',
+  ColumnParams in 'ColumnParams.pas' {frmColumnParams};
 
 {$R *.RES}
 
 begin
   Application.Initialize;
-  Application.Title := 'PreisShare Search';
+  Application.Title := 'PreisShare Product Search';
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmUpdateSellPrices, frmUpdateSellPrices);
+  Application.CreateForm(TfrmColumnParams, frmColumnParams);
   Application.Run;
 end.

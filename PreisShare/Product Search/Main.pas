@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   bsSkinData, BusinessSkinForm, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls,
-  ComCtrls, bsMessages, GTDProductDBSearch, Db,
+  ComCtrls, bsMessages, GTDProductDBSearch, Db, DBTables,
   Grids, DBGrids, ADODB, FMTBcd, SqlExpr, GTDBizDocs, bsDialogs,
   bsSkinShellCtrls;
 
@@ -28,14 +28,16 @@ type
     procedure FormCreate(Sender: TObject);
     procedure DocRegistryClick(Sender: TObject);
     procedure FormDblClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
-    productDB : TProductdBSearch;
 
     procedure DisplaySearchMessage(DisplayMsg : String);
+    procedure SelectDisplayColumns(Sender : TObject);
 
   public
     { Public declarations }
+    productDB : TProductdBSearch;
 //    procedure Search;
     procedure UpdateSellPrices(Sender : TObject);
   end;
@@ -45,7 +47,7 @@ var
 
 implementation
 
-uses SpreadSheetImport, UpdateSellPrices;
+uses SpreadSheetImport, UpdateSellPrices, ColumnParams;
 
 {$R *.DFM}
 
@@ -62,6 +64,7 @@ end;
 procedure TfrmMain.FormCreate(Sender: TObject);
 var
     s,dbname: String;
+    p,t,l : Integer;
 begin
 
     DocRegistry.OpenRegistry('',s);
@@ -86,6 +89,35 @@ begin
 
         end;
     end;
+
+    // -- Now look up form positions
+    if DocRegistry.GetSettingString('Product Search','Settings',s) then
+    begin
+      Position := poDefault;
+
+      // -- Read positions from the registry
+      t := -1; L := -1;
+      if DocRegistry.GetSettingMemoInt('/Position','Top',p) then
+        T := p;
+      if DocRegistry.GetSettingMemoInt('/Position','Left',p) then
+        L := p;
+
+      { -- Add these later
+      if DocRegistry.GetSettingMemoInt('/Position','Width',p) then
+        W := p;
+      if DocRegistry.GetSettingMemoInt('/Position','Height',p) then
+        H := p;
+      }
+
+      // -- Use the Win32 Api because it seems to work
+      if (T <> -1) and (L <> -1) then
+        MoveWindow(Handle,L,T,Width,Height,False);
+
+
+    end
+    else
+      Position := poDesktopCenter;
+
 
     // -- Build the correct connection string
     ADOConnection.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0;'+
@@ -118,6 +150,7 @@ begin
     //    and we're not doing it inside the frames
     productDB.mnuImport.OnClick := DocRegistryClick;
     productDB.mnuUpdateSellPrices.OnClick := UpdateSellPrices;
+    productDB.mnuSelectColumns.OnClick := SelectDisplayColumns;
 
     ActiveControl := productDB.txtSearchText;
 
@@ -152,9 +185,34 @@ begin
   frmUpdateSellPrices.ShowModal;
 end;
 
+procedure TfrmMain.SelectDisplayColumns(Sender : TObject);
+begin
+  frmColumnParams.LoadColumnInfo(TQuery(productDB.qryFindProducts));
+  frmColumnParams.ShowModal;
+end;
+
 procedure TfrmMain.DisplaySearchMessage(DisplayMsg : String);
 begin
 //  lblDisplaySeachMessage.Caption := DisplayMsg;
+end;
+
+procedure TfrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
+var
+  s : String;
+  xc : Integer;
+begin
+
+  // -- Save the X,Y, Width and Height coordinates
+  if DocRegistry.GetSettingString('Product Search','Settings',s) then
+  begin
+    DocRegistry.SaveSettingMemoInt('/Position','Top',Top, False);
+    DocRegistry.SaveSettingMemoInt('/Position','Left',Left, False);
+    DocRegistry.SaveSettingMemoInt('/Position','Width',Width, False);
+    DocRegistry.SaveSettingMemoInt('/Position','Height',Height, True);
+  end;
+
+  // -- Now save the column settings
+  productDB.SaveColumnDefinitions;
 end;
 
 end.
