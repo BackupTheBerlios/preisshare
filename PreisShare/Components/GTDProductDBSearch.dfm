@@ -272,7 +272,7 @@ object ProductdBSearch: TProductdBSearch
         item
           Expanded = False
           FieldName = 'VendorSuggestedSellPrice'
-          Title.Caption = 'Sell Price'
+          Title.Caption = 'Shop Price'
           Width = 77
           Visible = True
         end>
@@ -489,6 +489,12 @@ object ProductdBSearch: TProductdBSearch
     object AddtoaCustomerInvoice1: TMenuItem
       Caption = 'Add to a Customer Invoice..'
       Enabled = False
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object mnuSelectColumns: TMenuItem
+      Caption = 'Select Columns'
     end
   end
   object mnuMaintain: TbsSkinPopupMenu

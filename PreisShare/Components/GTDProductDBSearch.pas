@@ -54,6 +54,8 @@ type
     ProductsbyBrandGraph1: TMenuItem;
     NewProducts1: TMenuItem;
     btnNavigator: TbsSkinDBNavigator;
+    N1: TMenuItem;
+    mnuSelectColumns: TMenuItem;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
@@ -91,6 +93,9 @@ type
     procedure Initialise;
 
     procedure SetConnectionString(ADOConnectionString : String);
+
+    procedure LoadColumnDefinitions;
+    procedure SaveColumnDefinitions;
 
   published
     property SkinData: TbsSkinData read fSkinData write SetSkinData;
@@ -156,6 +161,8 @@ begin
     grdProducts.Columns[1].FieldName := PName_Col;
     grdProducts.Columns[2].FieldName := PCostPrice;
     grdProducts.Columns[3].FieldName := PSellPrice;
+
+    LoadColumnDefinitions;
 
     // -- Setup the product details component
     if not Assigned(fProductDetails) then
@@ -374,7 +381,7 @@ function TProductdbSearch.Search(const SearchString : String):Boolean;
 var
     haveVendorName : Boolean;
     SupplierID     : Integer;
-    VendorName     : String;
+    VendorName,s    : String;
     haveFirstAnd   : Boolean;
 const
 	StdWordLen = 30;
@@ -623,7 +630,7 @@ const
 		procedure AddProdDescFilters;
 		var
 			xc : Integer;
-			L, Word : String;
+			L, Word,s : String;
 			wasFound : Boolean;
 		PaddedWord : String;
 		begin
@@ -677,35 +684,52 @@ const
 		begin
 
 			SQL.Add('SELECT');
-			SQL.Add('	*');
 
-			SQL.Add('FROM ' + PProdTblName { + ', ' + PSupplierTblName} );
-            SQL.Add('RIGHT JOIN Suppliers ON ' + PSupplierTblName + '.SupplierID = Products.SupplierID');
-//			SQL.Add('	WHERE (' + PProdTblName + '.SupplierID = ' + PSupplierTblName + '.SupplierID)');
-			SQL.Add('	WHERE ');
+      // -- This special feature allows columns to be manually overriden in the
+      //    query statement
+      if fDocRegistry.GetSettingString('Product Search','Settings',s) then
+      begin
+        // -- Allows for an entry like this in the settings
+        // <Product Query Columns>
+        //  Custom_SQL_ExtraColumns&="OurSellingPrice * .90 as Contractor_Price"
+        // </Product Query Columns>
+        s := '';
+        fDocRegistry.GetSettingMemoString('/Product Query Columns','Custom_SQL_ExtraColumns',s);
+        if s <> '' then
+          SQL.Add('  ' + PProdTblName + '.*, ' + PSupplierTblName + '.*, ' + s)
+        else
+          SQL.Add('  ' + PProdTblName + '.*, ' + PSupplierTblName + '.*');
+      end
+      else
+        // -- Otherwise, Use the default value
+        SQL.Add('	*');
 
-            // -- Check to see if a vendor name was supplied
-            CheckForVendorName;
-            if haveVendorName then
-            begin
+      SQL.Add('FROM ' + PProdTblName { + ', ' + PSupplierTblName} );
+      SQL.Add('RIGHT JOIN Suppliers ON ' + PSupplierTblName + '.SupplierID = Products.SupplierID');
+      SQL.Add('	WHERE ');
 
-                // -- Lookup this supplier
-                fDocRegistry.OpenForTraderNumber(SupplierID);
+      // -- Check to see if a vendor name was supplied
+      CheckForVendorName;
+      if haveVendorName then
+      begin
 
-    			AddSQLWhereClause('	([Products.SupplierID] = ' + IntToStr(SupplierID) + ')');
+          // -- Lookup this supplier
+          fDocRegistry.OpenForTraderNumber(SupplierID);
 
-            end;
+          AddSQLWhereClause('	([Products.SupplierID] = ' + IntToStr(SupplierID) + ')');
+
+      end;
 
             // -- Check for the product code
-			AddCodeFilters;
+      AddCodeFilters;
 
-			// -- Add any brands
-//			AddBrandFilters;
+      // -- Add any brands
+      // AddBrandFilters;
 
-			// -- Add all other words
-			AddProdDescFilters;
+      // -- Add all other words
+      AddProdDescFilters;
 
-		end;
+    end;
 	end;
 
 	procedure AddExtraClauses(PMFTABLE : String);
@@ -1107,5 +1131,87 @@ procedure TProductdBSearch.RefreshQueryData;
 begin
 
 end;
+
+procedure TProductdBSearch.LoadColumnDefinitions;
+var
+  xc, i,colCount : Integer;
+  s,k : String;
+  c : TbsColumn;
+begin
+  if fDocRegistry.GetSettingString('Product Search','Settings',s) then
+  begin
+    // -- Retrieve the number of columns
+    if fDocRegistry.GetSettingMemoInt('/Columns','Column_Count',i) then
+    begin
+      // -- Check and exit if no columns defined
+      if i = 0 then
+        Exit
+      else
+        colCount := i;
+
+      grdProducts.Columns.Clear;
+      for xc := 1 to colCount do
+      begin
+        // -- Build up a key
+        k := '/Columns/Column ' + IntToStr(xc);
+
+        // -- Set the various parameters
+        c := grdProducts.Columns.Add;
+        fDocRegistry.GetSettingMemoString(k,'Title',s);
+        c.Title.Caption := s;
+
+        fDocRegistry.GetSettingMemoString(k,'FieldName',s);
+        c.FieldName := s;
+
+        fDocRegistry.GetSettingMemoString(k,'Alignment',s);
+        if s = 'Right' then
+          c.Alignment := taRightJustify
+        else if s = 'Center' then
+          c.Alignment := taCenter
+        else
+          c.Alignment := taLeftJustify;
+
+        fDocRegistry.GetSettingMemoInt(k,'Width',i);
+        if i <> 0 then
+          c.Width := i
+        else
+          c.Width := 50;
+
+      end;
+    end;
+  end;
+end;
+
+procedure TProductdBSearch.SaveColumnDefinitions;
+var
+  xc, xd : Integer;
+  s : String;
+begin
+  if fDocRegistry.GetSettingString('Product Search','Settings',s) then
+  begin
+
+    // -- Save the number of columns
+    fDocRegistry.SaveSettingMemoInt('/Columns','Column_Count',grdProducts.Columns.Count, False);
+
+    // -- Write all settings back to the database
+    for xc := 0 to grdProducts.Columns.Count-1 do
+    begin
+      // -- Add in the column
+      s := '/Columns/Column ' + IntToStr(xc+1);
+
+      // -- Update the different fields
+      fDocRegistry.SaveSettingMemoString(s,'Title',grdProducts.Columns[xc].Title.Caption, False);
+      fDocRegistry.SaveSettingMemoString(s,'FieldName',grdProducts.Columns[xc].FieldName, False);
+      case grdProducts.Columns[xc].Alignment of
+        taLeftJustify  : fDocRegistry.SaveSettingMemoString(s,'Alignment','Left', False);
+        taRightJustify : fDocRegistry.SaveSettingMemoString(s,'Alignment','Right', False);
+        taCenter       : fDocRegistry.SaveSettingMemoString(s,'Alignment','Center', False);
+      end;
+      fDocRegistry.SaveSettingMemoInt(s,'Width',grdProducts.Columns[xc].Width, True);
+    end;
+  end;
+
+end;
+
 
 end.
