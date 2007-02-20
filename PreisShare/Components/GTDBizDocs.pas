@@ -655,8 +655,9 @@ published
 		{$ENDIF}
 		{$ELSE}
 		property PriceListDateTime : TDateTime read fPricelistDateTime;
-        property Traders : TTable read fTraderTbl write fTraderTbl;
-        property Documents : TTable read fDocTbl write fDocTbl;
+    property Traders : TTable read fTraderTbl write fTraderTbl;
+    property SysVals : TTable read fSysValTbl write fSysValTbl;
+    property Documents : TTable read fDocTbl write fDocTbl;
 		{$ENDIF}
 	public
 		{$IFDEF LIGHTWEIGHT}    // -- not nice but neccesary for the ClientConnector
