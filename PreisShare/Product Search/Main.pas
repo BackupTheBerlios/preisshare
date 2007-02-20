@@ -203,16 +203,20 @@ var
 begin
 
   // -- Save the X,Y, Width and Height coordinates
-  if DocRegistry.GetSettingString('Product Search','Settings',s) then
+  if DocRegistry.SysVals.Active then
   begin
-    DocRegistry.SaveSettingMemoInt('/Position','Top',Top, False);
-    DocRegistry.SaveSettingMemoInt('/Position','Left',Left, False);
-    DocRegistry.SaveSettingMemoInt('/Position','Width',Width, False);
-    DocRegistry.SaveSettingMemoInt('/Position','Height',Height, True);
+    // -- Only try doing the update if the config table is open
+    //    otherwise it won't be possible to close down the application
+    if DocRegistry.GetSettingString('Product Search','Settings',s) then
+    begin
+      DocRegistry.SaveSettingMemoInt('/Position','Top',Top, False);
+      DocRegistry.SaveSettingMemoInt('/Position','Left',Left, False);
+      DocRegistry.SaveSettingMemoInt('/Position','Width',Width, False);
+      DocRegistry.SaveSettingMemoInt('/Position','Height',Height, True);
+    end;
+    // -- Now save the column settings
+    productDB.SaveColumnDefinitions;
   end;
-
-  // -- Now save the column settings
-  productDB.SaveColumnDefinitions;
 end;
 
 end.
