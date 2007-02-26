@@ -893,15 +893,19 @@ const
     GTD_PL_ELE_MIN_DELIV_CHARGE = 'Minimum_Delivery_Cost';
 
 	// -- Information area
-	GTD_PL_INFORMATION_TAG      = 'Summary';
-	GTD_PL_INFORMATION_NODE     = '/PriceList/' + GTD_PL_INFORMATION_TAG;
-	GTD_PL_ELE_COLUMNS_USED     = 'Columns_Used';
+  GTD_PL_INFORMATION_TAG      = 'Overview';
+  GTD_PL_INFORMATION_NODE     = '/PriceList/' + GTD_PL_INFORMATION_TAG;
+  GTD_PL_ELE_COLUMNS_USED     = 'Columns_Used';
+  GTD_PL_ELE_GLOBAL_BRAND     = 'Global_BrandName';
+  GTD_PL_ELE_GLOBAL_MANUFCT   = 'Global_Manufacturer';
+  GTD_PL_ELE_ACTUAL_INCTAX    = 'Actual_Price_IncludesTax'; // Boolean
+  GTD_PL_ELE_ACTUAL_TAXRATE   = 'Actual_Price_TaxRate';
 
-    GTD_PL_INFORMATION_ITEM_NODE= '/Item';
-	GTD_PL_ELE_INFO_TITLE       = 'Title';
-	GTD_PL_ELE_INFO_TEXT        = 'Description';
-	GTD_PL_INFO_IMAGE_NODE      = '/Image';
-    GTD_PL_ELE_INFO_IMAGE_ID    = 'Filename';
+  GTD_PL_INFORMATION_ITEM_NODE= '/Item';
+  GTD_PL_ELE_INFO_TITLE       = 'Title';
+  GTD_PL_ELE_INFO_TEXT        = 'Description';
+  GTD_PL_INFO_IMAGE_NODE      = '/Image';
+  GTD_PL_ELE_INFO_IMAGE_ID    = 'Filename';
 
     // -- Banking details
     GTD_PL_BANKING_NODE         = '/PriceList/Banking Details';
@@ -946,9 +950,9 @@ const
 	GTD_PL_ELE_PRODUCT_KEYWORDS = 'Keywords';
 	GTD_PL_ELE_PRODUCT_LIST     = 'List_Price';
 	GTD_PL_ELE_PRODUCT_ACTUAL   = 'Actual_Price';     // <= and here is the new
+	GTD_PL_ELE_PRODUCT_ACTUALEX = 'Actual_ExTax';
+	GTD_PL_ELE_PRODUCT_ACTUALINC= 'Actual_IncTax';
 	GTD_PL_ELE_PRODUCT_TAXR     = 'Tax_Rate';
-	GTD_PL_ELE_PRODUCT_TAXT     = 'Tax_Type';
-	GTD_PL_ELE_PRODUCT_TAXAMT   = 'Tax_Amount';
 	GTD_PL_ELE_PRODUCT_BRAND    = 'Brand';
 	GTD_PL_ELE_PRODUCT_UNIT     = 'Unit';
 	GTD_PL_ELE_PRODUCT_MINORDQTY= 'MinOrderQty';
