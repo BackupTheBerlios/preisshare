@@ -678,9 +678,9 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
     end
     object mmoSQL: TSynMemo
       Left = 80
-      Top = 200
+      Top = 204
       Width = 200
-      Height = 137
+      Height = 133
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13

@@ -1132,6 +1132,7 @@ const
 	GTD_PRICELIST_PATCH_EXT     = '.PreisFile_Patch';
 	GTD_TRADALOG_OPEN_FILTER    = 'PreisShare Files|*.PreisFile|All Files|*.*';
 	GTD_SERVER_CERTFILE         = 'Server_Registration.txt';
+  GTD_RELAYCALCSFILE          = 'Relay_Calculations.pas';
 
 	// -- Used in patching pricelist
 	GTD_PL_ELE_UPDATE_TYPE      = 'Update_Type';

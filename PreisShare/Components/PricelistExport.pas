@@ -41,7 +41,6 @@ const
 	PRICELIST_EXPORTMAP_PRODUCT_LIST    = '@' + GTD_PL_ELE_PRODUCT_LIST;    //     = 'List_Price';
 	PRICELIST_EXPORTMAP_PRODUCT_ACTUAL  = '@' + GTD_PL_ELE_PRODUCT_ACTUAL;    //     = 'Your_Price';
 	PRICELIST_EXPORTMAP_PRODUCT_TAXR    = '@' + GTD_PL_ELE_PRODUCT_TAXR;    //     = 'Tax_Rate';
-	PRICELIST_EXPORTMAP_PRODUCT_TAXT    = '@' + GTD_PL_ELE_PRODUCT_TAXT;    //     = 'Tax_Type';
 	PRICELIST_EXPORTMAP_PRODUCT_BRAND   = '@' + GTD_PL_ELE_PRODUCT_BRAND;   //    = 'Brand';
 	PRICELIST_EXPORTMAP_PRODUCT_UNIT    = '@' + GTD_PL_ELE_PRODUCT_UNIT;    //     = 'Unit';
 	PRICELIST_EXPORTMAP_PRODUCT_MINORDQTY = '@' + GTD_PL_ELE_PRODUCT_MINORDQTY;    //= 'MinOrderQty';
@@ -861,7 +860,6 @@ begin
       SetColumnNameOf(GTD_PL_ELE_PRODUCT_LIST,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_LIST));    //     = 'List_Price';
       SetColumnNameOf(GTD_PL_ELE_PRODUCT_ACTUAL,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_ACTUAL));    //     = 'Your_Price';
       SetColumnNameOf(GTD_PL_ELE_PRODUCT_TAXR,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_TAXR));    //     = 'Tax_Rate';
-      SetColumnNameOf(GTD_PL_ELE_PRODUCT_TAXT,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_TAXT));    //     = 'Tax_Type';
       SetColumnNameOf(GTD_PL_ELE_PRODUCT_BRAND,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_BRAND));   //     = 'Manufacturer';
       SetColumnNameOf(GTD_PL_ELE_PRODUCT_UNIT,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_UNIT));    //     = 'Unit';
       SetColumnNameOf(GTD_PL_ELE_PRODUCT_TYPE,bdFieldMap.GetStringElement('/Column Mappings',GTD_PL_ELE_PRODUCT_TYPE));    //     = 'Product_Type';
@@ -1010,7 +1008,6 @@ begin
 		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_LIST,FindColumnNameOf(GTD_PL_ELE_PRODUCT_LIST)); //     = 'List_Price';
 		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_ACTUAL,FindColumnNameOf(GTD_PL_ELE_PRODUCT_ACTUAL)); //     = 'Your_Price';
 		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_TAXR,FindColumnNameOf(GTD_PL_ELE_PRODUCT_TAXR)); //     = 'Tax_Rate';
-		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_TAXT,FindColumnNameOf(GTD_PL_ELE_PRODUCT_TAXT)); //     = 'Tax_Type';
 		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_BRAND,FindColumnNameOf(GTD_PL_ELE_PRODUCT_BRAND)); //     = 'Manufacturer';
 		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_UNIT,FindColumnNameOf(GTD_PL_ELE_PRODUCT_UNIT)); //     = 'Unit';
 		bdFieldMap.SetStringElement('/Column Mappings', GTD_PL_ELE_PRODUCT_TYPE,FindColumnNameOf(GTD_PL_ELE_PRODUCT_TYPE)); //     = 'Product_Type';

@@ -131,7 +131,7 @@ begin
     // -- Setup the connection
     ADOConnection1.Connected := False;
 
-	Screen.Cursor := crHourglass;
+    Screen.Cursor := crHourglass;
 
     try
         // -- Reset and use the provided connection string
@@ -146,7 +146,8 @@ begin
 
             Active := True;
 
-            LoadColumnList;
+            if lsvFieldList.Items.Count = 0 then
+               LoadColumnList;
 
         end;
     finally

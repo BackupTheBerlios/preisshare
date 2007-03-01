@@ -520,7 +520,7 @@ begin
           end
           else begin
               // -- All non-price fields get stored as strings
-              sFieldValue := tmpProduct.ReadStringField(sField);
+              sFieldValue := tmpProduct.ReadStringField(sField,'');
               sh.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
           end;
 

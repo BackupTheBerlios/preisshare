@@ -160,6 +160,7 @@ object SupplierPriceParamsFrame: TSupplierPriceParamsFrame
       UseSkinFont = True
       ImageIndex = 0
       Flat = True
+      TabStop = True
       CanFocused = True
       Radio = True
       Checked = False

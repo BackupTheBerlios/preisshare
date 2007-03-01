@@ -159,7 +159,7 @@ begin
 
         // -- Retrieve the field number stored with the string
         //    and use 0 based values on the recordset
-        fldno := Integer(fOutputFields.Objects[xc])-1;
+        fldno := Integer(fOutputFields.Objects[xc]);
 
         // -- Check for control fields
         if (fldname[1] = '<') then
@@ -262,6 +262,32 @@ begin
 end;
 //---------------------------------------------------------------------------
 function TBuildPricelistFromDBRun.Run:Boolean;
+
+  // -- Here we need to correct the actual field numbers
+  //    from the recordset
+  procedure CorrectFieldNumbers;
+  var
+    xc,xd,rsc : Integer;
+    f,dc : String;
+  begin
+        // -- For every defined field
+        for xc := 0 to fOutputFields.Count-1 do
+        begin
+            // -- If there is a defined field, sometimes there is not
+            f := fOutputFields[xc];
+            dc := fConfig.lsvFieldList.Items[Integer(fOutputFields.Objects[xc])].Caption;
+            if f <> '' then
+            begin
+                // -- Lookup this column
+                // fConfig.lsvFieldList
+                //    in the recordset
+                rsc := qryGetItems.FieldDefs.Find(dc).FieldNo - 1;
+                fOutputFields.Objects[xc] := TObject(rsc);
+
+           end;
+        end;
+  end;
+
 var
     reccount,recsavail : Integer;
 begin
@@ -269,7 +295,7 @@ begin
     // -- Setup the connection
     ADOConnection1.Connected := False;
 
-	Screen.Cursor := crHourglass;
+    Screen.Cursor := crHourglass;
 
     try
 
@@ -306,6 +332,8 @@ begin
 
             Active := True;
 
+            CorrectFieldNumbers;
+
             Report('Show','Producing Pricelist');
 
             // -- Progress report
@@ -338,9 +366,14 @@ begin
 
             ggeProgress.Value := 100;
             Report('Show','Complete');
+
+            Result := True;
+
         end;
+        
     finally
  	    Screen.Cursor := crDefault;
+      ADOConnection1.Connected := False;
     end;
 end;
 //---------------------------------------------------------------------------
@@ -380,7 +413,7 @@ begin
     dlgSelectProfile.SkinData := Value;
     dlgSelectProfile.CtrlSkinData := Value;
     ggeProgress.SkinData := Value;
-    
+
     fSkinData := Value;
 end;
 //---------------------------------------------------------------------------
@@ -428,7 +461,7 @@ begin
             begin
                 // -- Add the logical pricelist column, then the number of the column
                 //    in the recordset
-                fOutputFields.AddObject(f,TObject(Pointer(xc+1)));
+                fOutputFields.AddObject(f,TObject(xc));
             end;
         end;
 
