@@ -984,14 +984,15 @@ const
 	// -- Product options added on but not essential
 	GTD_PL_OPTIONS_TAG          = 'Options';
 
-	// -- Product Information/Summary Section
-	GTD_PL_PRODUCTSUMMARY_TAG   = 'Summary';
-	GTD_PL_PRODUCTSUMMARY_NODE  = '/' + GTD_PL_PRODUCTSUMMARY_TAG;
+    // -- Product Information/Summary Section
+    GTD_PL_PRODUCTSUMMARY_TAG   = 'Summary Information';
+    GTD_PL_PRODUCTSUMMARY_NODE  = '/PriceList/' + GTD_PL_PRODUCTSUMMARY_TAG;
     GTD_PL_ELE_ITEMCOUNT        = 'ItemCount';
-	GTD_PL_ELE_MAJORGROUPS      = 'ProductGroupCount';
-	GTD_PL_ELE_VALID_FROM       = 'Valid_From';
+    GTD_PL_ELE_MAJORGROUPS      = 'ProductGroupCount';
+    GTD_PL_ELE_VALID_FROM       = 'Valid_From';
     GTD_PL_ELE_VALID_TO         = 'Valid_To';
-    
+    GTD_PL_ELE_COLUMNLIST       = 'Product_Columns';
+
     // -- Pricelist Image Elements
     // -- ** Simplistic **
     GTD_PL_ELE_PRODUCT_PICTURE  = GTD_PL_ELE_PRODUCT_IMAGE;
@@ -6781,28 +6782,28 @@ end;
 //
 function GTDDocumentRegistry.AddStandardVendorInfo(aDoc : GTDBizDoc):Boolean;
 begin
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE,GetGTL);
-	aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME,GetCompanyName);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_1,GetAddress1);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_2,GetAddress2);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TOWN,GetCity);
-	aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_POSTALCODE,GetPostcode);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_STATE_REGION,GetState);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COUNTRYCODE,GetCountryCode);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE,GetGTL);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME,GetCompanyName);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_1,GetAddress1);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_2,GetAddress2);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TOWN,GetCity);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_POSTALCODE,GetPostcode);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_STATE_REGION,GetState);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COUNTRYCODE,GetCountryCode);
 end;
 //---------------------------------------------------------------------------
 // Synopsis : Adds <Vendor information> to a pricelist from the current trader
 //
 function GTDDocumentRegistry.AddCurrentTraderVendorInfo(aDoc : GTDBizDoc):Boolean;
 begin
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE,fTraderTbl.FieldByName(GTD_DB_COL_COMPANY_CODE).AsString);
-	aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME,fTraderTbl.FieldByName(GTD_DB_COL_COMPANY_NAME).AsString);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_1,fTraderTbl.FieldByName(GTD_DB_COL_ADDRESS_LINE_1).AsString);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_2,fTraderTbl.FieldByName(GTD_DB_COL_ADDRESS_LINE_2).AsString);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TOWN,fTraderTbl.FieldByName(GTD_DB_COL_TOWN).AsString);
-	aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_POSTALCODE,fTraderTbl.FieldByName(GTD_DB_COL_POSTALCODE).AsString);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_STATE_REGION,fTraderTbl.FieldByName(GTD_DB_COL_STATE_REGION).AsString);
-    aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COUNTRYCODE,fTraderTbl.FieldByName(GTD_DB_COL_COUNTRYCODE).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_CODE,fTraderTbl.FieldByName(GTD_DB_COL_COMPANY_CODE).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COMPANY_NAME,fTraderTbl.FieldByName(GTD_DB_COL_COMPANY_NAME).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_1,fTraderTbl.FieldByName(GTD_DB_COL_ADDRESS_LINE_1).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_ADDRESS_LINE_2,fTraderTbl.FieldByName(GTD_DB_COL_ADDRESS_LINE_2).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_TOWN,fTraderTbl.FieldByName(GTD_DB_COL_TOWN).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_POSTALCODE,fTraderTbl.FieldByName(GTD_DB_COL_POSTALCODE).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_STATE_REGION,fTraderTbl.FieldByName(GTD_DB_COL_STATE_REGION).AsString);
+  aDoc.SetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_COUNTRYCODE,fTraderTbl.FieldByName(GTD_DB_COL_COUNTRYCODE).AsString);
 end;
 //---------------------------------------------------------------------------
 function GTDDocumentRegistry.ValidatePurchaseOrder(aDoc : GTDBizDoc; Options : String; var Log : String):Boolean;
@@ -7544,34 +7545,35 @@ end;
 //---------------------------------------------------------------------------
 function GTDDocumentRegistry.OpenRegistry(Params : String; var StatusText : String):Boolean;
 var
-	openedOK : Boolean;
+  openedOK : Boolean;
 begin
-    try
+  try
 
-        openedOK := False;
+    openedOK := False;
 
-    	fDocTbl.Active := False;
-        fTraderTbl.Active := False;
-        fAuditTbl.Active := False;
-		fSysValTbl.Active := False;
+    fDocTbl.Active := False;
+    fTraderTbl.Active := False;
+    fAuditTbl.Active := False;
+    fSysValTbl.Active := False;
 
-		// -- Now try opening up the tablse
-		fDocTbl.Active := True;
-		fTraderTbl.Active := True;
-		fAuditTbl.Active := True;
-		fSysValTbl.Active := True;
+    // -- Now try opening up the tablse
+    fDocTbl.Active := True;
+    fTraderTbl.Active := True;
+    fAuditTbl.Active := True;
+    fSysValTbl.Active := True;
 
-        // -- If it got to here then it worked
-        openedOK := True;
-        StatusText := 'Database opened Successfully';
+    // -- If it got to here then it worked
+    openedOK := True;
+    StatusText := 'Database opened Successfully';
 
-    except
-        on E: Exception do
+  except
+    on E: Exception do
             StatusText := E.Message; // , E.HelpContext);
-    else
-	end;
+  else
+  end;
 
-    Result := openedOK;
+  Result := openedOK;
+
 end;
 //---------------------------------------------------------------------------
 procedure GTDDocumentRegistry.Close;

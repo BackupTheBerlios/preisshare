@@ -528,7 +528,8 @@ begin
         else if (sField = '<Product Group>') then
         begin
           // -- Extract the product group
-          sh.Ranges[iCol,iRow,iCol,iRow].Value := tmpProduct.ReadStringField(GTD_PL_PRODUCTGROUP_TAG);
+          sFieldValue := tmpProduct.ReadStringField(GTD_PL_PRODUCTGROUP_TAG);
+          sh.Ranges[iCol,iRow,iCol,iRow].Value := sFieldValue;
         end;
 
         // -- Advance the column number

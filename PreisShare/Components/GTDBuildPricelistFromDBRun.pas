@@ -62,7 +62,7 @@ type
 
     procedure Report(const MsgType, Msg : String);
   published
-	property SkinData: TbsSkinData read fSkinData write SetSkinData;
+    property SkinData: TbsSkinData read fSkinData write SetSkinData;
     property DocRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
     property Configuration : TBuildPricelistFromDBConfig read fConfig write fConfig;
 
@@ -106,41 +106,46 @@ function TBuildPricelistFromDBRun.ProcessCurrentRecord:Boolean;
     // -- Builds a custom column
     function CustomColumnRead(fldno : Integer):String;
     var
-        s : String;
+        dbfieldno : Integer;
+        s,fname : String;
     begin
-        case qryGetItems.FieldDefList[fldno].DataType of
+      dbfieldno := Integer(fOutputFields.Objects[fldno]);
 
-            ftBoolean	:   s := '           ' + EncodeBooleanField(qryGetItems.FieldDefs[fldno].Name,qryGetItems.Fields[fldno].Value);
+      fname := qryGetItems.FieldDefs[dbfieldno].Name;
 
-            ftDate,
-            ftTime,
-            ftDateTime,
+      case qryGetItems.FieldDefList[dbfieldno].DataType of
 
-            ftString,
-            ftWideString,       // Wide string field
-            ftBytes,            // Fixed number of bytes (binary storage)
-            ftVarBytes,	        // Variable number of bytes (binary storage)
-            ftMemo,	            // Text memo field
-            ftFmtMemo,          //	Formatted text memo field
-            ftFixedChar :    	// Fixed character field
-                            s := '           ' + EncodeStringField(qryGetItems.FieldDefs[fldno].Name,qryGetItems.Fields[fldno].AsString);
+          ftBoolean	:   s := '           ' + EncodeBooleanField(fname,qryGetItems.Fields[dbfieldno].Value);
 
-            ftSmallint,	        // 16-bit integer field
-            ftLargeint, 	    // Large integer field
-            ftInteger,	        // 32-bit integer field
-            ftWord,	            // 16-bit unsigned integer field
-            ftFloat,            // Floating-point numeric field
-            ftBCD,              // Binary-Coded Decimal field that can be converted to Currency type without a loss of precision.
+          ftDate,
+          ftTime,
+          ftDateTime,
 
-            ftAutoInc :          // Auto-incrementing 32-bit integer counter field
-                            s := '           ' + EncodeIntegerField(qryGetItems.FieldDefs[fldno].Name,qryGetItems.Fields[fldno].AsInteger);
+          ftString,
+          ftWideString,       // Wide string field
+          ftBytes,            // Fixed number of bytes (binary storage)
+          ftVarBytes,	        // Variable number of bytes (binary storage)
+          ftMemo,	            // Text memo field
+          ftFmtMemo,          //	Formatted text memo field
+          ftFixedChar :    	// Fixed character field
+                          s := '           ' + EncodeStringField(fname,qryGetItems.Fields[dbfieldno].AsString);
 
-            ftCurrency:	        // Money field
-                            s := '           ' + EncodeCurrencyField(qryGetItems.FieldDefs[fldno].Name,qryGetItems.Fields[fldno].AsFloat);
-        end;
+          ftSmallint,	        // 16-bit integer field
+          ftLargeint, 	    // Large integer field
+          ftInteger,	        // 32-bit integer field
+          ftWord,	            // 16-bit unsigned integer field
+          ftFloat,            // Floating-point numeric field
+          ftBCD,              // Binary-Coded Decimal field that can be converted to Currency type without a loss of precision.
 
-        Result := s;
-    end;
+          ftAutoInc :          // Auto-incrementing 32-bit integer counter field
+                          s := '           ' + EncodeIntegerField(fname,qryGetItems.Fields[dbfieldno].AsInteger);
+
+          ftCurrency:	        // Money field
+                          s := '           ' + EncodeCurrencyField(fname,qryGetItems.Fields[dbfieldno].AsFloat);
+      end;
+
+      Result := s;
+  end;
 
 var
     xc,fldno : Integer;
@@ -200,7 +205,7 @@ begin
             end
             else if (fldname = custom_column) then
             begin
-                if (not qryGetItems.Fields[xc].IsNull) then
+                if (not qryGetItems.Fields[fldno].IsNull) then
                 begin
                     // -- Output the column
                     s := s + CustomColumnRead(xc);
@@ -263,6 +268,73 @@ end;
 //---------------------------------------------------------------------------
 function TBuildPricelistFromDBRun.Run:Boolean;
 
+  // -- Output the names of the columns
+  procedure OutputColumnTypes;
+  var
+    xc,fldno : Integer;
+    s, f,dc : String;
+  begin
+    for xc := 0 to fOutputFields.Count-1 do
+    begin
+        // -- If there is a defined field, sometimes there is not
+        f := fOutputFields[xc];
+
+        // -- Cater for custom columns
+        if (Length(f) > 0) and (f[1] = '<') then
+        begin
+          f := fConfig.lsvFieldList.Items[xc].Caption;
+        end;
+
+        dc := fConfig.lsvFieldList.Items[Integer(fOutputFields.Objects[xc])].Caption;
+        if dc <> '' then
+        begin
+            // -- Lookup this column
+            // fConfig.lsvFieldList
+            //    in the recordset
+            fldno := qryGetItems.FieldDefs.Find(dc).FieldNo - 1;
+
+            case qryGetItems.FieldDefList[fldno].DataType of
+
+                ftBoolean	:   s := s + f + '(?);';
+
+                ftDate,ftTime,ftDateTime : s := s + f + '(@);';
+
+                ftString,
+                ftWideString,       // Wide string field
+                ftBytes,            // Fixed number of bytes (binary storage)
+                ftVarBytes,	        // Variable number of bytes (binary storage)
+                ftMemo,	            // Text memo field
+                ftFmtMemo,          //	Formatted text memo field
+                ftFixedChar :    	// Fixed character field
+                                s := s + f + '(&);';
+
+                ftSmallint,	        // 16-bit integer field
+                ftLargeint, 	    // Large integer field
+                ftInteger,	        // 32-bit integer field
+                ftWord,	            // 16-bit unsigned integer field
+
+                ftAutoInc :          // Auto-incrementing 32-bit integer counter field
+                                s := s + f + '(!);';
+
+                ftFloat,            // Floating-point numeric field
+                ftBCD,              // Binary-Coded Decimal field that can be converted to Currency type without a loss of precision.
+                ftCurrency:	        // Money field
+                                s := s + f + '($);';
+            else
+              // -- Use string type as fallback
+              s := s + f + '(&);';
+            end;
+        end
+    end;
+
+    // -- Knock off the last ;
+    SetLength(s,Length(s)-1);
+
+    // -- Write it to the documet
+    fOutputPricelist.SetStringElement(GTD_PL_PRODUCTSUMMARY_NODE,GTD_PL_ELE_COLUMNLIST,s);
+
+  end;
+
   // -- Here we need to correct the actual field numbers
   //    from the recordset
   procedure CorrectFieldNumbers;
@@ -282,8 +354,10 @@ function TBuildPricelistFromDBRun.Run:Boolean;
                 // fConfig.lsvFieldList
                 //    in the recordset
                 rsc := qryGetItems.FieldDefs.Find(dc).FieldNo - 1;
-                fOutputFields.Objects[xc] := TObject(rsc);
-
+                if rsc > 0 then
+                  fOutputFields.Objects[xc] := TObject(rsc)
+                else
+                  fOutputFields.Objects[xc] := TObject(xc);
            end;
         end;
   end;
@@ -298,14 +372,6 @@ begin
     Screen.Cursor := crHourglass;
 
     try
-
-        // -- Clear the current pricelist
-        fOutputPricelist.Clear;
-        fDocRegistry.AddStandardVendorInfo(fOutputPricelist);
-
-        // -- Temporarily knock off the last line
-        fOutputPricelist.XML.Delete(fOutputPricelist.XML.Count-1);
-        fOutputPricelist.XML.Add('  <' + GTD_PL_PRODUCTINFO_TAG + '>');
 
         fFirstgroup := True;
         fAllInOneLine := False;
@@ -331,6 +397,17 @@ begin
             Report('Show','Running Query');
 
             Active := True;
+
+            // -- Clear the current pricelist
+            fOutputPricelist.Clear;
+            fDocRegistry.AddStandardVendorInfo(fOutputPricelist);
+
+            // -- Writes the column names to the pricelist header
+            OutputColumnTypes;
+
+            // -- Temporarily knock off the last line (for speed)
+            fOutputPricelist.XML.Delete(fOutputPricelist.XML.Count-1);
+            fOutputPricelist.XML.Add('  <' + GTD_PL_PRODUCTINFO_TAG + '>');
 
             CorrectFieldNumbers;
 
@@ -401,15 +478,6 @@ begin
 
     SkinaPanel(pnlBackground);
 
-    {
-    btnLoad.SkinData := Value;
-    lsvFieldList.SkinData := Value;
-    btnSaveData.SkinData := Value;
-    txtConnectionString.SkinData := Value;
-    mmoQry.SkinData := Value;
-    pnlBackground.SkinData := Value;
-    }
-
     dlgSelectProfile.SkinData := Value;
     dlgSelectProfile.CtrlSkinData := Value;
     ggeProgress.SkinData := Value;
@@ -466,7 +534,7 @@ begin
         end;
 
         Result := True;
-        
+
     end;
 end;
 //---------------------------------------------------------------------------

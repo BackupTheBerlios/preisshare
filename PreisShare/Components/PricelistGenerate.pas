@@ -577,7 +577,7 @@ begin
     else
     begin
       // -- Retrieve our company name
-      sFileName := Trim(fDocRegistry.GetCompanyName) + '(' + fDocRegistry.Trader_Name + ')';
+      sFileName := Trim(fDocRegistry.GetCompanyName) + ' (' + fDocRegistry.Trader_Name + ')';
 
       // -- We need to remove all '.'
       if (FastCharPos(sFileName,'.',1) <> 0) then
