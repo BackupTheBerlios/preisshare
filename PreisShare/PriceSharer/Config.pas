@@ -323,9 +323,9 @@ begin
 
     // -- Email configuration
     frmMain.DocRegistry.GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_USER_EMAIL,s);
-	frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_HOST,s);
+    frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_HOST,s);
     txtMailServer.Text := s;
-	frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_USERNAME,s);
+    frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_USERNAME,s);
     txtEmailUserName.Text := s;
     frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_PASSWORD,s);
     txtUserEmailPasswd.Text := s;
@@ -338,9 +338,9 @@ begin
     else
         cbxMailHostLogin.Checked := False;
 
-	// -- Proxy configuration stuff
-	s := '';
-	GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_USE_PROXY,s);
+    // -- Proxy configuration stuff
+    s := '';
+    GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_USE_PROXY,s);
     if s = '' then
     begin
         // -- Loadup any IE
@@ -349,7 +349,7 @@ begin
         begin
             // --
             rdoProxy.Checked := True;
-			txtProxyAddress.Text := ProxyAddr;
+            txtProxyAddress.Text := ProxyAddr;
             txtProxyPort.Text := ProxyPort;
         end
         else begin
@@ -373,11 +373,11 @@ begin
         txtProxyPort.Text := s;
     end;
 
-	GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_GTL,s);
-	txtGTL.Text := s;
+    GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_GTL,s);
+    txtGTL.Text := s;
 
     // -- Company logo
-	s := '';
+    s := '';
     GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_LOGO_IMAGE,s);
     txtLogoFilename.Text := s;
 

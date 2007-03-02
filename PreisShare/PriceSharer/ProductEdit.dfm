@@ -1,6 +1,6 @@
 object frmProductEdit: TfrmProductEdit
-  Left = 201
-  Top = 107
+  Left = 257
+  Top = 137
   AutoScroll = False
   BorderIcons = []
   Caption = 'Product Edit'
@@ -2528,7 +2528,7 @@ object frmProductEdit: TfrmProductEdit
         DisplayOptions = [pgoShowHeader]
         DisplayStyle = ProductBasicStyle
         FoundColor = clBlack
-        HidePictures = False
+        HidePictures = True
         ColWidths = (
           401)
       end

@@ -1,6 +1,6 @@
 object frmBuildDBPricelist: TfrmBuildDBPricelist
-  Left = 206
-  Top = 107
+  Left = 264
+  Top = 137
   AutoScroll = False
   BorderIcons = []
   Caption = 'Customer Pricelist Builder'

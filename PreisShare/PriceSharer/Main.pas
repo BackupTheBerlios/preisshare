@@ -64,9 +64,6 @@ type
     mnuConnected: TMenuItem;
     N4: TMenuItem;
     CheckMailfornewPriceFiles1: TMenuItem;
-    Import1: TMenuItem;
-    FromTextCSVFile1: TMenuItem;
-    FromXLSfile1: TMenuItem;
     bsSkinStdLabel10: TbsSkinStdLabel;
     NetworkSearches1: TMenuItem;
     PriceChangeSummary1: TMenuItem;
@@ -93,6 +90,9 @@ type
     EmailPricelists1: TMenuItem;
     Configuration1: TMenuItem;
     Vie1: TMenuItem;
+    SupplierDataFeeds1: TMenuItem;
+    N7: TMenuItem;
+    PriceRelay1: TMenuItem;
     procedure Restore1Click(Sender: TObject);
 	procedure Shutdown1Click(Sender: TObject);
     procedure bsSkinButton1Click(Sender: TObject);
@@ -123,6 +123,8 @@ type
     procedure EmailPricelists1Click(Sender: TObject);
     procedure Configuration1Click(Sender: TObject);
     procedure Vie1Click(Sender: TObject);
+    procedure PriceRelay1Click(Sender: TObject);
+    procedure SupplierDataFeeds1Click(Sender: TObject);
   private
     { Private declarations }
 	myConnections : TCustomerTcpListener;
@@ -144,7 +146,8 @@ implementation
 {$R *.DFM}
 Uses Data, Accounts, Settings, Search, NetworkSearches, ProductEdit,
      AdoAPI, ActiveX, ComObj, CustomerAdd, SpreadSheetImport, GenPricelists,
-     NewsLetter, BuildDBPricelist, Config, LogView;
+     NewsLetter, BuildDBPricelist, Config, LogView, RelayEditor,
+  DataFeedEditor;
 
 procedure TfrmMain.Restore1Click(Sender: TObject);
 begin
@@ -497,6 +500,16 @@ end;
 procedure TfrmMain.Vie1Click(Sender: TObject);
 begin
   frmLogView.ShowModal;
+end;
+
+procedure TfrmMain.PriceRelay1Click(Sender: TObject);
+begin
+  frmRelay.ShowModal;
+end;
+
+procedure TfrmMain.SupplierDataFeeds1Click(Sender: TObject);
+begin
+  frmDataFeeds.ShowModal;
 end;
 
 end.

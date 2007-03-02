@@ -1,11 +1,11 @@
-object frmGeneratePL: TfrmGeneratePL
-  Left = 257
-  Top = 137
+object frmDataFeeds: TfrmDataFeeds
+  Left = 200
+  Top = 114
+  AutoScroll = False
   BorderIcons = []
-  BorderStyle = bsDialog
-  Caption = 'Generate Pricelists'
-  ClientHeight = 442
-  ClientWidth = 558
+  Caption = 'Supplier Data Feeds'
+  ClientHeight = 394
+  ClientWidth = 599
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,17 +13,38 @@ object frmGeneratePL: TfrmGeneratePL
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  Position = poDesktopCenter
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
+  object lsvParams: TbsSkinListView
+    Left = 320
+    Top = 16
+    Width = 250
+    Height = 321
+    Columns = <>
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = 14
+    Font.Name = 'Arial'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 0
+    HeaderSkinDataName = 'resizebutton'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    UseSkinFont = True
+    SkinDataName = 'listview'
+    DefaultColor = clWindow
+  end
   object btnClose: TbsSkinButton
-    Left = 452
-    Top = 404
+    Left = 496
+    Top = 344
     Width = 75
     Height = 25
-    TabOrder = 0
-    SkinData = frmMain.bsSkinData1
+    TabOrder = 1
     SkinDataName = 'button'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -43,8 +64,7 @@ object frmGeneratePL: TfrmGeneratePL
     Caption = 'Close'
     NumGlyphs = 1
     Spacing = 1
-    Cancel = True
-    ModalResult = 2
+    OnClick = btnCloseClick
   end
   object bsBusinessSkinForm1: TbsBusinessSkinForm
     ClientWidth = 0
@@ -80,13 +100,12 @@ object frmGeneratePL: TfrmGeneratePL
     DefMenuItemFont.Name = 'Arial'
     DefMenuItemFont.Style = []
     UseDefaultSysMenu = True
-    SkinData = frmMain.bsSkinData1
     MinHeight = 0
     MinWidth = 0
     Magnetic = False
     MagneticSize = 5
     BorderIcons = [biSystemMenu, biMinimize, biMaximize, biRollUp]
-    Left = 4
-    Top = 4
+    Left = 8
+    Top = 144
   end
 end

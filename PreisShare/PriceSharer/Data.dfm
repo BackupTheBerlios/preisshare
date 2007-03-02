@@ -1,8 +1,8 @@
 object DataModule1: TDataModule1
   OldCreateOrder = False
   OnCreate = DataModuleCreate
-  Left = 192
-  Top = 107
+  Left = 246
+  Top = 137
   Height = 375
   Width = 544
   object tblSysMaps: TTable

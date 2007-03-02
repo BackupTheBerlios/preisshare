@@ -24,7 +24,11 @@ uses
   GTDXLSPriceReader in '..\Components\GTDXLSPriceReader.pas' {GTDXLStoPL: TFrame},
   ProductLister in '..\Components\ProductLister.pas',
   vteExcel in '..\Components\vtkexp\Source\vteExcel.pas',
-  PricelistGenerate in '..\Components\PricelistGenerate.pas' {PricelistGenerator: TFrame};
+  PricelistGenerate in '..\Components\PricelistGenerate.pas' {PricelistGenerator: TFrame},
+  LogView in 'LogView.pas' {frmLogView},
+  RelayEditor in 'RelayEditor.pas' {frmRelay},
+  DataFeedEditor in 'DataFeedEditor.pas' {frmDataFeeds},
+  GTDCollectSupplierPricelists in '..\Components\GTDCollectSupplierPricelists.pas' {Frame1: TFrame};
 
 {$R *.RES}
 
@@ -37,5 +41,8 @@ begin
   Application.CreateForm(TfrmNewsletter, frmNewsletter);
   Application.CreateForm(TfrmBuildDBPricelist, frmBuildDBPricelist);
   Application.CreateForm(TfrmConfig, frmConfig);
+  Application.CreateForm(TfrmLogView, frmLogView);
+  Application.CreateForm(TfrmRelay, frmRelay);
+  Application.CreateForm(TfrmDataFeeds, frmDataFeeds);
   Application.Run;
 end.

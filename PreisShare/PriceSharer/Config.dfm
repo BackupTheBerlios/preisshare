@@ -1,6 +1,6 @@
 object frmConfig: TfrmConfig
-  Left = 288
-  Top = 175
+  Left = 369
+  Top = 224
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Configuration'
