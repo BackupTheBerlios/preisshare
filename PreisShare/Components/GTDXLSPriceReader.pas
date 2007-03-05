@@ -76,9 +76,11 @@ type
     fDocReg : GTDDocumentRegistry;
     fStepNumber : Integer;
 
-	  fSkinData: TbsSkinData;
+ 	  fSkinData: TbsSkinData;
 
     procedure SetSkinData(Value: TbsSkinData);
+    function OpenPriceSpreadsheet(const XLSFileName : String):Boolean;
+    function OpenPriceCSV(const CSVFileName : String):Boolean;
 
   public
     { Public declarations }
@@ -93,10 +95,14 @@ type
     plcvt : GTDPricefileConvertor;
 
     function Initialise:Boolean;
-    function OpenPriceSpreadsheet(const XLSFileName : String):Boolean;
     function SelectSheetWithDialog:Boolean;
 
+    function ProcessSpreadsheetByName(const FileName : String):Boolean;
+    function ProcessCSVByName(const FileName : String):Boolean;
+    function ProcessPreisFileByName(const FileName : String):Boolean;
+
     function ProcessSheet(ExamineFormatOnly : Boolean=False):Boolean;
+
     function Close:Boolean;
     function SavePricelist(Trader_ID : Integer):Boolean;
 
@@ -228,6 +234,10 @@ begin
     fStepNumber := 1;
 
     Result := True;
+end;
+
+function TGTDXLStoPL.OpenPriceCSV(const CSVFileName : String):Boolean;
+begin
 end;
 
 function TGTDXLStoPL.OpenPriceSpreadsheet(const XLSFileName : String):Boolean;
@@ -939,6 +949,13 @@ begin
             if SheetFileName <> '' then
             begin
 
+                // -- Change pages
+                pnlSheetOpen.Visible := False;
+                pnlSheetSettings.Visible := True;
+                pnlUpdSum.Visible := False;
+                Application.ProcessMessages;
+
+                // -- Open Excel if neccessary
                 if (lcid = 0) then
                     Initialise;
 
@@ -948,10 +965,6 @@ begin
                     Inc(fStepNumber);
                     Result := True;
                 end;
-
-                pnlSheetOpen.Visible := False;
-                pnlSheetSettings.Visible := True;
-                pnlUpdSum.Visible := False;
 
                 btnBack.Visible := True;
                 tsel.Visible := false;
@@ -1051,14 +1064,20 @@ begin
          end;
      5 : begin
             // -- Update database then Finished
+            if not pnldbUpdate.Visible then
+            begin
+              pnlSheetOpen.Visible := False;
+              pnlSheetSettings.Visible := False;
+              pnldbUpdate.Visible := True;
+              Application.ProcessMessages;
+            end;
+
             pnldbUpdate.LoadPricelist(plcvt.OutputPricelist);
             pnldbUpdate.UpdateFlag := True;
             if pnldbUpdate.Run then
             begin
                 btnConvert.Visible := False;
-//                btnBack.Visible := False;
-                lblStepUpTo.Caption := 'Finished';
-                fStepNumber := 0;
+                lblStepUpTo.Caption := 'Price Import Complete';
                 Result := True;
             end;
          end;
@@ -1150,7 +1169,7 @@ begin
     pnldbUpdate.List_AdjustmentPercentage := d
   else
     pnldbUpdate.List_AdjustmentPercentage := 0;
-    
+
   if fDocReg.GetTraderSettingNumber('/Pricelist Markups','List_Charges',d) then
     pnldbUpdate.List_Charges := d
   else
@@ -1179,12 +1198,6 @@ begin
 //  fDocReg.GetTraderSettingString('/Pricelist Markups','List_DWSPriceCalcFormula',pnldbUpdate.List_DWSPriceFormula);
 //  fDocReg.GetTraderSettingString('/PriceActual Markups','Actual_DWSPriceCalcFormula',pnldbUpdate.Actual_DWSPriceFormula.Text);
 
-
-
-
-
-
-
 end;
 
 procedure TGTDXLStoPL.SaveSheetMapping;
@@ -1212,6 +1225,34 @@ begin
 //  fDocReg.SaveTraderSettingString('/Pricelist Markups','List_DWSPriceCalcFormula',pnldbUpdate.List_DWSPriceFormula);
 //  fDocReg.SaveTraderSettingString('/PriceActual Markups','Actual_DWSPriceCalcFormula',pnldbUpdate.Actual_DWSPriceFormula.Text);
 
+end;
+
+function TGTDXLStoPL.ProcessSpreadsheetByName(const FileName : String):Boolean;
+begin
+  if OpenPriceSpreadsheet(FileName) then
+    GotoStep(2);
+end;
+
+function TGTDXLStoPL.ProcessCSVByName(const FileName : String):Boolean;
+begin
+  // -- Here we just use Excel to convert for us
+  txtSpreadsheetName.Text := FileName;
+//  SheetFileName := bsSkinOpenDialog1.Filename;
+
+//  ProcessSheet(True);
+
+  GotoStep(2);
+end;
+
+function TGTDXLStoPL.ProcessPreisFileByName(const FileName : String):Boolean;
+begin
+  Initialise;
+  tsel.Visible := False;
+  pnlSheetOpen.Visible := False;
+  pnlSheetSettings.Visible := False;
+  pnldbUpdate.Visible := True;
+  plcvt.OutputPricelist.LoadFromFile(FileName);
+  GotoStep(5);
 end;
 
 end.

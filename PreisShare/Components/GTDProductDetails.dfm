@@ -2,14 +2,14 @@ object ProductDetails: TProductDetails
   Left = 0
   Top = 0
   Width = 519
-  Height = 303
+  Height = 299
   TabOrder = 0
   object nbkProductInfo: TbsSkinPageControl
     Left = 0
     Top = 0
     Width = 519
-    Height = 303
-    ActivePage = bsSkinTabSheet1
+    Height = 299
+    ActivePage = tbsBasic
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBtnText
@@ -18,6 +18,7 @@ object ProductDetails: TProductDetails
     Font.Style = []
     ParentFont = False
     TabOrder = 0
+    OnChanging = nbkProductInfoChanging
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clBtnText
     DefaultFont.Height = 14
@@ -26,7 +27,7 @@ object ProductDetails: TProductDetails
     UseSkinFont = True
     DefaultItemHeight = 20
     SkinDataName = 'tab'
-    object bsSkinTabSheet1: TbsSkinTabSheet
+    object tbsBasic: TbsSkinTabSheet
       Caption = 'Basic Details'
       object dbeProductCode: TbsSkinDBEdit
         Left = 8
@@ -406,15 +407,311 @@ object ProductDetails: TProductDetails
           Caption = '(None)'
         end
       end
+      object rdoItemRelayStatus: TbsSkinRadioGroup
+        Left = 376
+        Top = 4
+        Width = 129
+        Height = 53
+        TabOrder = 16
+        SkinDataName = 'groupbox'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        RealHeight = -1
+        AutoEnabledControls = True
+        CheckedMode = False
+        Checked = False
+        DefaultAlignment = taLeftJustify
+        DefaultCaptionHeight = 22
+        BorderStyle = bvFrame
+        CaptionMode = True
+        RollUpMode = False
+        RollUpState = False
+        NumGlyphs = 1
+        Spacing = 2
+        Caption = 'Relayed'
+        OnChecked = rdoItemRelayStatusChecked
+        OnClick = rdoItemRelayStatusClick
+        ButtonSkinDataName = 'radiobox'
+        ButtonDefaultFont.Charset = DEFAULT_CHARSET
+        ButtonDefaultFont.Color = clWindowText
+        ButtonDefaultFont.Height = 14
+        ButtonDefaultFont.Name = 'Arial'
+        ButtonDefaultFont.Style = []
+        Columns = 2
+        ItemIndex = 0
+        Items.Strings = (
+          'No'
+          'Yes')
+      end
+    end
+    object tbsRelay: TbsSkinTabSheet
+      Caption = 'Relay Options (Off)'
+      object btnItemRelayUpdate: TbsSkinSpeedButton
+        Left = 380
+        Top = 244
+        Width = 57
+        Height = 25
+        SkinDataName = 'toolbutton'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        WidthWithCaption = 0
+        WidthWithoutCaption = 0
+        ImageIndex = 0
+        RepeatMode = False
+        RepeatInterval = 100
+        Transparent = False
+        Flat = False
+        AllowAllUp = False
+        Down = False
+        GroupIndex = 0
+        Caption = 'Update'
+        ShowCaption = True
+        NumGlyphs = 1
+        Spacing = 1
+      end
+      object btnItemRelayCancel: TbsSkinSpeedButton
+        Left = 448
+        Top = 244
+        Width = 57
+        Height = 25
+        SkinDataName = 'toolbutton'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        WidthWithCaption = 0
+        WidthWithoutCaption = 0
+        ImageIndex = 0
+        RepeatMode = False
+        RepeatInterval = 100
+        Transparent = False
+        Flat = False
+        AllowAllUp = False
+        Down = False
+        GroupIndex = 0
+        Caption = 'Cancel'
+        ShowCaption = True
+        NumGlyphs = 1
+        Spacing = 1
+      end
+      object lstItemRelayGroup: TbsSkinTreeView
+        Left = 8
+        Top = 24
+        Width = 149
+        Height = 249
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        UseSkinFont = True
+        SkinDataName = 'treeview'
+        DefaultColor = clWindow
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = 14
+        Font.Name = 'Arial'
+        Font.Style = []
+        HideSelection = False
+        Indent = 19
+        ParentFont = False
+        TabOrder = 0
+      end
+      object lblItemRelayGroup: TbsSkinLabel
+        Left = 8
+        Top = 8
+        Width = 149
+        Height = 18
+        TabOrder = 1
+        SkinDataName = 'label'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        BorderStyle = bvFrame
+        Caption = 'In Product Group'
+        AutoSize = False
+      end
+      object nbkOurDetails: TbsSkinGroupBox
+        Left = 168
+        Top = 8
+        Width = 337
+        Height = 225
+        TabOrder = 2
+        SkinDataName = 'groupbox'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        RealHeight = -1
+        AutoEnabledControls = True
+        CheckedMode = False
+        Checked = False
+        DefaultAlignment = taLeftJustify
+        DefaultCaptionHeight = 22
+        BorderStyle = bvFrame
+        CaptionMode = True
+        RollUpMode = False
+        RollUpState = False
+        NumGlyphs = 1
+        Spacing = 2
+        Caption = 'Our Details'
+        object lblOurProductCode: TbsSkinLabel
+          Left = 8
+          Top = 32
+          Width = 121
+          Height = 17
+          TabOrder = 0
+          SkinDataName = 'label'
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          DefaultWidth = 0
+          DefaultHeight = 0
+          UseSkinFont = True
+          BorderStyle = bvFrame
+          Caption = 'Product Code'
+          AutoSize = False
+        end
+        object lblOurName: TbsSkinLabel
+          Left = 8
+          Top = 72
+          Width = 313
+          Height = 17
+          TabOrder = 1
+          SkinDataName = 'label'
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          DefaultWidth = 0
+          DefaultHeight = 0
+          UseSkinFont = True
+          BorderStyle = bvFrame
+          Caption = 'Product Name'
+          AutoSize = False
+        end
+        object lblOurDescription: TbsSkinLabel
+          Left = 8
+          Top = 120
+          Width = 313
+          Height = 17
+          TabOrder = 2
+          SkinDataName = 'label'
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          DefaultWidth = 0
+          DefaultHeight = 0
+          UseSkinFont = True
+          BorderStyle = bvFrame
+          Caption = 'Description'
+          AutoSize = False
+        end
+        object txtOurProductCode: TbsSkinEdit
+          Left = 8
+          Top = 48
+          Width = 121
+          Height = 20
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          UseSkinFont = True
+          DefaultWidth = 0
+          DefaultHeight = 20
+          ButtonMode = False
+          SkinDataName = 'edit'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = 14
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 3
+        end
+        object txtOurName: TbsSkinEdit
+          Left = 8
+          Top = 88
+          Width = 313
+          Height = 20
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          UseSkinFont = True
+          DefaultWidth = 0
+          DefaultHeight = 20
+          ButtonMode = False
+          SkinDataName = 'edit'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = 14
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 4
+        end
+        object txtOurDescription: TbsSkinMemo
+          Left = 8
+          Top = 136
+          Width = 313
+          Height = 81
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = 14
+          Font.Name = 'Arial'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 5
+          DefaultFont.Charset = DEFAULT_CHARSET
+          DefaultFont.Color = clWindowText
+          DefaultFont.Height = 14
+          DefaultFont.Name = 'Arial'
+          DefaultFont.Style = []
+          UseSkinFont = True
+          BitMapBG = False
+          SkinDataName = 'memo'
+        end
+      end
     end
   end
   object dsProductInfo: TDataSource
-    Left = 176
-    Top = 48
+    Left = 212
   end
   object bsSkinPopupMenu1: TbsSkinPopupMenu
-    Left = 280
-    Top = 32
+    Left = 276
     object ProductWebsite1: TMenuItem
       Caption = 'Product Website'
     end
@@ -423,8 +720,7 @@ object ProductDetails: TProductDetails
     end
   end
   object mnuPictureOptions: TbsSkinPopupMenu
-    Left = 336
-    Top = 32
+    Left = 308
     object ClearPicture1: TMenuItem
       Caption = 'Clear Picture'
     end
@@ -442,13 +738,37 @@ object ProductDetails: TProductDetails
     end
   end
   object bsSkinPopupMenu2: TbsSkinPopupMenu
-    Left = 232
-    Top = 40
+    Left = 244
     object One1: TMenuItem
       Caption = 'One'
     end
     object wo1: TMenuItem
       Caption = 'Two'
     end
+  end
+  object dlgAddProductGroup: TbsSkinInputDialog
+    AlphaBlend = False
+    AlphaBlendValue = 200
+    AlphaBlendAnimation = False
+    ButtonSkinDataName = 'button'
+    LabelSkinDataName = 'stdlabel'
+    EditSkinDataName = 'edit'
+    DefaultLabelFont.Charset = DEFAULT_CHARSET
+    DefaultLabelFont.Color = clWindowText
+    DefaultLabelFont.Height = 14
+    DefaultLabelFont.Name = 'Arial'
+    DefaultLabelFont.Style = []
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    DefaultEditFont.Charset = DEFAULT_CHARSET
+    DefaultEditFont.Color = clWindowText
+    DefaultEditFont.Height = 14
+    DefaultEditFont.Name = 'Arial'
+    DefaultEditFont.Style = []
+    UseSkinFont = True
+    Left = 344
   end
 end

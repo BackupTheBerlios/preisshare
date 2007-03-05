@@ -414,8 +414,8 @@ object GTDXLStoPL: TGTDXLStoPL
         Caption = 'bsSkinPanel2'
       end
       object pnlSheetSettings: TbsSkinPanel
-        Left = 8
-        Top = 74
+        Left = 364
+        Top = 102
         Width = 381
         Height = 231
         TabOrder = 3

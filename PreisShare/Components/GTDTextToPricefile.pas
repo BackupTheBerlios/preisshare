@@ -22,16 +22,17 @@ const
     LOGICAL_GROUPLVL1= 6;
 
 type
-  gtPriceInputFileType       = (pltReportLayout,
-                                pltDataLayout
+  gtPriceInputFileType       = (pltReportLayout, // -- Printed Style
+                                pltDataLayout    // -- Data style
                                );
+                               
   gtPriceFileProcessingState = (plpNone,
                                 plpAddress,     // -- Company address information
 								plpChurn,		// -- Nothing of consequence
 								plpHeader,	    // -- Some sort of header
 								plpItemData     // -- Compact
                                );
-  gtPriceFileLineType        = (pltUnRecognised,
+        gtPriceFileLineType        = (pltUnRecognised,
 								pltWhitespace,	// -- Nothing of consequence
                                 pltColumnHeader,// -- Has names of columns
 								pltGroup1,	    // -- Some sort of header
@@ -56,17 +57,18 @@ type
 
   GTDPricefileConvertor = class(TMemo)
   private
-	{ Private declarations }
-	fState : gtPriceFileProcessingState;
+	   { Private declarations }
+   	fState : gtPriceFileProcessingState;
 
     fLearning,
     fItemsGroupedProperly : Boolean;
 
-	fFieldMap,
+    fInputData,
+   	fFieldMap,
     fVendorInfo         : TStringList;
     fProductGroupCount  : Integer;
 
-	fWorkingDoc         : GTDBizDoc;
+   	fOutputDoc         : GTDBizDoc;
 
     fDataFormat         : gtPriceInputFileType;
 
@@ -78,10 +80,10 @@ type
 
     // -- Quick Indexes
     // -- Fixed with field positions
-	fCodePos,fCodeLen,
-	fDescPos,fDescLen,
-	fBuyPos,fBuyLen,
-	fSellPos,fSellLen,
+   	fCodePos,fCodeLen,
+   	fDescPos,fDescLen,
+   	fBuyPos,fBuyLen,
+   	fSellPos,fSellLen,
     fGroupLevel1Pos,fGroupLevel1Len   : Integer;
 
     // -- Names of the columns
@@ -92,9 +94,9 @@ type
     fGroupLevel1Col,
 
     // -- Filtering options
-	fHeadingTextWords,
-	fRejectLineWords,
-	fStripWords : String;
+   	fHeadingTextWords,
+   	fRejectLineWords,
+   	fStripWords : String;
 
     // -- Keywords
     fCodeWords,
@@ -122,21 +124,21 @@ type
     ColDefs             : Array[1..MaxInputPricefileColumns] of GTDPricefileDataCol;
 
     procedure Clear;
-	procedure Start;
-	procedure Finish;
+   	procedure Start;
+   	procedure Finish;
 
     procedure ProcessFromConfigFile(aConfigFileName : String);
 
-	function  ProcessList(aList : TStrings; ExamineFormatOnly : Boolean = False; AsAProductGroup : Boolean = False):Boolean;
-	function  DetermineLineType(aLine : String;hasExtraFormatting : Boolean = False):gtPriceFileLineType;
+   	function  ProcessList(aList : TStrings; ExamineFormatOnly : Boolean = False; AsAProductGroup : Boolean = False):Boolean;
+   	function  DetermineLineType(aLine : String;hasExtraFormatting : Boolean = False):gtPriceFileLineType;
 
     function  ProcessColumnHeaders(aLine : String):Boolean;
     function  LooksLikeaColumnHeading(aLine : String):Boolean;
-	procedure ProcessHeaderLine(aLine : String);
-	procedure ProcessItemLine(aLine : String);
+   	procedure ProcessHeaderLine(aLine : String);
+   	procedure ProcessItemLine(aLine : String);
 
-	function  CleanLine(aLine : String):String;
-	function  ExtractText(aLine : String; StartPos, Width : Integer):String;
+   	function  CleanLine(aLine : String):String;
+   	function  ExtractText(aLine : String; StartPos, Width : Integer):String;
     function  CountLeadingSpaces(aLine : String):Integer;
     function  ExtractTabbedField(aLine : String; FieldNumber : Integer):String;
     function  PostExtractionFixup(var Product_Id : String;
@@ -159,6 +161,8 @@ type
     procedure AssignOutputTo(aList : TStrings);
     procedure SaveOutputToFile(aFilename : String);
 
+    procedure LoadCSV(aFilename : String);
+
     // -- Column discovery variables
     procedure ClearDiscoveredColumns;
     function AddDiscoveredColumn(ColumnName : String; FixedPosition,VarPosStart,VarPosLen : Integer):Boolean;
@@ -174,17 +178,17 @@ type
 	{ Published declarations }
     property DataFormat   : gtPriceInputFileType read fDataFormat write fDataFormat;
 
-	property CodePosition : integer read fCodePos write fCodePos;
-	property CodeLength   : integer read fCodeLen write fCodeLen;
+   	property CodePosition : integer read fCodePos write fCodePos;
+   	property CodeLength   : integer read fCodeLen write fCodeLen;
     property CodeWords    : String read fCodeWords write fCodeWords;
-	property DescPosition : integer read fDescPos write fDescPos;
-	property DescLength   : integer read fDescLen write fDescLen;
+    property DescPosition : integer read fDescPos write fDescPos;
+    property DescLength   : integer read fDescLen write fDescLen;
     property DescWords    : String read fDescWords write fDescWords;
-	property BuyPosition  : integer read fBuyPos  write fBuyPos;
-	property BuyLength    : integer read fBuyLen  write fBuyLen;
+   	property BuyPosition  : integer read fBuyPos  write fBuyPos;
+	   property BuyLength    : integer read fBuyLen  write fBuyLen;
     property BuyWords     : String read fBuyWords write fBuyWords;
-	property SellPosition : integer read fSellPos write fSellPos;
-	property SellLength   : integer read fSellLen write fSellLen;
+	   property SellPosition : integer read fSellPos write fSellPos;
+	   property SellLength   : integer read fSellLen write fSellLen;
     property SellWords    : String read fSellWords write fSellWords;
 
     property CodeColumnName : string read fCodeCol write fCodeCol;
@@ -192,9 +196,9 @@ type
     property BuyColumnName  : string read fBuyCol  write fBuyCol;
     property SellColumnName : string read fSellCol write fSellCol;
 
-	property HeadingTextWords : String read fHeadingTextWords write fHeadingTextWords;
-	property LineRejectWords  : String read fRejectLineWords write fRejectLineWords;
-	property LineRemoveWords  : String read fStripWords write fStripWords;
+    property HeadingTextWords : String read fHeadingTextWords write fHeadingTextWords;
+    property LineRejectWords  : String read fRejectLineWords write fRejectLineWords;
+    property LineRemoveWords  : String read fStripWords write fStripWords;
 
     property LineItemLayout : gtPriceFileItemDataLayout read fLineItemLayout write fLineItemLayout;
 
@@ -202,7 +206,7 @@ type
 
     property Learning       : Boolean read fLearning write fLearning;
 
-    property OutputPricelist : GTDBizDoc read fWorkingDoc write fWorkingDoc;
+    property OutputPricelist : GTDBizDoc read fOutputDoc write fOutputDoc;
 
     property OnConversionProgress : GTDPricefileConversionProgress read fOnConversionProgress write fOnConversionProgress;
 
@@ -243,7 +247,7 @@ begin
     fProductGroupCount := 0;
 
     // -- This is where the output is going so clear it
-    fWorkingDoc.XML.Clear;
+    fOutputDoc.XML.Clear;
 
 end;
 //---------------------------------------------------------------------------
@@ -270,10 +274,10 @@ begin
         for xc := 1 to MaxInputPricefileColumns do
             ColDefs[xc] := GTDPricefileDataCol.Create;
 
-    if not Assigned(fWorkingDoc) then
-        fWorkingDoc := GTDBizDoc.Create(Self)
+    if not Assigned(fOutputDoc) then
+        fOutputDoc := GTDBizDoc.Create(Self)
     else
-        fWorkingDoc.Clear;
+        fOutputDoc.Clear;
 
     // -- Clear the display
     Lines.Clear;
@@ -282,14 +286,14 @@ begin
     Lines.Add('(c) Global Tradedesk Technology Pty Limited 2004-2006');
     Lines.Add('Initialised and ready.');
 
-	fCodePos := -1;
-	fCodeLen := 0;
-	fDescPos := -1;
-	fDescLen := 0;
-	fBuyPos  := -1;
-	fBuyLen  := 0;
-	fSellPos := -1;
-	fSellLen := 0;
+    fCodePos := -1;
+    fCodeLen := 0;
+    fDescPos := -1;
+    fDescLen := 0;
+    fBuyPos  := -1;
+    fBuyLen  := 0;
+    fSellPos := -1;
+    fSellLen := 0;
     fGroupLevel1Pos := -1;
     fGroupLevel1Len := 0;
 
@@ -864,34 +868,34 @@ procedure GTDPricefileConvertor.OutputTraderInformation;
 var
     xc : Integer;
 begin
-    fWorkingDoc.XML.Add('<'+GTD_PL_PRICELIST_TAG+'>');
+    fOutputDoc.XML.Add('<'+GTD_PL_PRICELIST_TAG+'>');
     if Assigned(fVendorInfo) and (fVendorInfo.Count > 0) then
     begin
         for xc := 1 to fVendorInfo.Count do
         begin
-            fWorkingDoc.XML.Add(fVendorInfo.Strings[xc-1]);
+            fOutputDoc.XML.Add(fVendorInfo.Strings[xc-1]);
         end;
     end;
 end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.StartProductInformation;
 begin
-    fWorkingDoc.XML.Add('  <'+GTD_PL_PRODUCTINFO_TAG+'>');
+    fOutputDoc.XML.Add('  <'+GTD_PL_PRODUCTINFO_TAG+'>');
 end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.EndProductInformation;
 begin
-    fWorkingDoc.XML.Add('  </'+GTD_PL_PRODUCTINFO_TAG+'>');
-    fWorkingDoc.XML.Add('</'+GTD_PL_PRICELIST_TAG+'>');
+    fOutputDoc.XML.Add('  </'+GTD_PL_PRODUCTINFO_TAG+'>');
+    fOutputDoc.XML.Add('</'+GTD_PL_PRICELIST_TAG+'>');
 end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.StartProductGroup(aGroup : String; Level : Integer = 1);
 begin
     ReportMessage('Show','Processing Product Group [' + aGroup + ']');
 
-    fWorkingDoc.XML.Add('    <'+GTD_PL_PRODUCTGROUP_TAG+'>');
-    fWorkingDoc.XML.Add('      ' + EncodeStringField(GTD_PL_ELE_GROUP_NAME,aGroup));
-    fWorkingDoc.XML.Add('      <'+GTD_PL_PRODUCTITEMS_TAG+'>');
+    fOutputDoc.XML.Add('    <'+GTD_PL_PRODUCTGROUP_TAG+'>');
+    fOutputDoc.XML.Add('      ' + EncodeStringField(GTD_PL_ELE_GROUP_NAME,aGroup));
+    fOutputDoc.XML.Add('      <'+GTD_PL_PRODUCTITEMS_TAG+'>');
 
     if (Level =1) then
         l1GrpName := aGroup;
@@ -906,8 +910,8 @@ begin
     begin
         if (l1GrpName <> '') then
         begin
-            fWorkingDoc.XML.Add('      </'+GTD_PL_PRODUCTITEMS_TAG+'>');
-            fWorkingDoc.XML.Add('    </'+GTD_PL_PRODUCTGROUP_TAG+'>');
+            fOutputDoc.XML.Add('      </'+GTD_PL_PRODUCTITEMS_TAG+'>');
+            fOutputDoc.XML.Add('    </'+GTD_PL_PRODUCTGROUP_TAG+'>');
             l1GrpName := '';
         end;
     end;
@@ -915,20 +919,20 @@ end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.OutputLineItem(aLineItem : String);
 begin
-    fWorkingDoc.XML.Add('        <'+GTD_PL_PRODUCTITEM_TAG+'>');
-    fWorkingDoc.XML.Add('          ' + aLineItem);
-    fWorkingDoc.XML.Add('        </'+GTD_PL_PRODUCTITEM_TAG+'>');
+    fOutputDoc.XML.Add('        <'+GTD_PL_PRODUCTITEM_TAG+'>');
+    fOutputDoc.XML.Add('          ' + aLineItem);
+    fOutputDoc.XML.Add('        </'+GTD_PL_PRODUCTITEM_TAG+'>');
 end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.SaveOutputToFile(aFilename : String);
 begin
     ReportMessage('Show','Saving to file ' + aFilename);
-    fWorkingDoc.XML.SaveToFile(aFilename);
+    fOutputDoc.XML.SaveToFile(aFilename);
 end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.AssignOutputTo(aList : TStrings);
 begin
-    aList.Assign(fWorkingDoc.XML);
+    aList.Assign(fOutputDoc.XML);
 end;
 //---------------------------------------------------------------------------
 procedure GTDPricefileConvertor.UseVendorInfoFile(aFilename : String);
@@ -1145,6 +1149,15 @@ begin
         myConf.Destroy;
     end;
 end;
+
+procedure GTDPricefileConvertor.LoadCSV(aFilename : String);
+begin
+  ClearColumnMappings;
+
+  fDataFormat := pltDataLayout;
+
+end;
+
 {
 function GTDPricefileDataCol:LogicalColName:String;
 begin

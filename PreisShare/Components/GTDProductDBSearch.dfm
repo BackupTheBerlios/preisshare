@@ -478,9 +478,18 @@ object ProductdBSearch: TProductdBSearch
   object mnuProductOps: TbsSkinPopupMenu
     Left = 144
     Top = 8
-    object AddToPricelist1: TMenuItem
-      Caption = 'Add To Products we sell..'
-      Enabled = False
+    object mnuNotRelayed: TMenuItem
+      Caption = 'Not Relayed'
+      Checked = True
+      RadioItem = True
+    end
+    object mnuRelayed: TMenuItem
+      Caption = 'Relayed'
+      RadioItem = True
+      OnClick = mnuRelayedClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
     end
     object AddtoaCustomerQuote1: TMenuItem
       Caption = 'Add to a Customer Quote..'
@@ -501,7 +510,7 @@ object ProductdBSearch: TProductdBSearch
     Left = 144
     Top = 40
     object mnuUpdateSellPrices: TMenuItem
-      Caption = 'Update Sell Prices by percentage..'
+      Caption = 'Recalculate Sell Prices..'
     end
     object mnuRemoveSupplier: TMenuItem
       Caption = 'Remove a Supplier from the Database..'
@@ -556,5 +565,25 @@ object ProductdBSearch: TProductdBSearch
     UseSkinFont = True
     Left = 184
     Top = 72
+  end
+  object dlgConfig: TbsSkinMessage
+    AlphaBlend = False
+    AlphaBlendAnimation = False
+    AlphaBlendValue = 200
+    ButtonSkinDataName = 'button'
+    MessageLabelSkinDataName = 'stdlabel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    UseSkinFont = True
+    Left = 184
+    Top = 8
   end
 end

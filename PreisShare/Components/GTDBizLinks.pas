@@ -1298,7 +1298,7 @@ begin
     // -- Header
     swrite(GTMIME_PART_BOUNDARY);
     swrite('Content-Disposition: form-data; name="file"; filename="' + IntToStr(myDoc.DocumentNumber) + '"' + #13);
-    swrite('Content-Type:' + TRADAMATRIX_MIME_DOC + #13 + #13);
+    swrite('Content-Type:' + 'Application/PreisShare' + #13 + #13);
 
     // -- Body
     for xc := 0 to myDoc.XML.Count-1 do

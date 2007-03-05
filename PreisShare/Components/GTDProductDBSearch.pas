@@ -7,7 +7,7 @@ uses
   ComCtrls, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls, bsSkinData, Db,
   bsSkinGrids, bsDBGrids, DDB, DTables, DMaster, DBTables, ADODB,GTDBizDocs,
   TeEngine, Series, ExtCtrls, TeeProcs, Chart, Buttons, Windows, Menus,
-  bsSkinMenus,GTDProductDetails, bsDialogs, bsdbctrls;
+  bsSkinMenus,GTDProductDetails, bsDialogs, bsdbctrls, bsMessages;
 
 const
     DBTYPE_ADO   = 1;
@@ -39,7 +39,7 @@ type
     Chart1: TChart;
     Series1: TPieSeries;
     mnuProductOps: TbsSkinPopupMenu;
-    AddToPricelist1: TMenuItem;
+    mnuRelayed: TMenuItem;
     btnBack: TbsSkinSpeedButton;
     AddtoaCustomerQuote1: TMenuItem;
     AddtoaCustomerInvoice1: TMenuItem;
@@ -56,6 +56,9 @@ type
     btnNavigator: TbsSkinDBNavigator;
     N1: TMenuItem;
     mnuSelectColumns: TMenuItem;
+    mnuNotRelayed: TMenuItem;
+    N2: TMenuItem;
+    dlgConfig: TbsSkinMessage;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
@@ -67,6 +70,7 @@ type
     procedure grdProductsDblClick(Sender: TObject);
     procedure btnBackClick(Sender: TObject);
     procedure mnuRemoveSupplierClick(Sender: TObject);
+    procedure mnuRelayedClick(Sender: TObject);
   private
     { Private declarations }
     fSkinData: TbsSkinData;
@@ -337,20 +341,21 @@ procedure TProductdBSearch.SetSkinData(Value: TbsSkinData);
   end;
 
 begin
-    SkinaPanel(pnlHolder);
-    txtSearchText.SkinData := Value;
-    btnSearch.SkinData := Value;
-    mnuMaintain.SkinData := Value;
-    mnuProductOps.SkinData := Value;
-    Memo1.SkinData := Value;
-    btnBack.SkinData := Value;
-    btnTasks.SkinData := Value;
+  SkinaPanel(pnlHolder);
+  txtSearchText.SkinData := Value;
+  btnSearch.SkinData := Value;
+  mnuMaintain.SkinData := Value;
+  mnuProductOps.SkinData := Value;
+  Memo1.SkinData := Value;
+  btnBack.SkinData := Value;
+  btnTasks.SkinData := Value;
 
-    dlgSelectValues.SkinData := Value;
-    dlgSelectValues.CtrlSkinData := Value;
-    
-    // -- Save for later
-    fSkinData := Value;
+  dlgSelectValues.SkinData := Value;
+  dlgSelectValues.CtrlSkinData := Value;
+  dlgConfig.SkinData := Value;
+  dlgConfig.CtrlSkinData := Value;
+  // -- Save for later
+  fSkinData := Value;
 end;
 
 procedure TProductdBSearch.bsSkinSpeedButton1Click(Sender: TObject);
@@ -1213,5 +1218,20 @@ begin
 
 end;
 
+
+procedure TProductdBSearch.mnuRelayedClick(Sender: TObject);
+begin
+  // --
+  if mrYes = dlgConfig.MessageDlg('This item is not currently in the Relay list.' + #13 + #13 + 'Do you wish to add it ?',mtConfirmation,[mbYes,mbCancel],0) then
+  begin
+    // -- Display the product information page by following the double click
+    grdProductsDblClick(Sender);
+
+    fProductDetails.EnableRelayItems(True);
+
+    fProductDetails.nbkProductInfo.ActivePage := fProductDetails.tbsRelay;
+    
+  end;
+end;
 
 end.
