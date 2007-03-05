@@ -4,8 +4,8 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Update Sell Prices..'
-  ClientHeight = 317
-  ClientWidth = 378
+  ClientHeight = 354
+  ClientWidth = 454
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,11 +19,11 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
   PixelsPerInch = 96
   TextHeight = 13
   object bsSkinGroupBox1: TbsSkinGroupBox
-    Left = 168
-    Top = 112
-    Width = 193
-    Height = 73
-    TabOrder = 0
+    Left = 172
+    Top = 124
+    Width = 269
+    Height = 165
+    TabOrder = 6
     SkinDataName = 'groupbox'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -45,12 +45,12 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     RollUpState = False
     NumGlyphs = 1
     Spacing = 2
-    Caption = 'Markup Margin'
+    Caption = 'Markup Calculation'
     object bsSkinLabel1: TbsSkinLabel
       Left = 8
-      Top = 24
-      Width = 121
-      Height = 17
+      Top = 28
+      Width = 161
+      Height = 21
       TabOrder = 0
       SkinDataName = 'label'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -62,13 +62,13 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
       DefaultHeight = 0
       UseSkinFont = True
       BorderStyle = bvFrame
-      Caption = 'Amount %'
+      Caption = 'Percentage'
       AutoSize = False
     end
     object txtMarkupPercentage: TbsSkinSpinEdit
       Left = 8
-      Top = 40
-      Width = 120
+      Top = 48
+      Width = 161
       Height = 20
       TabOrder = 1
       SkinDataName = 'spinedit'
@@ -80,19 +80,19 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
       DefaultWidth = 0
       DefaultHeight = 0
       UseSkinFont = True
-      ValueType = vtFloat
-      Decimal = 3
+      ValueType = vtInteger
+      Value = 30.000000000000000000
       Increment = 1.000000000000000000
       EditorEnabled = True
       MaxLength = 0
     end
   end
   object btnOk: TbsSkinButton
-    Left = 216
-    Top = 272
+    Left = 300
+    Top = 304
     Width = 67
     Height = 25
-    TabOrder = 1
+    TabOrder = 0
     SkinDataName = 'button'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -116,11 +116,11 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     OnClick = btnOkClick
   end
   object btnCancel: TbsSkinButton
-    Left = 296
-    Top = 272
+    Left = 376
+    Top = 304
     Width = 67
     Height = 25
-    TabOrder = 2
+    TabOrder = 1
     SkinDataName = 'button'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -144,11 +144,11 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     OnClick = btnCancelClick
   end
   object rdoColumnSelect: TbsSkinRadioGroup
-    Left = 168
+    Left = 172
     Top = 8
-    Width = 193
-    Height = 97
-    TabOrder = 3
+    Width = 269
+    Height = 109
+    TabOrder = 2
     SkinDataName = 'groupbox'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -170,7 +170,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     RollUpState = False
     NumGlyphs = 1
     Spacing = 2
-    Caption = 'Build Sell prices from which Column?'
+    Caption = 'Build Sell prices based on ?'
     OnClick = rdoColumnSelectClick
     ButtonSkinDataName = 'radiobox'
     ButtonDefaultFont.Charset = DEFAULT_CHARSET
@@ -180,16 +180,17 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     ButtonDefaultFont.Style = []
     ItemIndex = 0
     Items.Strings = (
-      'Use Cost Price Column'
-      'Use Existing Selling Price Column'
+      'Standard Relay Calculation'
+      'Cost Price Column'
+      'Existing Selling Price Column'
       'or Custom SQL update command')
   end
   object lstSupplierList: TbsSkinCheckListBox
     Left = 8
     Top = 24
     Width = 153
-    Height = 273
-    TabOrder = 4
+    Height = 305
+    TabOrder = 3
     SkinDataName = 'checklistbox'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -239,7 +240,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     Top = 8
     Width = 153
     Height = 17
-    TabOrder = 5
+    TabOrder = 4
     SkinDataName = 'label'
     DefaultFont.Charset = DEFAULT_CHARSET
     DefaultFont.Color = clWindowText
@@ -254,18 +255,17 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     AutoSize = False
   end
   object SynMemo1: TSynMemo
-    Left = 168
-    Top = 112
-    Width = 193
-    Height = 153
+    Left = 172
+    Top = 124
+    Width = 269
+    Height = 165
     Color = clSkyBlue
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 6
-    Visible = False
+    TabOrder = 5
     Gutter.DigitCount = 3
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText
@@ -278,6 +278,30 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
       '  products'
       'SET '
       '  OurSellingPrice = ROUND((OurBuyingPrice*1.5)*1.1,2)')
+  end
+  object gagProgress: TbsSkinGauge
+    Left = 172
+    Top = 308
+    Width = 117
+    Height = 20
+    TabOrder = 7
+    Visible = False
+    SkinDataName = 'gauge'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    UseSkinSize = True
+    ShowProgressText = False
+    ShowPercent = True
+    MinValue = 0
+    MaxValue = 100
+    Value = 50
+    Vertical = False
   end
   object bsBusinessSkinForm1: TbsBusinessSkinForm
     ClientWidth = 0
@@ -347,8 +371,8 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     Top = 192
   end
   object SynSQLSyn1: TSynSQLSyn
-    Left = 320
-    Top = 144
+    Left = 408
+    Top = 32
   end
   object dlgSQL: TbsSkinTextDialog
     ShowToolBar = True
@@ -373,5 +397,40 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     UseSkinFont = True
     Left = 240
     Top = 176
+  end
+  object SynPasSyn1: TSynPasSyn
+    Left = 408
+    Top = 64
+  end
+  object DelphiWebScriptII: TDelphiWebScriptII
+    Config.CompilerOptions = []
+    Config.MaxDataSize = 0
+    Config.Timeout = 0
+    Left = 408
+    Top = 96
+  end
+  object dlgCompileErrors: TbsSkinTextDialog
+    ShowToolBar = True
+    ClientWidth = 350
+    ClientHeight = 200
+    Caption = 'Input text'
+    AlphaBlend = False
+    AlphaBlendValue = 200
+    AlphaBlendAnimation = False
+    ButtonSkinDataName = 'button'
+    MemoSkinDataName = 'memo'
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    DefaultMemoFont.Charset = DEFAULT_CHARSET
+    DefaultMemoFont.Color = clWindowText
+    DefaultMemoFont.Height = 14
+    DefaultMemoFont.Name = 'Arial'
+    DefaultMemoFont.Style = []
+    UseSkinFont = True
+    Left = 264
+    Top = 296
   end
 end

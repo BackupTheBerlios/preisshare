@@ -7,7 +7,7 @@ uses
   bsSkinData, BusinessSkinForm, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls,
   ComCtrls, bsMessages, GTDProductDBSearch, Db, DBTables,
   Grids, DBGrids, ADODB, FMTBcd, SqlExpr, GTDBizDocs, bsDialogs,
-  bsSkinShellCtrls;
+  bsSkinShellCtrls, GTDPricelists;
 
 type
   TfrmMain = class(TForm)
@@ -22,7 +22,8 @@ type
     dlgSelectFormat: TbsSkinSelectValueDialog;
     dlgOpenDatabase: TbsSkinOpenDialog;
     bsCompressedStoredSkin1: TbsCompressedStoredSkin;
-    bsOpenSkinDialog1: TbsOpenSkinDialog;
+    dlgSelectFile: TbsOpenSkinDialog;
+    dlgOpenFile: TbsSkinOpenDialog;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinButton1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -39,6 +40,10 @@ type
     { Public declarations }
     productDB : TProductdBSearch;
 //    procedure Search;
+
+    OurPriceList : GTDPricelist;
+    OurRelayList : GTDBizDoc;
+
     procedure UpdateSellPrices(Sender : TObject);
   end;
 
@@ -84,8 +89,10 @@ begin
             // -- Retrieve the name of the file
             dbName := dlgOpenDatabase.FileName;
 
-            // -- Now store it back
-            DocRegistry.SaveSettingString(GTD_PRODUCTDB_KEY,GTD_PRODDB_NAME,dbname);
+            // -- Now store it back. There is a bug in the config in
+            //    that the length isn't really long enough to store
+            //    full paths. So it gets truncated
+            DocRegistry.SaveSettingString(GTD_PRODUCTDB_KEY,GTD_PRODDB_NAME,ExtractFileName(dbname));
 
         end;
     end;
@@ -154,30 +161,54 @@ begin
 
     ActiveControl := productDB.txtSearchText;
 
+    OurPricelist := GTDPricelist.Create(Self);
+    OurRelayList := GTDBizDoc.Create(Self);
+
 end;
 
 procedure TfrmMain.DocRegistryClick(Sender: TObject);
 var
     xc : Integer;
+    f : String;
 begin
-    // -- Dynamically create the form
-    if not Assigned(frmSpreadSheetImport) then
-        Application.CreateForm(TfrmSpreadSheetImport, frmSpreadSheetImport);
+  // -- Dynamically create the form
+  if not Assigned(frmSpreadSheetImport) then
+    Application.CreateForm(TfrmSpreadSheetImport, frmSpreadSheetImport);
 
-    xc := 1;
-    // -- Show the spreadsheet import wizard
-    if dlgSelectFormat.Execute('Pricelist Import Facility','Select the format of the pricelist to import',xc) then
-    begin
-        frmSpreadSheetImport.ShowModal;
+  xc := 1;
+
+  // -- Pop up a file open dialog
+  if dlgOpenFile.Execute then
+  begin
+    f := ExtractFileExt(dlgOpenFile.FileName);
+
+    // -- Conditionally process the different types of file
+    if UpperCase(f) = '.XLS' then
+      frmSpreadSheetImport.myReader.ProcessSpreadsheetByName(dlgOpenFile.FileName)
+    else if UpperCase(f) = '.CSV' then
+      frmSpreadSheetImport.myReader.ProcessCSVByName(dlgOpenFile.FileName)
+    else if UpperCase(f) = Uppercase(GTD_PRICELIST_EXT) then
+      frmSpreadSheetImport.myReader.ProcessPreisFileByName(dlgOpenFile.FileName)
+    else begin
+      // -- Pop up and error
+      bsSkinMessage1.MessageDlg(f + 'is an Unknown File Type',mtError,[mbOk],0);
+      Exit;
     end;
+
+    // -- Now show modally for the run
+    frmSpreadSheetImport.ShowModal;
+    Exit;
+  end;
+
 end;
 
 procedure TfrmMain.FormDblClick(Sender: TObject);
 begin
-    if bsOpenSkinDialog1.Execute then
-    begin
-        bsSkinData1.LoadFromFile(bsOpenSkinDialog1.FileName);
-    end;
+  // -- Let the user select a different skin
+//  if bsOpenSkinDialog1.Execute then
+//  begin
+//      bsSkinData1.LoadFromFile(bsOpenSkinDialog1.FileName);
+//  end;
 end;
 
 procedure TfrmMain.UpdateSellPrices(Sender : TObject);

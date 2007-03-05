@@ -29442,13 +29442,12 @@ object frmMain: TfrmMain
     Top = 40
   end
   object bsCompressedStoredSkin1: TbsCompressedStoredSkin
-    FileName = 'AquaT.skn'
-    CompressedFileName = 'AquaT.skn'
+    CompressedFileName = 'Sirius.skn'
     Left = 348
     Top = 40
     CompressedData = {}
   end
-  object bsOpenSkinDialog1: TbsOpenSkinDialog
+  object dlgSelectFile: TbsOpenSkinDialog
     CompressedFilterIndex = 1
     UnCompressedFilterIndex = 2
     AlphaBlend = False
@@ -29470,5 +29469,25 @@ object frmMain: TfrmMain
     FilterIndex = 1
     Left = 156
     Top = 60
+  end
+  object dlgOpenFile: TbsSkinOpenDialog
+    MultiSelection = False
+    AlphaBlend = False
+    AlphaBlendValue = 225
+    AlphaBlendAnimation = False
+    CtrlAlphaBlend = False
+    CtrlAlphaBlendValue = 225
+    CtrlAlphaBlendAnimation = False
+    LVHeaderSkinDataName = 'resizebutton'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    Title = 'Open file'
+    Filter = 'All files|*.*'
+    FilterIndex = 1
+    Left = 216
+    Top = 88
   end
 end

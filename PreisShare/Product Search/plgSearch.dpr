@@ -16,15 +16,17 @@ uses
   GTDProductDetails in '..\Components\GTDProductDetails.pas' {ProductDetails: TFrame},
   UpdateSellPrices in 'UpdateSellPrices.pas' {frmUpdateSellPrices},
   EDBImage in '..\Components\edbimage\EDBImage.pas',
-  ColumnParams in 'ColumnParams.pas' {frmColumnParams};
+  Relay in 'Relay.pas' {frmRelayOptions},
+  ColumnParams in 'ColumnParams.pas' {Form1};
 
 {$R *.RES}
 
 begin
   Application.Initialize;
-  Application.Title := 'PreisShare Product Search';
+  Application.Title := 'Product Lookup';
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmUpdateSellPrices, frmUpdateSellPrices);
-  Application.CreateForm(TfrmColumnParams, frmColumnParams);
+  Application.CreateForm(TfrmRelayOptions, frmRelayOptions);
+//  Application.CreateForm(TForm1, Form1);
   Application.Run;
 end.
