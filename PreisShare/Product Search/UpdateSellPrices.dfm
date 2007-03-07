@@ -266,6 +266,7 @@ object frmUpdateSellPrices: TfrmUpdateSellPrices
     Font.Name = 'Courier New'
     Font.Style = []
     TabOrder = 5
+    Gutter.AutoSize = True
     Gutter.DigitCount = 3
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText

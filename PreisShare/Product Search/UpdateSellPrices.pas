@@ -107,8 +107,15 @@ procedure TfrmUpdateSellPrices.FormActivate(Sender: TObject);
 begin
   lstSupplierList.Items.Clear;
 
-  rdoColumnSelect.ItemIndex := 1;
+  // -- Select the relay calculation file by default if it exists
+  if FileExists(GTD_RELAYCALCSFILE) then
+  begin
+    rdoColumnSelect.ItemIndex := 0;
+    SynMemo1.Lines.LoadFromFile(GTD_RELAYCALCSFILE);
+  end else
+    rdoColumnSelect.ItemIndex := 1;
 
+  // -- Build the query to find the Suppliers
   with QryDoUpdates do
   begin
     Active := False;
@@ -176,7 +183,7 @@ begin
   sc := 0;
   for xc := 0 to lstSupplierList.Items.Count-1 do
   begin
-    if lstSupplierList.Selected[xc] then
+    if lstSupplierList.Checked[xc] then
       Inc(sc);
   end;
   if (sc = 0) then
@@ -226,7 +233,7 @@ begin
       // -- Retrieve all the supplierids from the list
       for xc := 0 to lstSupplierList.Items.Count-1 do
       begin
-        if lstSupplierList.Selected[xc] then
+        if lstSupplierList.Checked[xc] then
         begin
           // -- Read out the supplier id
           sid := Integer(lstSupplierList.Items.Objects[xc]);
@@ -323,7 +330,7 @@ begin
     // -- Retrieve all the supplierids from the list
     for xc := 0 to lstSupplierList.Items.Count-1 do
     begin
-      if lstSupplierList.Selected[xc] then
+      if lstSupplierList.Checked[xc] then
       begin
         // -- Read out the supplier id
         sid := Integer(lstSupplierList.Items.Objects[xc]);

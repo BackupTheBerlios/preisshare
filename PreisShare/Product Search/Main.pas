@@ -218,8 +218,14 @@ end;
 
 procedure TfrmMain.SelectDisplayColumns(Sender : TObject);
 begin
-  frmColumnParams.LoadColumnInfo(TQuery(productDB.qryFindProducts));
-  frmColumnParams.ShowModal;
+  if not Assigned(frmColumnParams) then
+    Application.CreateForm(TfrmColumnParams,frmColumnParams);
+
+  with frmColumnParams do
+  begin
+    LoadColumnInfo(TQuery(productDB.qryFindProducts));
+    ShowModal;
+  end;
 end;
 
 procedure TfrmMain.DisplaySearchMessage(DisplayMsg : String);
