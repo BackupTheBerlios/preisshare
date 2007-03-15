@@ -30,16 +30,17 @@ const
     PL_ITEM_DETAILS = 16;
 
 type
+
   //-- Pricelist - This is an abstraction of a pricelist
   GTDPricelist = class(GTDBizDoc)
 	public
       ItemList   : TStringList;
 
-	    function LoadProductGroupTree(aListView : TTreeView):Boolean; overload;
+      function LoadProductGroupTree(aListView : TTreeView):Boolean; overload;
       function LoadProductGroupTree(aList : TStringList):Boolean; overload;
 
       // -- This function loads all selected items as line items into a stringlist
- 	    function LoadSelectedAsItemList(aListView : TTreeView; aStringList : TStringList):Boolean;
+      function LoadSelectedAsItemList(aListView : TTreeView; aStringList : TStringList):Boolean;
       procedure LoadItemsFromNodeToList(aNode : GTDNode; aStringList : TStringList; aGroupName : String);
       procedure LoadAllItemsToList(aStringList : TStringList);
 
@@ -67,13 +68,20 @@ type
       // -- CSV Output
       procedure ExportAsStandardCSV(aFilename,columnList : String; ShowHeadings : Boolean = True);
       procedure ExportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
+      function  ImportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String):Boolean;
 
 	private
       iteratorLineNumber : Integer;
+      fOnReport : GTDProcessingReport;
+      fOnProgress : GTDProcessingProgress;
 
       function GetColumnCount(AColumns:String):Integer;
 
-	published
+      procedure Report(MsgType, MsgText : String);
+
+  published
+    property OnReportMessage : GTDProcessingReport read fOnReport write fOnReport;
+    property OnProgress : GTDProcessingProgress read fOnProgress write fOnProgress;
   end;
 
   TXMLOp = class
@@ -95,7 +103,7 @@ type
   end;
 
 implementation
-uses FastStrings;
+uses FastStrings,FastStringFuncs;
 
 // ----------------------------------------------------------------------------
 
@@ -745,6 +753,182 @@ begin
     end;
 end;
 
+function GTDPricelist.ImportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String):Boolean;
+var
+  iData,
+  iFields : TStringList;
+  iLine,cc : Integer;
+  cfDelim : Char;
+  L : String;
+  FieldNamesInFirstLine,
+  isQuoted : Boolean;
+
+
+  function ReadNextCSVField(var L : String):String;
+  var
+    xpos,slen : Integer;
+    inQuote : Boolean;
+    r : String;
+  begin
+    Result := '';
+    inQuote := L[1] = '"';
+    slen := Length(L);
+
+    // -- Look for the next delimiter
+    xpos := FastPos(L,cfDelim,Length(l),1,1);
+
+    if (xpos <> 0) then
+    begin
+      // -- Chop it
+      Result := LeftStr(L,xpos-1);
+
+      L := RightStr(L,Length(L)-Length(Result)-1);
+
+    end
+    else begin
+      Result := L;
+      L := '';
+    end;
+
+    // -- Remove double quotes
+    if (Length(Result)>0) then
+    begin
+      if (Result[1]='"') and (Result[Length(Result)]='"') then
+      Result := CopyStr(Result,2,Length(Result)-2);
+    end;
+
+  end;
+
+  function ValidateFirstLine(L : String):Boolean;
+  var
+    s,f : String;
+    xc : Integer;
+  begin
+    // -- Determine the field delimiter.
+    //    If it isn't a tab, then it must be a comma.
+    if (FastPos(L,#9,Length(L),1,1) <> 0) then
+      cfDelim := #9
+    else if (FastPos(L,',',Length(L),1,1) <> 0) then
+      cfDelim := ','
+    else
+      Exit;
+
+    Report('Show','Checking Column definitions');
+    
+    // -- Now we read across the columns and check that all
+    //    the column names match exactly
+    s := L;
+    for xc := 0 to iFields.Count-1 do
+    begin
+      // -- Read the next field
+      f := ReadNextCSVField(s);
+
+      if f <> iFields.Strings[xc] then
+      begin
+        if iFields.Strings[xc]='' then
+        Report('Error','Column Mismatch : Column ' + IntToStr(xc+1) + ' != ' + f);
+
+        Report('Error','Column Mismatch : ' + iFields.Strings[xc] + ' != ' + f);
+        Exit;
+      end;
+    end;
+
+    Result := True;
+
+  end;
+
+  function LoadColumnMappings:Boolean;
+  var
+    xc,eleIndex : Integer;
+    n,cname,elename : String;
+  begin
+
+    iFields.Clear;
+    
+    for xc := 1 to cc do
+    begin
+
+      // -- Retrieve the definition for each column
+      n := '/CSV Pricelist Input/Column ' + IntToStr(xc);
+
+      aRegistry.GetTraderSettingString(n,'Column_Name',cname);
+      aRegistry.GetTraderSettingString(n,'Element_Name',elename);
+
+      eleIndex := 1;
+
+      iFields.AddObject(cname,TObject(eleIndex));
+
+    end;
+  end;
+
+  function ConvertLine(aLine : String):Boolean;
+  var
+    xc : Integer;
+    f,s,o : String;
+  begin
+
+    s := aLine;
+    for xc := 0 to iFields.Count-1 do
+    begin
+      // -- Read the next field
+      f := ReadNextCSVField(s);
+
+      o := o + EncodeStringField(iFields[xc],f);
+    end;
+
+    xml.Add(o);
+
+  end;
+
+begin
+  // -- Must be able to load up the trader
+  if not aRegistry.OpenForTraderNumber(Trader_ID) then
+    Exit;
+
+  iFields := TStringList.Create;
+
+  // -- Retrieve the number of columns
+  if aRegistry.GetTraderSettingInt('/CSV Pricelist Input','Column_Count',cc) then
+    LoadColumnMappings
+  else begin
+    iFields.Free;
+    Exit;
+  end;
+
+  iData := TStringList.Create;
+
+  try
+    // -- Load the file
+    iData.LoadFromFile(aFilename);
+
+    if ValidateFirstLine(iData.Strings[0]) then
+    begin
+
+      Report('Show','Converting ' + IntToStr(iData.Count) + ' lines');
+
+      // -- Process every line in the file
+      for iLine := 0 to iData.Count-1 do
+      begin
+
+        // -- Read the next line
+        L := iData.Strings[iLine];
+
+        // -- Convert it
+        ConvertLine(L);
+
+      end;
+
+      Report('Show','Complete');
+
+    end;
+
+    Result := True;
+
+    finally
+      iData.Free;
+      iFields.Destroy;
+  end;
+end;
 
 function GTDPricelist.GetColumnCount(AColumns:String): Integer;
 var
@@ -821,6 +1005,12 @@ procedure TXMLOp.SetTextValue(ANode: IXMLNode; AValue: String);
 begin
   if Assigned(ANode) then
     ANode.Text := AValue;
+end;
+
+procedure GTDPricelist.Report(MsgType, MsgText : String);
+begin
+  if Assigned(fOnReport) then
+    fOnReport(MsgType,MsgText);
 end;
 
 end.

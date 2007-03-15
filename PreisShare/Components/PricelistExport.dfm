@@ -693,8 +693,6 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       Gutter.Font.Name = 'Courier New'
       Gutter.Font.Style = []
       Highlighter = SynSQLSyn1
-      Lines.Strings = (
-        'mmoSQL')
     end
   end
   object db1: TDatabase

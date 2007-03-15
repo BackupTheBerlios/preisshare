@@ -1158,17 +1158,6 @@ begin
 
 end;
 
-{
-function GTDPricefileDataCol:LogicalColName:String;
-begin
-    // --
-    case LogicalCol of
-        1 : Result := GTD_PL_ELE_PRODUCT_CODE;
-    else
-        Result := '';
-
-end;
-}
 procedure Register;
 begin
   RegisterComponents('PreisShare', [GTDPricefileConvertor]);

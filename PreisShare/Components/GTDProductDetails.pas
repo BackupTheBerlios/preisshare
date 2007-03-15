@@ -7,7 +7,8 @@ uses
   bsSkinCtrls, bsSkinGrids, bsDBGrids, bsSkinData, Jpeg,
   BusinessSkinForm, Menus, ComCtrls, StdCtrls, Mask, bsSkinBoxCtrls,
   Dialogs, bsSkinTabs, ExtCtrls, DB, DBTables,
-  bsdbctrls, bsSkinMenus, DBCtrls,EDBImage, bsDialogs;
+  bsdbctrls, bsSkinMenus, DBCtrls,EDBImage, bsDialogs,
+  GTDPricelists;
 
 type
   TProductDetails = class(TFrame)
@@ -75,6 +76,8 @@ type
 
   public
     { Public declarations }
+    MainPricelist : GTDPricelist;
+    
     procedure Initialise;
 
     procedure DisplayItem(ProductCursor : TQuery);
@@ -221,12 +224,14 @@ begin
       // -- There are no product groups. Which we need
       if dlgAddProductGroup.InputQuery('Add Product Group','No product groups exist. ' + #13 + 'You''ll need to add one for this item.',pg) then
       begin
+        if not Assigned(MainPricelist) then
+          Exit;
         // -- Change the product group
-        frmMain.OurPricelist.SetStringElement(GTD_PL_PRODUCTINFO_NODE + '/' + GTD_PL_PRODUCTGROUP_NODE + '[1]',GTD_PL_ELE_GROUP_NAME,pg);
+        MainPricelist.SetStringElement(GTD_PL_PRODUCTINFO_NODE + '/' + GTD_PL_PRODUCTGROUP_NODE + '[1]',GTD_PL_ELE_GROUP_NAME,pg);
 
-        frmMain.OurPricelist.xml.SaveToFile(GTD_CURRENT_PRICELIST);
+        MainPricelist.xml.SaveToFile(GTD_CURRENT_PRICELIST);
 
-        frmMain.OurPricelist.LoadProductGroupTree(TTreeView(lstItemRelayGroup));
+        MainPricelist.LoadProductGroupTree(TTreeView(lstItemRelayGroup));
 
       end;
     end;
@@ -261,13 +266,16 @@ end;
 
 procedure TProductDetails.LoadRelayInfo;
 begin
+  if not Assigned(MainPricelist) then
+     Exit;
+     
   if FileExists(GTD_CURRENT_PRICELIST) then
-    frmMain.OurPricelist.LoadFromFile(GTD_CURRENT_PRICELIST)
+    MainPricelist.LoadFromFile(GTD_CURRENT_PRICELIST)
   else
-    frmMain.OurPricelist.Clear;
+    MainPricelist.Clear;
 
   // -- Load the pricelist structure into a tree for display
-  frmMain.OurPricelist.LoadProductGroupTree(TTreeView(lstItemRelayGroup));
+  MainPricelist.LoadProductGroupTree(TTreeView(lstItemRelayGroup));
 
 end;
 

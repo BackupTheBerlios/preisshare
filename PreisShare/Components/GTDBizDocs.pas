@@ -54,6 +54,9 @@ type
   hBizOnDocumentChangeEvent = procedure(Sender: TObject; GTL : String; DocumentNumber : Integer; StatusInfo : String) of object;
   HWxmldtErrEvent = procedure(Sender : TObject; Errnum : Integer; Description : String) of object;
 
+  GTDProcessingReport = procedure(msgType, msgDescription : String) of object;
+  GTDProcessingProgress = procedure(ProgressPercentage : Integer) of object;
+
   gtDiffType = (	    dtUnified,	            // -- Standard Unix Unified format
 						dtCompact               // -- Compact
 					 );
@@ -893,13 +896,20 @@ const
     GTD_PL_ELE_MIN_DELIV_CHARGE = 'Minimum_Delivery_Cost';
 
 	// -- Information area
-  GTD_PL_INFORMATION_TAG      = 'Overview';
-  GTD_PL_INFORMATION_NODE     = '/PriceList/' + GTD_PL_INFORMATION_TAG;
-  GTD_PL_ELE_COLUMNS_USED     = 'Columns_Used';
+
+  // -- Product Information/Summary Section
+  GTD_PL_PRODUCTSUMMARY_TAG   = 'Summary Information';
+  GTD_PL_PRODUCTSUMMARY_NODE  = '/PriceList/' + GTD_PL_PRODUCTSUMMARY_TAG;
+  GTD_PL_ELE_ITEMCOUNT        = 'ItemCount';
+  GTD_PL_ELE_MAJORGROUPS      = 'ProductGroupCount';
+  GTD_PL_ELE_VALID_FROM       = 'Valid_From';
+  GTD_PL_ELE_VALID_TO         = 'Valid_To';
+  GTD_PL_ELE_COLUMNLIST       = 'Product_Columns';
   GTD_PL_ELE_GLOBAL_BRAND     = 'Global_BrandName';
   GTD_PL_ELE_GLOBAL_MANUFCT   = 'Global_Manufacturer';
   GTD_PL_ELE_ACTUAL_INCTAX    = 'Actual_Price_IncludesTax'; // Boolean
   GTD_PL_ELE_ACTUAL_TAXRATE   = 'Actual_Price_TaxRate';
+  GTD_PL_ELE_CURRENCY_CODE    = 'Currency_Code';
 
   GTD_PL_INFORMATION_ITEM_NODE= '/Item';
   GTD_PL_ELE_INFO_TITLE       = 'Title';
@@ -983,15 +993,6 @@ const
 
 	// -- Product options added on but not essential
 	GTD_PL_OPTIONS_TAG          = 'Options';
-
-    // -- Product Information/Summary Section
-    GTD_PL_PRODUCTSUMMARY_TAG   = 'Summary Information';
-    GTD_PL_PRODUCTSUMMARY_NODE  = '/PriceList/' + GTD_PL_PRODUCTSUMMARY_TAG;
-    GTD_PL_ELE_ITEMCOUNT        = 'ItemCount';
-    GTD_PL_ELE_MAJORGROUPS      = 'ProductGroupCount';
-    GTD_PL_ELE_VALID_FROM       = 'Valid_From';
-    GTD_PL_ELE_VALID_TO         = 'Valid_To';
-    GTD_PL_ELE_COLUMNLIST       = 'Product_Columns';
 
     // -- Pricelist Image Elements
     // -- ** Simplistic **
@@ -1155,22 +1156,22 @@ const
     //
 	// ---------------------------------------------------------------------
 
-    // -- Issuer Details
-	STDDOC_BUYER               = 'BuyerParty';
-    STDDOC_BUYER_NODE          = '/' + STDDOC_BUYER;
-	// -- Recipient Details
-    STDDOC_SELLER              = 'SellerParty';
-    STDDOC_SELLER_NODE         = '/' + STDDOC_SELLER;
+  // -- Issuer Details
+  STDDOC_BUYER               = 'BuyerParty';
+  STDDOC_BUYER_NODE          = '/' + STDDOC_BUYER;
+  // -- Recipient Details
+  STDDOC_SELLER              = 'SellerParty';
+  STDDOC_SELLER_NODE         = '/' + STDDOC_SELLER;
 
-    STDDOC_ELE_COMPANY_CODE    = GTD_PL_ELE_COMPANY_CODE;
-    STDDOC_ELE_COMPANY_NAME    = GTD_PL_ELE_COMPANY_NAME;
-    STDDOC_ELE_ADDRESS_LINE_1  = GTD_PL_ELE_ADDRESS_LINE_1;
-    STDDOC_ELE_ADDRESS_LINE_2  = GTD_PL_ELE_ADDRESS_LINE_2;
-    STDDOC_ELE_TOWN            = GTD_PL_ELE_TOWN;
-	STDDOC_ELE_STATE_REGION    = GTD_PL_ELE_STATE_REGION;
-    STDDOC_ELE_POSTALCODE      = GTD_PL_ELE_POSTALCODE;
-    STDDOC_ELE_COUNTRYCODE     = GTD_PL_ELE_COUNTRYCODE;
-	STDDOC_ELE_TELEPHONE       = GTD_PL_ELE_TELEPHONE;
+  STDDOC_ELE_COMPANY_CODE    = GTD_PL_ELE_COMPANY_CODE;
+  STDDOC_ELE_COMPANY_NAME    = GTD_PL_ELE_COMPANY_NAME;
+  STDDOC_ELE_ADDRESS_LINE_1  = GTD_PL_ELE_ADDRESS_LINE_1;
+  STDDOC_ELE_ADDRESS_LINE_2  = GTD_PL_ELE_ADDRESS_LINE_2;
+  STDDOC_ELE_TOWN            = GTD_PL_ELE_TOWN;
+  STDDOC_ELE_STATE_REGION    = GTD_PL_ELE_STATE_REGION;
+  STDDOC_ELE_POSTALCODE      = GTD_PL_ELE_POSTALCODE;
+  STDDOC_ELE_COUNTRYCODE     = GTD_PL_ELE_COUNTRYCODE;
+  STDDOC_ELE_TELEPHONE       = GTD_PL_ELE_TELEPHONE;
     STDDOC_ELE_TELEPHONE2      = GTD_PL_ELE_TELEPHONE2;
     STDDOC_ELE_EMAIL_ADDRESS   = GTD_PL_ELE_EMAIL_ADDRESS;
 	STDDOC_ELE_OTHER_INFO      = GTD_PL_ELE_OTHER_INFO;
@@ -6852,11 +6853,12 @@ begin
 		t_Fax				:= aDoc.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_FAX);
 
         // -- Validate
-        if t_Ref = '' then
+{        if t_Ref = '' then
         begin
             problist := problist + 'Missing Trader PreisShare_ID (' + GTD_PL_VENDORINFO_NODE + '/' + GTD_PL_ELE_COMPANY_CODE + ')' + #13;
         end
-        else if t_Name = '' then
+        else }
+        if t_Name = '' then
         begin
             problist := problist + 'Missing Trader Name (' + GTD_PL_VENDORINFO_NODE + '/' + GTD_PL_ELE_COMPANY_NAME + ')' + #13;
         end

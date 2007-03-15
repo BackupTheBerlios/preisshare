@@ -1230,7 +1230,7 @@ begin
     fProductDetails.EnableRelayItems(True);
 
     fProductDetails.nbkProductInfo.ActivePage := fProductDetails.tbsRelay;
-    
+
   end;
 end;
 

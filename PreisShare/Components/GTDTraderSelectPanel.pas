@@ -207,9 +207,15 @@ begin
     // -- Check that an active supplier is selected
     if (DocRegistry.Traders.FieldByName(GTD_DB_COL_RELATIONSHIP).AsString = GTD_TRADER_RLTNSHP_SUPPLIER) and
        (DocRegistry.Traders.FieldByName(GTD_DB_COL_STATUS_CODE).AsString = GTD_TRADER_STATUS_ACTIVE) then
-        // -- The supplier is ok
-        Result := True;
+    begin
+      fTraderID := DocRegistry.Traders.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger;
 
+      // -- Reselect this company
+      DocRegistry.OpenForTraderNumber(fTraderID);
+
+      // -- The supplier is ok
+      Result := True;
+    end;
     // -- Fire off the event if it has been provided
 end;
 
