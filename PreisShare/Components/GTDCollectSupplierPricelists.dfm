@@ -113,13 +113,10 @@ object CollectPricelistFrame: TCollectPricelistFrame
       Left = 8
       Top = 40
       Width = 185
-      Height = 193
+      Height = 89
       Items.Data = {
-        030000001C0000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
-        034353561C0000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
-        03584D4C1D0000000000000000000000FFFFFFFFFFFFFFFF0000000001000000
-        04546578741F0000000000000000000000FFFFFFFFFFFFFFFF00000000000000
-        0006692D54656368}
+        010000001D0000000000000000000000FFFFFFFFFFFFFFFF0000000000000000
+        0448545450}
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
       DefaultFont.Height = 14
@@ -278,6 +275,116 @@ object CollectPricelistFrame: TCollectPricelistFrame
         ParentFont = False
         TabOrder = 2
       end
+      object bsSkinListView1: TbsSkinListView
+        Left = 8
+        Top = 136
+        Width = 289
+        Height = 65
+        Columns = <
+          item
+            Caption = 'Supplier'
+            Width = 120
+          end
+          item
+            Caption = 'Format'
+          end
+          item
+            Caption = 'URL'
+            Width = 120
+          end>
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = 14
+        Font.Name = 'Arial'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 3
+        ViewStyle = vsReport
+        HeaderSkinDataName = 'resizebutton'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        UseSkinFont = True
+        SkinDataName = 'listview'
+        DefaultColor = clWindow
+      end
+      object bsSkinLabel2: TbsSkinLabel
+        Left = 8
+        Top = 112
+        Width = 289
+        Height = 21
+        TabOrder = 4
+        SkinDataName = 'label'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        DefaultWidth = 0
+        DefaultHeight = 0
+        UseSkinFont = True
+        BorderStyle = bvFrame
+        Caption = 'Suppliers'
+        AutoSize = False
+      end
+      object bsSkinListView2: TbsSkinListView
+        Left = 8
+        Top = 72
+        Width = 289
+        Height = 33
+        Columns = <
+          item
+            Caption = 'Column'
+            Width = 120
+          end
+          item
+            Caption = 'Maps to'
+            Width = 120
+          end>
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = 14
+        Font.Name = 'Arial'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 5
+        ViewStyle = vsReport
+        HeaderSkinDataName = 'resizebutton'
+        DefaultFont.Charset = DEFAULT_CHARSET
+        DefaultFont.Color = clWindowText
+        DefaultFont.Height = 14
+        DefaultFont.Name = 'Arial'
+        DefaultFont.Style = []
+        UseSkinFont = True
+        SkinDataName = 'listview'
+        DefaultColor = clWindow
+      end
+    end
+    object lsvSupplierList: TbsSkinListView
+      Left = 8
+      Top = 136
+      Width = 185
+      Height = 102
+      Columns = <>
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = 14
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
+      ViewStyle = vsReport
+      HeaderSkinDataName = 'resizebutton'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      UseSkinFont = True
+      SkinDataName = 'listview'
+      DefaultColor = clWindow
     end
   end
   object HttpCli1: THttpCli
@@ -330,6 +437,10 @@ object CollectPricelistFrame: TCollectPricelistFrame
     DefaultEditFont.Style = []
     UseSkinFont = True
     Left = 168
+    Top = 8
+  end
+  object qrySources: TQuery
+    Left = 224
     Top = 8
   end
 end

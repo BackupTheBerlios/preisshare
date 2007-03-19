@@ -29,6 +29,7 @@ const
     PL_ITEM_FALLEN = 8;
     PL_ITEM_DETAILS = 16;
 
+
 type
 
   //-- Pricelist - This is an abstraction of a pricelist
@@ -69,6 +70,8 @@ type
       procedure ExportAsStandardCSV(aFilename,columnList : String; ShowHeadings : Boolean = True);
       procedure ExportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
       function  ImportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String):Boolean;
+
+      procedure BuildFieldLookupList(sl : TStrings);
 
 	private
       iteratorLineNumber : Integer;
@@ -753,16 +756,16 @@ begin
     end;
 end;
 
+
 function GTDPricelist.ImportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String):Boolean;
 var
   iData,
-  iFields : TStringList;
-  iLine,cc : Integer;
+  iFields,iLookuplist : TStringList;
+  iLine,cc,StartingLineNo : Integer;
   cfDelim : Char;
-  L : String;
+  L, l1GrpName : String;
   FieldNamesInFirstLine,
   isQuoted : Boolean;
-
 
   function ReadNextCSVField(var L : String):String;
   var
@@ -797,7 +800,11 @@ var
       Result := CopyStr(Result,2,Length(Result)-2);
     end;
 
+    // -- Finally trim it
+    Result := Trim(Result);
+    
   end;
+
 
   function ValidateFirstLine(L : String):Boolean;
   var
@@ -843,8 +850,12 @@ var
     n,cname,elename : String;
   begin
 
+    // -- Determine if file has fieldname headings
+    FieldNamesInFirstLine := True;
+    aRegistry.GetTraderSettingBoolean('/CSV Pricelist Input','HasFieldHeadings',FieldNamesInFirstLine);
+
     iFields.Clear;
-    
+
     for xc := 1 to cc do
     begin
 
@@ -854,9 +865,9 @@ var
       aRegistry.GetTraderSettingString(n,'Column_Name',cname);
       aRegistry.GetTraderSettingString(n,'Element_Name',elename);
 
-      eleIndex := 1;
+      eleIndex := iLookuplist.IndexOf(elename);
 
-      iFields.AddObject(cname,TObject(eleIndex));
+      iFields.AddObject(cname,TObject(eleIndex+1));
 
     end;
   end;
@@ -873,11 +884,47 @@ var
       // -- Read the next field
       f := ReadNextCSVField(s);
 
-      o := o + EncodeStringField(iFields[xc],f);
+      // -- Process the field if there is a mapping for it
+      if Assigned(iFields.Objects[xc]) then
+      begin
+        // -- Build the field, and add in the correct field type
+        o := o + EncodeStringField(iLookupList[Integer(iFields.Objects[xc])-1],f);
+      end;
+
     end;
 
-    xml.Add(o);
+    // -- Add the line item
+    XML.Add('        <'+GTD_PL_PRODUCTITEM_TAG+'>');
+    XML.Add('          ' + o);
+    XML.Add('        </'+GTD_PL_PRODUCTITEM_TAG+'>');
 
+  end;
+
+  //---------------------------------------------------------------------------
+  procedure StartProductGroup(aGroup : String; Level : Integer = 1);
+  begin
+      Report('Show','Processing Product Group [' + aGroup + ']');
+
+      XML.Add('    <'+GTD_PL_PRODUCTGROUP_TAG+'>');
+      XML.Add('      ' + EncodeStringField(GTD_PL_ELE_GROUP_NAME,aGroup));
+      XML.Add('      <'+GTD_PL_PRODUCTITEMS_TAG+'>');
+
+      if (Level =1) then
+          l1GrpName := aGroup;
+
+  end;
+  //---------------------------------------------------------------------------
+  procedure EndProductGroup(Level : Integer = 1);
+  begin
+      if (Level = 1) then
+      begin
+          if (l1GrpName <> '') then
+          begin
+              XML.Add('      </'+GTD_PL_PRODUCTITEMS_TAG+'>');
+              XML.Add('    </'+GTD_PL_PRODUCTGROUP_TAG+'>');
+              l1GrpName := '';
+          end;
+      end;
   end;
 
 begin
@@ -889,7 +936,14 @@ begin
 
   // -- Retrieve the number of columns
   if aRegistry.GetTraderSettingInt('/CSV Pricelist Input','Column_Count',cc) then
-    LoadColumnMappings
+  begin
+    // -- Setup all the column mapping stuff
+    iLookuplist := TStringlist.Create;
+
+    BuildFieldLookupList(iLookupList);
+
+    LoadColumnMappings;
+  end
   else begin
     iFields.Free;
     Exit;
@@ -898,6 +952,13 @@ begin
   iData := TStringList.Create;
 
   try
+    XML.Clear;
+
+    // -- Add in the vendor information
+    ARegistry.AddCurrentTraderVendorInfo(Self);
+    // -- Delete the last line added by the above function
+    XML.Delete(XML.Count-1);
+
     // -- Load the file
     iData.LoadFromFile(aFilename);
 
@@ -906,8 +967,14 @@ begin
 
       Report('Show','Converting ' + IntToStr(iData.Count) + ' lines');
 
+      StartingLineNo := Integer(FieldNamesInFirstLine);
+
+      XML.Add('  <'+GTD_PL_PRODUCTINFO_TAG+'>');
+
+      StartProductGroup('Items');
+
       // -- Process every line in the file
-      for iLine := 0 to iData.Count-1 do
+      for iLine := StartingLineNo to iData.Count-1 do
       begin
 
         // -- Read the next line
@@ -918,6 +985,11 @@ begin
 
       end;
 
+      EndProductGroup;
+
+      XML.Add('  </'+GTD_PL_PRODUCTINFO_TAG+'>');
+      XML.Add('</'+GTD_PL_PRICELIST_TAG+'>');
+
       Report('Show','Complete');
 
     end;
@@ -926,7 +998,8 @@ begin
 
     finally
       iData.Free;
-      iFields.Destroy;
+      iFields.Free;
+      iLookuplist.Free;
   end;
 end;
 
@@ -1011,6 +1084,36 @@ procedure GTDPricelist.Report(MsgType, MsgText : String);
 begin
   if Assigned(fOnReport) then
     fOnReport(MsgType,MsgText);
+end;
+
+procedure GTDPricelist.BuildFieldLookupList(sl : TStrings);
+begin
+  sl.Add(GTD_PL_ELE_PRODUCT_PLU);
+  sl.Add(GTD_PL_ELE_PRODUCT_NAME);
+  sl.Add(GTD_PL_ELE_PRODUCT_DESC);
+  sl.Add(GTD_PL_ELE_PRODUCT_KEYWORDS);
+  sl.Add(GTD_PL_ELE_PRODUCT_LIST);
+  sl.Add(GTD_PL_ELE_PRODUCT_ACTUAL);
+  sl.Add(GTD_PL_ELE_PRODUCT_ACTUALEX);
+  sl.Add(GTD_PL_ELE_PRODUCT_ACTUALINC);
+  sl.Add(GTD_PL_ELE_PRODUCT_TAXR);
+  sl.Add(GTD_PL_ELE_PRODUCT_BRAND);
+  sl.Add(GTD_PL_ELE_PRODUCT_UNIT);
+  sl.Add(GTD_PL_ELE_PRODUCT_MINORDQTY);
+  sl.Add(GTD_PL_ELE_PRODUCT_TYPE);
+  sl.Add(GTD_PL_ELE_PRODUCT_IMAGE);
+  sl.Add(GTD_PL_ELE_PRODUCT_BIGIMAGE);
+  sl.Add(GTD_PL_ELE_PRODUCT_MOREINFO);
+  sl.Add(GTD_PL_ELE_BRANDNAME);
+  sl.Add(GTD_PL_ELE_MANUFACT_NAME);
+  sl.Add(GTD_PL_ELE_MANUFACT_GTL);
+  sl.Add(GTP_PL_ELE_MANUFACT_PRODINFO);
+  sl.Add(GTD_PL_ELE_PRODUCT_AVAIL_FLAG);
+  sl.Add(GTD_PL_ELE_PRODUCT_AVAIL_DATE);
+  sl.Add(GTD_PL_ELE_PRODUCT_AVAIL_STATUS);
+  sl.Add(GTD_PL_ELE_PRODUCT_AVAIL_BACKORD);
+  sl.Add(GTD_PL_ELE_ONSPECIAL);
+  sl.Add(GTD_PL_ELE_ONSPECIAL_TILL);
 end;
 
 end.

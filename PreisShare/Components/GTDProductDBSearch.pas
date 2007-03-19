@@ -110,7 +110,7 @@ type
 implementation
 
 {$R *.DFM}
-uses DelphiUtils;
+uses DelphiUtils,FastStrings,FastStringFuncs;
 
 const
     PLU_Col = 'VendorProductID';
@@ -391,62 +391,62 @@ var
 const
 	StdWordLen = 30;
 
-    // -- Removes the minus "-" padding that we are using
-	function unpad(aStr : String):String;
-	var
-		xc : Integer;
-	begin
-		for xc := Length(aStr) downto 1 do
-		begin
-			if aStr[xc] <> '-' then
-			begin
-				Result := Copy(aStr,1,xc);
-				break;
-			end;
-		end;
-	end;
+  // -- Removes the minus "-" padding that we are using
+  function unpad(aStr : String):String;
+  var
+    xc : Integer;
+  begin
+    for xc := Length(aStr) downto 1 do
+    begin
+      if aStr[xc] <> '-' then
+      begin
+        Result := Copy(aStr,1,xc);
+        break;
+      end;
+    end;
+  end;
 
-        procedure CheckForVendorName;
-        var
-            idx : Integer;
-        begin
+  procedure CheckForVendorName;
+  var
+      idx : Integer;
+  begin
 
-            with qryWordCheck do
-            begin
+      with qryWordCheck do
+      begin
 
-                Filtered := False;
+          Filtered := False;
 
-                // -- Check for Brand
-                Filtered := False;
-                Filter   := '(ELEMENT = ''VENDORID'')';
-                Filtered := True;
+          // -- Check for Brand
+          Filtered := False;
+          Filter   := '(ELEMENT = ''VENDORID'')';
+          Filtered := True;
 
-                First;
-                if not Eof then
-                begin
-                    SupplierID := FieldByName('ITEM_COUNT').AsInteger;
-                    haveVendorName := True;
-                    VendorName     := FieldByName('WORD').AsString;
-                end
-                else begin
-                    SupplierID := -1;
-                    haveVendorName := False;
-                end;
-            end;
-        end;
+          First;
+          if not Eof then
+          begin
+              SupplierID := FieldByName('ITEM_COUNT').AsInteger;
+              haveVendorName := True;
+              VendorName     := FieldByName('WORD').AsString;
+          end
+          else begin
+              SupplierID := -1;
+              haveVendorName := False;
+          end;
+      end;
+  end;
 
-        procedure AddSQLWhereClause(aClause : String);
-        begin
-    		with qryFindProducts do
-	    	begin
-                if (haveFirstAnd) then
-			        SQL.Add('AND')
-                else begin
-                    haveFirstAnd := True;
-                end;
-                SQL.Add(aClause);
-            end;
-        end;
+  procedure AddSQLWhereClause(aClause : String);
+  begin
+    with qryFindProducts do
+    begin
+      if (haveFirstAnd) then
+        SQL.Add('AND')
+      else begin
+        haveFirstAnd := True;
+      end;
+      SQL.Add(aClause);
+    end;
+  end;
 
 	procedure AddBasicSelects(PMFTABLE : String);
 
@@ -647,6 +647,21 @@ const
 			while L <> '' do
 			begin
 				Word := Parse(L,' ');
+
+        // -- Check for quoting
+        if (Length(Word)>0) and (Word[1]='"') then
+        begin
+          xc := FastCharPos(L,'"',1);
+          if xc <> 0 then
+          begin
+            Word := RightStr(Word,Length(Word)-1) + ' ' + LeftStr(L,xc-1);
+            if (xc = Length(L)) then
+              L := ''
+            else
+              L := RightStr(L,Length(L)-xc-1);
+          end;
+        end;
+
 				// -- Correct the length of our parameter
 				PaddedWord := pad(Word,StdWordLen,'-');
 				if Word <> '' then
@@ -725,7 +740,7 @@ const
 
       end;
 
-            // -- Check for the product code
+      // -- Check for the product code
       AddCodeFilters;
 
       // -- Add any brands
@@ -865,16 +880,16 @@ const
 		// -- Check the type; it will hint at where to look
 //        CheckForVendorName(Word);
 
-		if IsNumber(Word) then
+		if IsNumber(Word,' -') then
 		begin
 			// -- The word is numeric, can only be a code
 			AddClauseForProductCode(Word);
 		end
 		else begin
-			// -- The word is not numeric, might be a type or brand
-            AddClauseForVendorName(Word);
-//			AddClauseForBrand(Word);
-//			AddClauseForPMFType(Word);
+      // -- The word is not numeric, might be a type or brand
+      AddClauseForVendorName(Word);
+      //			AddClauseForBrand(Word);
+      //			AddClauseForPMFType(Word);
 		end;
 
 
@@ -889,29 +904,46 @@ var
 	Word,L : String;
 
 begin
-	// -- List of keywords
-	L := SearchString;
-	if L = '' then
-		Exit;
+  // -- List of keywords
+  L := SearchString;
+  if L = '' then
+    Exit;
 
-    // -- Initialise the word check query
-    with qryWordCheck do
+  // -- Initialise the word check query
+  with qryWordCheck do
+  begin
+    Active := False;
+    SQL.Clear;
+  end;
+
+  // -- For every word in the string, do a word lookup
+  while L <> '' do
+  begin
+    Word := Parse(L,' ');
+
+    // -- Check for quoting
+    if (Length(Word)>0) and (Word[1]='"') then
     begin
-        Active := False;
-	    SQL.Clear;
+      xc := FastCharPos(L,'"',1);
+      if xc <> 0 then
+      begin
+        Word := RightStr(Word,Length(Word)-1) + ' ' + LeftStr(L,xc-1);
+        if (xc = Length(L)) then
+          L := ''
+        else
+          L := RightStr(L,Length(L)-xc-1);
+      end;
     end;
 
-    // -- For every word in the string, do a word lookup
-	while L <> '' do
-	begin
-		Word := Parse(L,' ');
-		if Word <> '' then
-			AddWordToQuerySet(Word);
-	end;
+    // -- If we've got something that's like a word, then add it in
+    if Word <> '' then
+      AddWordToQuerySet(Word);
 
-    Memo1.Lines.Assign(qryWordCheck.SQL);
+  end;
 
-    // -- The first query justs looks up everything to obtain a wordcount
+  Memo1.Lines.Assign(qryWordCheck.SQL);
+
+  // -- The first query justs looks up everything to obtain a wordcount
   with qryWordCheck do
   begin
     Active := False;
@@ -921,31 +953,31 @@ begin
     except
      on EDBEngineError do begin
       MessageDlg(StringListToString(SQL),mtError,[mbOk],0);
-		 end;
-		end;
-		Screen.Cursor := crDefault;
-	end;
+     end;
+    end;
+    Screen.Cursor := crDefault;
+  end;
 
-	// -- Now prepare for the product selection query
-	// -- Debugging
-    haveFirstAnd := False;
-	qryFindProducts.Active := False;
-	qryFindProducts.SQL.Clear;
+  // -- Now prepare for the product selection query
+  // -- Debugging
+  haveFirstAnd := False;
+  qryFindProducts.Active := False;
+  qryFindProducts.SQL.Clear;
 
-	AddBasicSelects(PProdTblName);
+  AddBasicSelects(PProdTblName);
 
-	bsSkinMemo1.Lines.Assign(qryFindProducts.SQL);
-	qryWordCheck.Filtered := False;
+  bsSkinMemo1.Lines.Assign(qryFindProducts.SQL);
+  qryWordCheck.Filtered := False;
 
-	with qryFindProducts do
+  with qryFindProducts do
 	begin
 		Active := False;
 		try
 
-			Screen.Cursor := crHourglass;
+      Screen.Cursor := crHourglass;
 
-            // -- Now run the final search
-			Active := True;
+      // -- Now run the final search
+      Active := True;
 
       // -- Display the number of items on the screen
       if RecordCount = 1 then
