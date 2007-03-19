@@ -194,6 +194,7 @@ end;
 procedure TProductdBSearch.CountItemsInProductDatabase;
 var
     ItemsInDB : Integer;
+    ShortCompanyName,w1,w2 : String;
 begin
     Chart1.SeriesList[0].Clear;
 
@@ -214,8 +215,19 @@ begin
         while not Eof do
         begin
 
+            // -- We need to abbreviate down to two words
+            //    otherwise the graph can go heywire
+            ShortCompanyName := Fields[2].AsString;
+
+            if Length(ShortCompanyName) > 15 then
+            begin
+              w1 := Parse(ShortCompanyName,' ');
+              w2 := Parse(ShortCompanyName,' ');
+              ShortCompanyName := w1 + ' ' + w2;
+            end;
+
             // -- Add the supplier to the chart
-            Chart1.SeriesList[0].Add(Fields[1].AsFloat, Fields[2].AsString);
+            Chart1.SeriesList[0].Add(Fields[1].AsFloat, ShortCompanyName);
 
             // -- Do a running total
             ItemsInDB := ItemsInDB + Fields[1].AsInteger;

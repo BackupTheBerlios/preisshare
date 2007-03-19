@@ -387,13 +387,13 @@ object ProductdBSearch: TProductdBSearch
       AllowZoom = False
       BackWall.Brush.Color = clWhite
       BackWall.Brush.Style = bsClear
-      BackWall.Color = 8404992
+      BackWall.Color = clGray
       BackWall.Pen.Visible = False
       Title.Text.Strings = (
         'Suppliers Product Database')
       OnClickSeries = Chart1ClickSeries
       AxisVisible = False
-      BackColor = 8404992
+      BackColor = clGray
       ClipPoints = False
       Frame.Visible = False
       View3DOptions.Elevation = 315
