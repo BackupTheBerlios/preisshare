@@ -205,6 +205,12 @@ type
     fActualTax_pc,
     fActualCharges            : Double;
 
+    // -- These are used when a cost price must be reduced from
+    //    a list price.
+    haveListPriceSupplied,
+    haveCostPriceSupplied     : Boolean;
+    SupplierDiscountPercentage : Double;
+
     // -- These variables are for the handling of multiple suppliers
     fHaveSupplierCode       : Boolean;
     fSupplierCodeSQLEncoded,
@@ -305,9 +311,10 @@ type
   	function  LoadExportMapping(MapName: string): Boolean; overload;
 	  function  SaveExportMapping(MapName: string): Boolean;
 
-  	function  LoadSuppliersPricelist(Supplier_ID : Integer): Boolean;
-	  function  LoadPricelist(myDoc: GTDBizDoc): Boolean;
-  	function  LoadfromFile(filename : String): Boolean;
+    function  LoadSuppliersPricelist(Supplier_ID : Integer): Boolean;
+    function  LoadTraderSettings(Supplier_ID : Integer): Boolean;
+    function  LoadPricelist(myDoc: GTDBizDoc): Boolean;
+    function  LoadfromFile(filename : String): Boolean;
 
     procedure ClearSupplierMappings;
     procedure AddSupplierFieldMapping(DatabaseFieldName, PricelistFieldName, SQLFieldFormat : String);
@@ -561,7 +568,7 @@ begin
                 // -- Now load it into our component
                 Result := LoadPricelist(myDoc);
         end;
-        
+
 	finally
 		myDoc.Destroy;
 	end;
@@ -1724,6 +1731,7 @@ var
     PriceCompareField,
     SupplierWhereClause : string;
     noOfRecords       : integer;
+    baselist,baseactual,
     pricelistListPrice,
     pricelistActualPrice,
     CurrentDBPrice: Double;
@@ -1840,14 +1848,25 @@ begin
             ItemProductName := thisProduct.ReadStringField(GTD_PL_ELE_PRODUCT_NAME);
 
             // -- Price adjustment for the Actual price
-            pricelistActualPrice := ((100 + fActualAdjustment_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_ACTUAL,0) / 100) +
+            baseactual := thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_ACTUAL,0);
+            pricelistActualPrice := (fActualAdjustment_pc * baseactual / 100) +
                                   fActualCharges +
-                                  ((100 + fActualTax_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_ACTUAL,0) / 100);
+                                  (fActualTax_pc * baseactual / 100) +
+                                  baseactual;
 
             // -- Price adjustment for the list price
-            pricelistListPrice := ((100 + fListAdjustment_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_LIST,0) / 100) +
+            baselist := thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_LIST,0);
+            pricelistListPrice := (fListAdjustment_pc * baselist / 100) +
                                   fListCharges +
-                                  ((100 + fListTax_pc) * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_LIST,0) / 100);
+                                  (fListTax_pc * thisProduct.ReadNumberField(GTD_PL_ELE_PRODUCT_LIST,0) / 100)
+                                  + baselist;
+
+            // -- Was a supplier discount provided
+            if SupplierDiscountPercentage <> 0 then
+            begin
+              // -- This will use the list price to calculate the sell price 
+              pricelistActualPrice := ((100 - SupplierDiscountPercentage) * pricelistListPrice) / 100;
+            end;
 
             // --
             if CheckingByProductCode then
@@ -1915,6 +1934,10 @@ begin
                         qs := qs + EncodeSQLString(ItemProductName) + ', '
                     else if s = PRICELIST_EXPORTMAP_PRODUCT_CODE then
                         qs := qs + EncodeSQLString(ItemProductCode) + ', '
+                    else if s = PRICELIST_EXPORTMAP_PRODUCT_LIST then
+                        qs := qs + EncodeSQLString(FloatToStr(pricelistListPrice)) + ', '
+                    else if s = PRICELIST_EXPORTMAP_PRODUCT_ACTUAL then
+                        qs := qs + EncodeSQLString(FloatToStr(pricelistActualPrice)) + ', '
                     else if s <> '%NOVALUE' then
                         // -- Here is a big gap of functionality to add..
                         qs := qs + BuildFieldValue(xc,thisproduct) + ', ';
@@ -2791,6 +2814,18 @@ procedure TGTDPricelistExportFrame.btnCancelClick(Sender: TObject);
 begin
     fKeepRunning := False;
     ReportMessage('User Cancelling update run');
+end;
+
+function  TGTDPricelistExportFrame.LoadTraderSettings(Supplier_ID : Integer): Boolean;
+begin
+  // -- Must be able to load up the trader
+  if not fDocRegistry.OpenForTraderNumber(Supplier_ID) then
+    Exit;
+
+  // -- Retrieve the standard discount
+  SupplierDiscountPercentage := 0;
+  fDocRegistry.GetTraderSettingNumber('/Supplier Discounts','Standard_Discount',SupplierDiscountPercentage);
+
 end;
 
 end.

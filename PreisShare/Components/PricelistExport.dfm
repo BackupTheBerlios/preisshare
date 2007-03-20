@@ -677,9 +677,9 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       SkinDataName = 'memo'
     end
     object mmoSQL: TSynMemo
-      Left = 80
+      Left = 8
       Top = 204
-      Width = 200
+      Width = 561
       Height = 133
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText

@@ -802,9 +802,8 @@ var
 
     // -- Finally trim it
     Result := Trim(Result);
-    
-  end;
 
+  end;
 
   function ValidateFirstLine(L : String):Boolean;
   var
@@ -821,7 +820,7 @@ var
       Exit;
 
     Report('Show','Checking Column definitions');
-    
+
     // -- Now we read across the columns and check that all
     //    the column names match exactly
     s := L;
