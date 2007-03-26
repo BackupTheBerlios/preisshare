@@ -22,7 +22,6 @@ type
     mmoOutput: TbsSkinMemo2;
     btnShowPricelist: TbsSkinCheckRadioBox;
     dlgSelectProfile: TbsSkinSelectValueDialog;
-    procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure bsSkinButton1Click(Sender: TObject);
   private
     { Private declarations }
@@ -70,26 +69,13 @@ type
 
 implementation
 uses
-    PricelistGenerate,GTDBuildPricelistFromDBSelect;
+    PricelistGenerate,GTDBuildPricelistFromDBSelect,
+    FastStrings,FastStringFuncs;
 const
-    newline = chr(13) + Chr(10);
+    newline = chr(13);
 
 {$R *.DFM}
 
-//---------------------------------------------------------------------------
-procedure TBuildPricelistFromDBRun.bsSkinSpeedButton1Click(
-  Sender: TObject);
-begin
-    // -- Levels=1
-    // Alias="DBDEMOS"
-    // Level1_Query=select * from Parts
-    // Level1_Tag=Items
-
-//    BizDoc.Definition.Assign(bsSkinMemo1.Lines);
-//    BizDoc.PrepareXML;
-
-    // bsSkinMemo2.Lines.Assign(BizDoc.XML);
-end;
 //---------------------------------------------------------------------------
 procedure TBuildPricelistFromDBRun.Initialise;
 begin
@@ -115,7 +101,7 @@ function TBuildPricelistFromDBRun.ProcessCurrentRecord:Boolean;
 
       case qryGetItems.FieldDefList[dbfieldno].DataType of
 
-          ftBoolean	:   s := '           ' + EncodeBooleanField(fname,qryGetItems.Fields[dbfieldno].Value);
+          ftBoolean :   s := '           ' + EncodeBooleanField(fname,qryGetItems.Fields[dbfieldno].Value);
 
           ftDate,
           ftTime,
@@ -194,9 +180,13 @@ begin
                     Report('Show','Processing ' + fl1_GroupValue);
 
                     // -- Output it, now
-                    fOutputPricelist.XML.Add(g);
                     if btnShowPricelist.Checked then
-                        mmoOutput.Lines.Add(g)
+                        mmoOutput.Lines.Add(g);
+
+                    while Length(g) > 0 do
+                    begin
+                      fOutputPricelist.XML.Add(Parse(g,newline));
+                    end;
 
                 end;
             end
@@ -260,10 +250,17 @@ begin
     // -- Add the closing tag
     s := s + '         </' + GTD_PL_PRODUCTITEM_TAG + '>';
 
-    // -- Now add the lines to the output
-    fOutputPricelist.XML.Add(s);
     if btnShowPricelist.Checked then
         mmoOutput.Lines.Add(S);
+
+    // -- Now add the lines to the output. s is multiline
+    //    so it needs to be parsed otherwise the stringlist
+    //    will get the wrong number of lines and cause
+    //    errors further down the line
+    while Length(s) > 0 do
+    begin
+      fOutputPricelist.XML.Add(Parse(s,newline));
+    end;
 end;
 //---------------------------------------------------------------------------
 function TBuildPricelistFromDBRun.Run:Boolean;
@@ -653,6 +650,7 @@ end;
 function TBuildPricelistFromDBRun.RunCustomerPricelist(Trader_ID : Integer):Boolean;
 var
     s : String;
+    RunTime : TDateTime;
 begin
     s := 'Trader#='+IntToStr(Trader_ID);
 
@@ -664,18 +662,33 @@ begin
 
         if Run then
         begin
-            // -- Open the registry on this trader
-            fDocRegistry.OpenForTraderNumber(Trader_ID);
 
-            // -- Set ownership properties
-            fOutputPricelist.Owned_By := 0;
-            fOutputPricelist.Shared_With := Trader_ID;
+          RunTime := Now;
 
-            // -- Now save this pricelist
-            fDocRegistry.SaveAsLatestPriceList(fOutputPricelist,Now,s);
+          // -- Open the registry on this trader
+          fDocRegistry.OpenForTraderNumber(Trader_ID);
+
+          // -- Set ownership properties
+          fOutputPricelist.Owned_By := 0;
+          fOutputPricelist.Shared_With := Trader_ID;
+
+          // -- Now save this pricelist
+          fDocRegistry.SaveAsLatestPriceList(fOutputPricelist,RunTime,s);
+
+          // -- Save
+          fDocRegistry.SaveTraderSettingDateTime(PL_DELIV_NODE,PL_DELIV_LAST_GEN,RunTime);
+
+//<Pricelist Delivery>
+//  Last_Sent
         end;
 
     end;
 end;
-
+//---------------------------------------------------------------------------
+{function TBuildPricelistFromDBRun.CheckNeedsRebuild(Trader_ID : Integer):Boolean;
+begin
+  // -- To implement: This function should check if
+  Result := True;
+end;
+}
 end.

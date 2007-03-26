@@ -740,7 +740,7 @@ object PricelistGenerator: TPricelistGenerator
           Width = 100
         end
         item
-          Caption = 'Sent'
+          Caption = 'Last Sent'
           Width = 100
         end>
       Font.Charset = DEFAULT_CHARSET

@@ -381,7 +381,6 @@ begin
 
     fCustomerID := aTrader_ID;
 
-    {
     fDocRegistry.SaveSettingString(BldplfrmDbConfigKey,EncodeIntegerField('Trader',aTrader_ID),'');
 
     fDocRegistry.SaveSettingMemoString('/Database','Driver','ADO');
@@ -398,7 +397,6 @@ begin
 
     // -- Last value saves the record
     fDocRegistry.SaveSettingMemoInt('/Mappings','Count',lsvFieldList.Items.Count,True);
-    }
 
     // -- reload up the list of saved mappings
     fDocRegistry.GetSettingItemList(BldplfrmDbConfigKey,cbxConnectionList.Items);

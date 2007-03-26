@@ -299,12 +299,14 @@ begin
 
     //NOW DO IT HERE...
     if (bottom1 > top1) and (bottom2 > top2) then //24-Jan-04
-      result := true else //ie identical arrays
+      result := true
+    else //ie identical arrays
       result := RecursiveDiff(bottom1 -1, bottom2 -1, top1, top2);
 
     //add remaining range buffers onto ChangeList...
     PushAdd; PushDel;
-    if not result then fChangeList.clear;
+    if not result then
+      fChangeList.clear;
   finally
     FreeMem(IntArr_f);
     FreeMem(IntArr_b);

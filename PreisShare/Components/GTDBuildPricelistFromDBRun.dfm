@@ -46,7 +46,6 @@ object BuildPricelistFromDBRun: TBuildPricelistFromDBRun
     ShowCaption = True
     NumGlyphs = 1
     Spacing = 1
-    OnClick = bsSkinSpeedButton1Click
   end
   object pnlBackground: TbsSkinPanel
     Left = 0

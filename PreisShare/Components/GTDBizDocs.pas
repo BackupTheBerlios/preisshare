@@ -57,9 +57,10 @@ type
   GTDProcessingReport = procedure(msgType, msgDescription : String) of object;
   GTDProcessingProgress = procedure(ProgressPercentage : Integer) of object;
 
-  gtDiffType = (	    dtUnified,	            // -- Standard Unix Unified format
-						dtCompact               // -- Compact
-					 );
+  gtDiffType = (dtUnified,              // -- Standard Unix Unified format
+                dtCompact,              // -- Compact
+                dtCheckifDifferent
+ );
 
   // -- Forward definition for our GTDode class
   GTDNode = class;
@@ -70,23 +71,23 @@ type
 	{ Private declarations }
     fDocNumber              :   Integer;
     fDirty                  :   Boolean;
-	fDef,
-	fBody,
-	fParams                 :   TStrings;
+    fDef,
+    fBody,
+    fParams                 :   TStrings;
     fBody_Chg               :   Boolean;
     fFileName               :   String;
 
-	fRemote_Doc_ID          :   Integer;
-	fRemote_Doc_ID_Chg      :   Boolean;
+    fRemote_Doc_ID          :   Integer;
+    fRemote_Doc_ID_Chg      :   Boolean;
     fMsg_ID                 :   String;
     fMsg_ID_Chg             :   Boolean;
     fOwned_By               :   Integer;
     fOwned_By_Chg           :   Boolean;
-	fShared_With            :   Integer;
-	fShared_With_Chg        :   Boolean;
+    fShared_With            :   Integer;
+    fShared_With_Chg        :   Boolean;
     fSystem_Name            :   String;
-	fSystem_Name_Chg        :   Boolean;
-	fDocument_Type          :   String;
+    fSystem_Name_Chg        :   Boolean;
+    fDocument_Type          :   String;
     fDocument_Type_Chg      :   Boolean;
 	fDocument_Ref           :   String;
     fDocument_Ref_Chg       :   Boolean;
@@ -589,6 +590,7 @@ published
     function SaveTraderSettingString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
     function SaveTraderSettingInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean = True):Boolean;
     function SaveTraderSettingNumber(NodePath, ElementName : String; ValueDbl : Double; FinalSave : Boolean = True):Boolean;
+    function SaveTraderSettingDateTime(NodePath, ElementName : String; ValueDateTime : TDateTime; FinalSave : Boolean = True):Boolean;
 
     function ExtractDocDetails(aDocument : GTDBizDoc):String;
 
@@ -611,8 +613,10 @@ published
 		fCipherManager      : TCipherManager;
 		{$ENDIF}
 
-        fDoingPricelistPatches : Boolean;
-        
+    fDoingPricelistPatches : Boolean;
+
+    fOnProcessingReport : GTDProcessingReport;
+
 		{$IFDEF LIGHTWEIGHT}
 		fTradalogDir,
 		fDocumentDir,
@@ -662,10 +666,11 @@ published
     property SysVals : TTable read fSysValTbl write fSysValTbl;
     property Documents : TTable read fDocTbl write fDocTbl;
 		{$ENDIF}
+    property OnProcessingReport : GTDProcessingReport read fOnProcessingReport write fOnProcessingReport;
 	public
-		{$IFDEF LIGHTWEIGHT}    // -- not nice but neccesary for the ClientConnector
 		fStorage            : GTDBizDoc;
-		{$ENDIF}
+
+    procedure Report(msgType, msgDescription : String);
 
   end;
 
@@ -1149,6 +1154,10 @@ const
 	GTD_ORDER_TYPE              = 'Purchase Order';
 	GTD_INVOICE_TYPE            = 'Invoice';
 	GTD_PRICELIST_PATCH_TYPE    = 'Pricelist_Patch';
+
+  // -- Configuration keys
+  BldCustomplfrmDbKey         = 'Pricelist Build Map'; // This specifies a custom pricelist build
+
 
     // ---------------------------------------------------------------------
     //
@@ -5435,7 +5444,7 @@ var
     optIgnoreCase,optIgnoreBlanks : Boolean;
     HashList1,HashList2: TList;
     Lines1, Lines2     : TStrings;
-	i: integer;
+    i: integer;
     optionsStr: string;
     Diff : TDiff;
 
@@ -5444,13 +5453,13 @@ var
         xc,xd,xe,
         clines : Integer;
         CompactOutput : Boolean;
-    begin
+        begin
         if (OutFormat = 'C') then
         begin
             // -- Compact format has no context
             CompactOutput := True;
             clines := 0;
-		end
+        end
         else begin
             // -- Unified format has 3 context lines
             CompactOutput := False;
@@ -5458,12 +5467,12 @@ var
         end;
 
         // -- Process all the changes
-		for xc := 1 to Diff.ChangeCount do
+        for xc := 1 to Diff.ChangeCount do
         begin
             with Diff.Changes[xc-1] do
             begin
                 case Kind of
-					ckAdd    : begin
+                  ckAdd    : begin
                                 PatchOutput.Add('@@ -' + IntToStr(x) + ',' + IntToStr((clines*2)) +
                                                   ' +' + IntToStr(y) + ',' + IntToStr((clines*2)+Range) + ' @@');
                                 // -- Context (but must be enough lines at start)
@@ -5480,20 +5489,20 @@ var
                                     if ((y+xe+Range-1) < Lines2.Count) then
                                         PatchOutput.Add(' ' + Lines2[y+xe+Range-1]);
 
-							   end;
-                    ckDelete : begin
-								PatchOutput.Add('@@ -' + IntToStr(x-clines+1) + ', +' + IntToStr(y) + ' @@');
+                  end;
+                  ckDelete : begin
+                                PatchOutput.Add('@@ -' + IntToStr(x-clines+1) + ', +' + IntToStr(y) + ' @@');
                                 // -- Context
                                 for xe := 1 to clines do
                                     PatchOutput.Add(' ' + Lines1[x+xe-clines-1]);
 
                                 // -- The lines to be deleted
-								for xd := 1 to Range do
+                                for xd := 1 to Range do
                                     PatchOutput.Add('-' + Lines1[x+xd-1]);
 
                                 // -- Context
                                 for xe := 1 to clines do
-									PatchOutput.Add(' ' + Lines1[x+xe+Range-1]);
+                                  PatchOutput.Add(' ' + Lines1[x+xe+Range-1]);
 
                                end;
                     ckModify : begin
@@ -5531,12 +5540,13 @@ begin
 
     // -- Set these defaults
     optIgnoreCase   := False;
-    optIgnoreBlanks := False;
+    optIgnoreBlanks := True;
 
     // -- Use Lines1 and Lines2 to make it easier
     Lines1 := InputList;
     Lines2 := XML;
-
+    PatchOutput.Clear;
+    
     // -- This function will build a patch
 
     Diff := TDiff.create(self);
@@ -5545,37 +5555,36 @@ begin
     HashList2 := TList.create;
 
     try
-    //  Create the hash lists used to compare line differences.
-    //  nb - there is a small possibility of different lines hashing to the
-    //  same value. However the probability of an invalid match occuring
-    //  in proximity to its invalid partner is remote. Ideally, these hash
-    //  collisions should be managed by ? incrementing the hash value.
-    HashList1.capacity := Lines1.Count;
-    HashList2.capacity := Lines2.Count;
-    for i := 0 to Lines1.Count-1 do
-        HashList1.add(HashLine(Lines1[i],optIgnoreCase,optIgnoreBlanks));
-    for i := 0 to Lines2.Count-1 do
-        HashList2.add(HashLine(Lines2[i],optIgnoreCase,optIgnoreBlanks));
 
-    // -- CALCULATE THE DIFFS HERE ...
-    if Diff.Execute(DiffUnit.PIntArray(HashList1.List),DiffUnit.PIntArray(HashList2.List),HashList1.count, HashList2.count) then
-    begin
+      //  Create the hash lists used to compare line differences.
+      //  nb - there is a small possibility of different lines hashing to the
+      //  same value. However the probability of an invalid match occuring
+      //  in proximity to its invalid partner is remote. Ideally, these hash
+      //  collisions should be managed by ? incrementing the hash value.
+      HashList1.capacity := Lines1.Count;
+      HashList2.capacity := Lines2.Count;
+      for i := 0 to Lines1.Count-1 do
+          HashList1.add(HashLine(Lines1[i],optIgnoreCase,optIgnoreBlanks));
+      for i := 0 to Lines2.Count-1 do
+          HashList2.add(HashLine(Lines2[i],optIgnoreCase,optIgnoreBlanks));
 
-        if Diff.ChangeCount <> 0 then
-        begin
+      // -- CALCULATE THE DIFFS HERE ...
+      Diff.Execute(DiffUnit.PIntArray(HashList1.List),DiffUnit.PIntArray(HashList2.List),HashList1.count, HashList2.count);
 
-            if (DiffType = dtUnified) then
-                OutputDiffs('U')
-            else
-                OutputDiffs('C');
+      if Diff.ChangeCount > 0 then
+      begin
 
-            // -- Yes there was some difference in the files
-            Result := True;
-        end
-        else
-            // -- No there was no differences
-            Result := False;
-    end;
+          if (DiffType = dtUnified) then
+              OutputDiffs('U')
+          else if (DiffType = dtCompact) then
+              OutputDiffs('C');
+
+          // -- Yes there was some difference in the files
+          Result := True;
+      end
+      else
+          // -- No there was no differences
+          Result := False;
 
 	finally
       HashList1.Free;
@@ -5972,7 +5981,7 @@ begin
 
             Statement.Clear;
 
-			// -- Load the contents
+            // -- Load the contents
             Statement.XML.Assign(aMemo);
 
             // -- We assume that it worked
@@ -6115,7 +6124,7 @@ end;
 // ----------------------------------------------------------------------------
 function GTDDocumentRegistry.GetLatestPriceList(var PriceList : GTDBizDoc):Boolean;
 var
-	qryFindPriceList : TQuery;
+  qryFindPriceList : TQuery;
 
 	aMemo : TMemoField;
 begin
@@ -6132,7 +6141,7 @@ begin
 		begin
 			// -- Build the SQL
 			SQL.Add('select');
-			SQL.Add('	' + GTD_DB_DOC_DOC_ID + ', ' + GTD_DB_DOC_DATE);
+			SQL.Add('	' + GTD_DB_DOC_DOC_ID + ', ' + GTD_DB_DOC_DATE + ', ' + GTD_BodyFieldname);
 			SQL.Add('from');
 			SQL.Add('	Trader_Documents');
 			SQL.Add('where');
@@ -6150,25 +6159,24 @@ begin
 			if not Eof then
 			begin
 
-				Result := Load(FieldByName(GTD_DB_DOC_DOC_ID).AsInteger,PriceList);
+        // -- Store the document number
+        fPricelistDocNum := FieldByName(GTD_DB_DOC_DOC_ID).AsInteger;
 
-				// -- Store the time
-				fPricelistDateTime := FieldByName(GTD_DB_DOC_DATE).AsFloat;
+        // -- Store the time
+        fPricelistDateTime := FieldByName(GTD_DB_DOC_DATE).AsFloat;
 
-				// -- Store the document number
-				fPricelistDocNum := FieldByName(GTD_DB_DOC_DOC_ID).AsInteger;
+        // -- Load the document and return the result
+        Result := Load(fPricelistDocNum,PriceList);
 
-				// -- We assume that it worked
-				Result := True;
-			end
-			else
-				// -- Do something - but what ?
-				;
+      end
+      else
+        // -- Do something - but what ?
+        ;
 
-		end;
-	finally
-		qryFindPriceList.Destroy;
-	end;
+    end;
+  finally
+    qryFindPriceList.Destroy;
+  end;
 end;
 
 //---------------------------------------------------------------------------
@@ -6187,7 +6195,7 @@ end;
 // ----------------------------------------------------------------------------
 function GTDDocumentRegistry.SaveAsLatestPriceList(PriceList : GTDBizDoc; PriceListDateTime : TDateTime; var LogText : String; Validate : Boolean):Boolean;
 var
-    PurgeThem : Boolean;
+    PurgeThem,hasChanged : Boolean;
     s : String;
     rc,dno : Integer;
     lastPricelist : GTDBizDoc;
@@ -6477,16 +6485,36 @@ begin
 
             PriceDiffs := TStringList.Create;
 
-            // -- Build a diff for it
-            if fDoingPricelistPatches then
+            if not fDoingPricelistPatches then
             begin
-                lastPriceList.XML.SaveToFile('old.txt');
-                Pricelist.XML.SaveToFile('new.txt');
 
-                if (Pricelist.BuildPatch(lastPriceList.XML,PriceDiffs,dtUnified)) then
+              // -- lets do Some tests
+              lastPricelist.XML.Assign(Pricelist.xml);
+
+              hasChanged := Pricelist.BuildPatch(lastPriceList.XML,PriceDiffs,dtCheckifDifferent);
+
+              // -- haschanged should be false
+              GetLatestPriceList(lastPricelist);
+
+              hasChanged := Pricelist.BuildPatch(lastPriceList.XML,PriceDiffs,dtCheckifDifferent);
+
+              if hasChanged then
+              begin
+                Pricelist.BuildPatch(lastPriceList.XML,PriceDiffs,dtCompact);
+
+//                lastPriceList.XML.SaveToFile('1.txt');
+//                PriceList.XML.SaveToFile('2.txt');
+
+//                PriceDiffs.SaveToFile('diffs.txt');
+              end;
+            end
+            else begin
+                // -- Build a diff for it
+                hasChanged := Pricelist.BuildPatch(lastPriceList.XML,PriceDiffs,dtUnified);
+                if hasChanged then
                 begin
 
-                    PriceDiffs.SaveToFile('diffs.txt');
+//                  PriceDiffs.SaveToFile('diffs.txt');
 
                     // -- This saves the pricelist into the document table
                     with fDocTbl do
@@ -6518,54 +6546,60 @@ begin
 
             PriceDiffs.Destroy;
 
-        end;
+        end
+        else
+          // -- There was no old pricelist
+          hasChanged := True;
+
         lastPricelist.Destroy;
 
-   		PurgeOldPricelists;
-
-        // -- This saves the pricelist into the document table
-        with fDocTbl do
+        if hasChanged then
         begin
+          PurgeOldPricelists;
 
-            // -- Write to the database
-            aMemo := TMemoField(FieldByName(GTD_BodyFieldname));
+          // -- This saves the pricelist into the document table
+          with fDocTbl do
+          begin
 
-            Append;
-            if (Pricelist.Owned_By = 0) and (Pricelist.Shared_With <> 0) then
-            begin
-                FieldByName(GTD_DB_DOC_OWNER).AsInteger := 0;
-                FieldByName(GTD_DB_DOC_USER).AsInteger := fRemoteTraderID;
-            end
-            else begin
-                FieldByName(GTD_DB_DOC_OWNER).AsInteger := fRemoteTraderID;
-                FieldByName(GTD_DB_DOC_USER).AsInteger := 0;
-            end;
-            FieldByName(GTD_DB_DOC_TYPE).AsString := GTD_PRICELIST_TYPE;
-            FieldByName(GTD_DB_DOC_REFERENCE).AsString := 'Pricelist stored ' + FormatDateTime('c',Date);
-            FieldByName(GTD_DB_DOC_SYSTEM).AsString := 'STANDARD';
-            FieldByName(GTD_DB_DOC_DATE).AsFloat := PriceListDateTime;
-			FieldByName(GTD_DB_DOC_UPDATEFLAG).AsString := '=';
-            FieldByName(GTD_DB_DOC_LOCSTAT).AsString := 'Current';
-            FieldByName(GTD_DB_DOC_REMSTAT).AsString := 'Sent';
+              // -- Write to the database
+              aMemo := TMemoField(FieldByName(GTD_BodyFieldname));
 
-			// -- Write the memo
-            aMemo.Assign(PriceList.XML);
+              Append;
+              if (Pricelist.Owned_By = 0) and (Pricelist.Shared_With <> 0) then
+              begin
+                  FieldByName(GTD_DB_DOC_OWNER).AsInteger := 0;
+                  FieldByName(GTD_DB_DOC_USER).AsInteger := fRemoteTraderID;
+              end
+              else begin
+                  FieldByName(GTD_DB_DOC_OWNER).AsInteger := fRemoteTraderID;
+                  FieldByName(GTD_DB_DOC_USER).AsInteger := 0;
+                  FieldByName(GTD_DB_DOC_REMSTAT).AsString := 'Sent';
+              end;
+              FieldByName(GTD_DB_DOC_TYPE).AsString := GTD_PRICELIST_TYPE;
+              FieldByName(GTD_DB_DOC_REFERENCE).AsString := 'Pricelist stored ' + FormatDateTime('c',Date);
+              FieldByName(GTD_DB_DOC_SYSTEM).AsString := 'STANDARD';
+              FieldByName(GTD_DB_DOC_DATE).AsFloat := PriceListDateTime;
+              FieldByName(GTD_DB_DOC_UPDATEFLAG).AsString := '=';
+              FieldByName(GTD_DB_DOC_LOCSTAT).AsString := 'Current';
 
-            Post;
+              // -- Write the memo
+              aMemo.Assign(PriceList.XML);
 
-            LogText := LogText + 'Pricelist saved.' + #13;
+              Post;
+
+              LogText := LogText + 'Pricelist saved.' + #13;
+          end;
+
+          // -- Now we have to possibly update all the trader details with those
+          //    found in the catalog
+          if (Pricelist.Owned_By <> 0) then
+          begin
+              // -- Update the database from the pricelist details
+              UpdateTraderDetails;
+
+              UpdateTraderCategories(Pricelist.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_SELL_CATEGORIES));
+          end;
         end;
-
-        // -- Now we have to possibly update all the trader details with those
-        //    found in the catalog
-        if (Pricelist.Owned_By <> 0) then
-        begin
-            // -- Update the database from the pricelist details
-            UpdateTraderDetails;
-
-            UpdateTraderCategories(Pricelist.GetStringElement(GTD_PL_VENDORINFO_NODE,GTD_PL_ELE_SELL_CATEGORIES));
-        end;
-		// -- Finally, update the categories with those found in the pricelist
 
     {$ENDIF} // Windows
     Result := True;
@@ -7473,6 +7507,40 @@ begin
       fTraderTbl.Post;
 end;
 
+function GTDDocumentRegistry.SaveTraderSettingDateTime(NodePath, ElementName : String; ValueDateTime : TDateTime; FinalSave : Boolean = True):Boolean;
+var
+    tempDoc : GTDBizDoc;
+begin
+  Result := False;
+
+  // -- This function only works when the table is open
+  if not fTraderTbl.Active then
+  begin
+    Exit;
+  end;
+
+  // -- Put the record into Edit mode
+  if not (fTraderTbl.State in [dsEdit]) then
+  begin
+    fTraderTbl.Edit;
+  end;
+  tempDoc := GTDBizDoc.Create(Self);
+
+  // -- Read the whole memo into memory
+  tempDoc.XML.Assign(TMemoField(fTraderTbl.FieldByName('SETTINGS')));
+
+  // -- Change the required element
+  Result := tempDoc.SetDateElement(NodePath, ElementName, ValueDateTime);
+
+  // -- Write the whole thing back
+  TMemoField(fTraderTbl.FieldByName('SETTINGS')).Assign(tempDoc.XML);
+
+  tempDoc.Destroy;
+
+  // -- If the record must be saved then do so
+  if FinalSave then
+      fTraderTbl.Post;
+end;
 //---------------------------------------------------------------------------
 function GetTempDir:String;
 var
@@ -11568,8 +11636,14 @@ begin
 	fKeyTbl.FieldByName('Key_Value').AsString := LoPowerEncrypt(Password);
 	fKeyTbl.Post;
 	{$ENDIF}
-	
+
 	Result := True;
+end;
+//---------------------------------------------------------------------
+procedure GTDDocumentRegistry.Report(msgType, msgDescription : String);
+begin
+  if Assigned(fOnProcessingReport) then
+    fOnProcessingReport(msgType,msgDescription);
 end;
 //---------------------------------------------------------------------
 function BuildTraderAddress(a1, a2, city, state, postcode, countrycode, tel1, tel2, acn : String):String;

@@ -137,7 +137,7 @@ const
   PL_DELIV_FREQ_DAILY   = 'Daily';
   PL_DELIV_FREQ_WEEKLY  = 'Weekly';
   PL_DELIV_FREQ_FORTNIGHT = 'Fortnightly';
-  PL_DELIV_LAST_RUN     = 'Last_Run';
+  PL_DELIV_LAST_GEN     = 'Last_Generated';
   PL_DELIV_LAST_SENT    = 'Last_Sent';
   PL_DELIV_MECHANISM    = 'Delivery_Mechanism';
   PL_DELIV_MECH_FTP     = 'FTP';
@@ -317,20 +317,44 @@ begin
 
         // -- Last run
         v := '';
-        fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_RUN,v);
+        fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_GEN,v);
         if v = '' then
         begin
             dt := fDocRegistry.GetLatestPriceListDateTime;
             if (dt = 0) then
                 v := 'Never'
-            else
-                v := DateTimeToStr(dt);
+            else begin
+              // -- We got a value, so convert it
+              if MinuteSpan(Now,dt) < 60 then
+                v := Format('%f minutes',[MinuteSpan(Now,dt)])
+              else if Round(dt)=Today then
+                v := Format('%f hours',[HourSpan(Now,dt)])
+              else if Round(dt)=Today-1 then
+                v := 'Yesterday'
+              else
+                v := Format('%f days',[DaySpan(Now,dt)]);
+            end;
         end;
         newItem.SubItems.Add(v);
 
         // -- Last sent
         v := '';
         fDocRegistry.GetTraderSettingString(PL_DELIV_NODE,PL_DELIV_LAST_SENT,v);
+        if v <> '' then
+        begin
+          dt := StrToDateTime(v);
+
+          // -- We got a value, so convert it
+          if MinuteSpan(Now,dt) < 60 then
+            v := Format('%f minutes',[MinuteSpan(Now,dt)])
+          else if Round(dt)=Today then
+            v := Format('%f hours',[HourSpan(Now,dt)])
+          else if Round(dt)=Today-1 then
+            v := 'Yesterday'
+          else
+            v := Format('%f days',[DaySpan(Now,dt)]);
+        end;
+        
         newItem.SubItems.Add(v);
 
         newItem.SubItems.Add(FieldByName(GTD_DB_COL_TRADER_ID).AsString);
@@ -486,6 +510,10 @@ begin
       fLatestpl := GTDPricelist.Create(Self)
     else
       fLatestpl.Clear;
+
+    // -- Here we need to check if we need to regenerate
+    //    See if it is on the custom pricelist generation list
+
 
     // -- Retrieve the Customers latest pricelist
     if not fDocRegistry.GetLatestPriceList(GTDBizDoc(fLatestpl))then
