@@ -362,7 +362,6 @@ function TBuildPricelistFromDBRun.Run:Boolean;
 var
     reccount,recsavail : Integer;
 begin
-
     // -- Setup the connection
     ADOConnection1.Connected := False;
 

@@ -199,6 +199,7 @@ begin
             Configuration := fplBuildConfig;
             DocRegistry := fDocRegistry;
         end;
+        fplBuilder.Initialise;
     end;
 
     fSendToAll := False;
@@ -484,7 +485,7 @@ function TPricelistGenerator.SendToTrader(Trader_ID : Integer; ForcedSend : Bool
   end;
 
 var
-  sFormat,sColName,sColumns,sFileName , sFrequency , sLastSent, sDelType: String;
+  s,sFormat,sColName,sColumns,sFileName , sFrequency , sLastSent, sDelType: String;
   dLastSent: TDateTime;
   fTimeDiff : Double;
   i,xd, iColCount : Integer;
@@ -513,7 +514,11 @@ begin
 
     // -- Here we need to check if we need to regenerate
     //    See if it is on the custom pricelist generation list
-
+    if fDocRegistry.GetSettingString(BldCustomplfrmDbKey,'Trader#='+IntToStr(Trader_ID),s) then
+    begin
+      // --
+      fplBuilder.RunCustomerPricelist(Trader_ID);
+    end;
 
     // -- Retrieve the Customers latest pricelist
     if not fDocRegistry.GetLatestPriceList(GTDBizDoc(fLatestpl))then

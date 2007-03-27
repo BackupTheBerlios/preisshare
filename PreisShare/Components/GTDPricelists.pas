@@ -70,6 +70,8 @@ type
       procedure ExportAsStandardCSV(aFilename,columnList : String; ShowHeadings : Boolean = True);
       procedure ExportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String; Headings : Boolean = True);
       function  ImportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String):Boolean;
+      function  GetCustomerSpecifiedCSVFieldMap(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; var FieldMap : String):Boolean;
+      function  SaveCustomerSpecifiedCSVFieldMap(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; FieldMap : String):Boolean;
 
       procedure BuildFieldLookupList(sl : TStrings);
 
@@ -756,6 +758,84 @@ begin
     end;
 end;
 
+function GTDPricelist.GetCustomerSpecifiedCSVFieldMap(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; var FieldMap : String):Boolean;
+var
+  xc,cc : Integer;
+  n,r,elename,cname : String;
+begin
+  if not aRegistry.OpenForTraderNumber(Trader_ID) then
+    Exit;
+
+  // -- Retrieve the number of columns
+  if aRegistry.GetTraderSettingInt('/CSV Pricelist Input','Column_Count',cc) then
+  begin
+    r := '';
+    for xc := 1 to cc do
+    begin
+
+      // -- Retrieve the definition for each column
+      n := '/CSV Pricelist Input/Column ' + IntToStr(xc);
+
+      aRegistry.GetTraderSettingString(n,'Column_Name',cname);
+      aRegistry.GetTraderSettingString(n,'Element_Name',elename);
+
+      // -- Put the column name along with the element name
+      r := r + cname + '=' + elename + ';';
+
+    end;
+
+    // -- Chop the last delimiter
+    if Length(r) <> 0 then
+      r := LeftStr(r,Length(r)-1);
+
+    FieldMap := r;
+
+    Result := True;
+  end;
+end;
+
+function GTDPricelist.SaveCustomerSpecifiedCSVFieldMap(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; FieldMap : String):Boolean;
+var
+  xc,cc : Integer;
+  n,r,s,elename,cname : String;
+begin
+  if not aRegistry.OpenForTraderNumber(Trader_ID) then
+    Exit;
+
+  // -- Determine how many field mappings are present
+  r := FieldMap;
+  cc := 0;
+  while r <> '' do
+  begin
+    n := Parse(r,';');
+    Inc(cc);
+  end;
+
+  // -- Retrieve the number of columns
+  if aRegistry.SaveTraderSettingInt('/CSV Pricelist Input','Column_Count',cc) then
+  begin
+    r := FieldMap;
+    for xc := 1 to cc do
+    begin
+
+      // -- Extract out the next field
+      s := Parse(r,';');
+
+      // -- Now split up the field
+      cname := Parse(s,'=');
+      elename := s;
+
+      // -- Retrieve the definition for each column
+      n := '/CSV Pricelist Input/Column ' + IntToStr(xc);
+
+      aRegistry.SaveTraderSettingString(n,'Column_Name',cname);
+      aRegistry.SaveTraderSettingString(n,'Element_Name',elename);
+
+    end;
+
+    Result := True;
+  end;
+end;
 
 function GTDPricelist.ImportAsCustomerSpecifiedCSV(aRegistry : GTDDocumentRegistry; Trader_ID : Integer; aFilename : String):Boolean;
 var
