@@ -7,7 +7,7 @@ uses
   bsSkinData, BusinessSkinForm, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls,
   ComCtrls, bsMessages, GTDProductDBSearch, Db, DBTables,
   Grids, DBGrids, ADODB, FMTBcd, SqlExpr, GTDBizDocs, bsDialogs,
-  bsSkinShellCtrls, GTDPricelists;
+  bsSkinShellCtrls, GTDPricelists, GTDCollectSupplierPricelists;
 
 type
   TfrmMain = class(TForm)
@@ -39,12 +39,15 @@ type
   public
     { Public declarations }
     productDB : TProductdBSearch;
+
 //    procedure Search;
 
     OurPriceList : GTDPricelist;
     OurRelayList : GTDBizDoc;
 
     procedure UpdateSellPrices(Sender : TObject);
+    procedure AddItemToQuote(Sender: TObject);
+
   end;
 
 var
@@ -52,7 +55,7 @@ var
 
 implementation
 
-uses SpreadSheetImport, UpdateSellPrices, ColumnParams;
+uses SpreadSheetImport, UpdateSellPrices, ColumnParams, AddToQuote;
 
 {$R *.DFM}
 
@@ -158,12 +161,16 @@ begin
     productDB.mnuImport.OnClick := DocRegistryClick;
     productDB.mnuUpdateSellPrices.OnClick := UpdateSellPrices;
     productDB.mnuSelectColumns.OnClick := SelectDisplayColumns;
+    productDB.mnuAddtoCustomerQuote.OnClick := AddItemToQuote;
 
     ActiveControl := productDB.txtSearchText;
 
     OurPricelist := GTDPricelist.Create(Self);
     OurRelayList := GTDBizDoc.Create(Self);
 
+    // -- Manually load the skindata
+    dlgOpenFile.SkinData := bsSkinData1;
+    dlgOpenFile.CtrlSkinData := bsSkinData1;
 end;
 
 procedure TfrmMain.DocRegistryClick(Sender: TObject);
@@ -201,6 +208,17 @@ begin
   end;
 
 end;
+
+procedure TfrmMain.AddItemToQuote(Sender: TObject);
+begin
+  if not Assigned(frmQuote) then
+    Application.CreateForm(TfrmQuote, frmQuote);
+
+  frmQuote.QuoteFromData;
+
+  frmQuote.ShowModal;
+end;
+
 
 procedure TfrmMain.FormDblClick(Sender: TObject);
 begin

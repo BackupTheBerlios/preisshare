@@ -29485,7 +29485,9 @@ object frmMain: TfrmMain
     DefaultFont.Name = 'Arial'
     DefaultFont.Style = []
     Title = 'Open file'
-    Filter = 'All files|*.*'
+    Filter = 
+      'Text files (*.csv)|*.CSV|Spreadsheet files (*.xls)|*.XLS|All Fil' +
+      'es|*.*'
     FilterIndex = 1
     Left = 216
     Top = 88

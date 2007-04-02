@@ -17,7 +17,10 @@ uses
   UpdateSellPrices in 'UpdateSellPrices.pas' {frmUpdateSellPrices},
   EDBImage in '..\Components\edbimage\EDBImage.pas',
   Relay in 'Relay.pas' {frmRelayOptions},
-  ColumnParams in 'ColumnParams.pas' {Form1};
+  ColumnParams in 'ColumnParams.pas' {Form1},
+  GTDCollectSupplierPricelists in '..\Components\GTDCollectSupplierPricelists.pas' {CollectPricelistFrame: TFrame},
+  AddToQuote in 'AddToQuote.pas' {frmQuote},
+  PrintQuoteToPDF in 'PrintQuoteToPDF.pas' {rptPrintQuoteToPDF};
 
 {$R *.RES}
 
@@ -27,6 +30,7 @@ begin
   Application.CreateForm(TfrmMain, frmMain);
   Application.CreateForm(TfrmUpdateSellPrices, frmUpdateSellPrices);
   Application.CreateForm(TfrmRelayOptions, frmRelayOptions);
-//  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TrptPrintQuoteToPDF, rptPrintQuoteToPDF);
+  //Application.CreateForm(TForm1, Form1);
   Application.Run;
 end.
