@@ -8,7 +8,7 @@ uses
   BusinessSkinForm, Menus, ComCtrls, StdCtrls, Mask, bsSkinBoxCtrls,
   Dialogs, bsSkinTabs, ExtCtrls, DB, DBTables,
   bsdbctrls, bsSkinMenus, DBCtrls,EDBImage, bsDialogs,
-  GTDPricelists;
+  GTDPricelists, ImgList, bsSkinShellCtrls;
 
 type
   TProductDetails = class(TFrame)
@@ -26,7 +26,6 @@ type
     lblProductName: TbsSkinLabel;
     dbeProductDescription: TbsSkinDBMemo2;
     lblDescription: TbsSkinLabel;
-    lblPicture: TbsSkinLabel;
     lblCostPrice: TbsSkinLabel;
     lblSellPrice: TbsSkinLabel;
     lblBrand: TbsSkinLabel;
@@ -37,7 +36,6 @@ type
     bsSkinStdLabel1: TbsSkinStdLabel;
     mnuPictureOptions: TbsSkinPopupMenu;
     ClearPicture1: TMenuItem;
-    Copy1: TMenuItem;
     Paste1: TMenuItem;
     LoadfromFile1: TMenuItem;
     SavetoFile1: TMenuItem;
@@ -58,16 +56,27 @@ type
     txtOurName: TbsSkinEdit;
     txtOurDescription: TbsSkinMemo;
     rdoItemRelayStatus: TbsSkinRadioGroup;
+    bsSkinMenuSpeedButton1: TbsSkinMenuSpeedButton;
+    ImageList1: TImageList;
+    dlgLoadPicture: TbsSkinOpenPictureDialog;
+    dlgSavePicture: TbsSkinSavePictureDialog;
+    Copy1: TMenuItem;
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure lblPictureClick(Sender: TObject);
     procedure rdoItemRelayStatusClick(Sender: TObject);
     procedure nbkProductInfoChanging(Sender: TObject;
       var AllowChange: Boolean);
     procedure rdoItemRelayStatusChecked(Sender: TObject);
+    procedure ClearPicture1Click(Sender: TObject);
+    procedure LoadfromFile1Click(Sender: TObject);
+    procedure Paste1Click(Sender: TObject);
+    procedure SavetoFile1Click(Sender: TObject);
+    procedure Copy1Click(Sender: TObject);
   private
     { Private declarations }
     fSkinData: TbsSkinData;
     fProductImage : TEDBImage;
+    fCursor : TQuery;
 
     procedure SetSkinData(Value: TbsSkinData); {override;}
 
@@ -77,7 +86,7 @@ type
   public
     { Public declarations }
     MainPricelist : GTDPricelist;
-    
+
     procedure Initialise;
 
     procedure DisplayItem(ProductCursor : TQuery);
@@ -85,6 +94,7 @@ type
 
   published
     property SkinData: TbsSkinData read fSkinData write SetSkinData;
+    property ProductImage : TEDBImage read fProductImage;
   end;
 
 implementation
@@ -118,7 +128,6 @@ begin
   lblProductName.SkinData := Value;
   dbeProductDescription.SkinData := Value;
   lblDescription.SkinData := Value;
-  lblPicture.SkinData := Value;
   lblCostPrice.SkinData := Value;
   lblSellPrice.SkinData := Value;
   lblBrand.SkinData := Value;
@@ -127,14 +136,15 @@ begin
   dbeModel.SkinData := Value;
   pnlPicture.SkinData := Value;
   mnuPictureOptions.SkinData := Value;
+  bsSkinMenuSpeedButton1.SkinData := Value;
 
   // -- Relay parameters page
   rdoItemRelayStatus.SkinData := Value;
 //  rdoItemRelaySource.SkinData := Value;
-  lstItemRelayGroup.SkinData := Value;
 //  txtItemRelayPercentage.SkinData := Value;
-  lblItemRelayGroup.SkinData := Value;
 //  lblItemRelayPercentage.SkinData := Value;
+  lstItemRelayGroup.SkinData := Value;
+  lblItemRelayGroup.SkinData := Value;
   btnItemRelayUpdate.SkinData := Value;
   btnItemRelayCancel.SkinData := Value;
 
@@ -148,6 +158,13 @@ begin
 
   dlgAddProductGroup.CtrlSkinData := Value;
   dlgAddProductGroup.SkinData := Value;
+
+  dlgLoadPicture.SkinData := Value;
+  dlgLoadPicture.CtrlSkinData := Value;
+
+  dlgSavePicture.SkinData := Value;
+  dlgSavePicture.CtrlSkinData := Value;
+  
 end;
 
 procedure TProductDetails.Initialise;
@@ -163,6 +180,7 @@ begin
     Visible := True;
     Color := 5318157;
     PopupMenu := mnuPictureOptions;
+    Stretch := True;
   end;
 end;
 
@@ -199,6 +217,8 @@ begin
   // -- Make sure that the right page is selected
   nbkProductInfo.ActivePage := tbsBasic;
 
+  fCursor := ProductCursor;
+  
 end;
 
 procedure TProductDetails.bsSkinSpeedButton1Click(Sender: TObject);
@@ -268,7 +288,7 @@ procedure TProductDetails.LoadRelayInfo;
 begin
   if not Assigned(MainPricelist) then
      Exit;
-     
+
   if FileExists(GTD_CURRENT_PRICELIST) then
     MainPricelist.LoadFromFile(GTD_CURRENT_PRICELIST)
   else
@@ -287,6 +307,45 @@ procedure TProductDetails.rdoItemRelayStatusChecked(Sender: TObject);
 begin
   tbsRelay.Enabled := rdoItemRelayStatus.ItemIndex = 1;
 
+end;
+
+procedure TProductDetails.ClearPicture1Click(Sender: TObject);
+begin
+  // -- Put the recordset into edit mode
+  if not (fCursor.State in [dsInsert,dsEdit]) then
+    fCursor.Edit;
+
+  fCursor.FieldByName('Picture').Clear;
+end;
+
+procedure TProductDetails.LoadfromFile1Click(Sender: TObject);
+begin
+  // --
+  if dlgLoadPicture.Execute then
+  begin
+     // -- Load up the selected imageage
+     fProductImage.LoadFromFile(dlgLoadPicture.FileName);
+  end;
+end;
+
+procedure TProductDetails.Paste1Click(Sender: TObject);
+begin
+  // -- Paste the picture from the clipboard
+  fProductImage.PasteFromClipboard;
+end;
+
+procedure TProductDetails.SavetoFile1Click(Sender: TObject);
+begin
+  // -- Now save the picture to a file
+  if dlgSavePicture.Execute then
+  begin
+    fProductImage.SaveToFile(dlgSavePicture.FileName);
+  end;
+end;
+
+procedure TProductDetails.Copy1Click(Sender: TObject);
+begin
+  fProductImage.CopyToClipboard;
 end;
 
 end.

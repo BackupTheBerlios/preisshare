@@ -7,12 +7,25 @@ uses
   ComCtrls, bsSkinCtrls, StdCtrls, Mask, bsSkinBoxCtrls, bsSkinData, Db,
   bsSkinGrids, bsDBGrids, DDB, DTables, DMaster, DBTables, ADODB,GTDBizDocs,
   TeEngine, Series, ExtCtrls, TeeProcs, Chart, Buttons, Windows, Menus,
-  bsSkinMenus,GTDProductDetails, bsDialogs, bsdbctrls, bsMessages;
+  bsSkinMenus,GTDProductDetails, GTDCollectSupplierPricelists,
+  bsDialogs, bsdbctrls, bsMessages, ImgList, bsSkinShellCtrls;
 
 const
     DBTYPE_ADO   = 1;
     DBTYPE_MYSQL = 2;
     DBTYPE_IB    = 3;
+
+    PLU_Col = 'VendorProductID';
+    PName_Col = 'ProductName';
+    PDesc_Col = 'ProductDescription';
+    PCostPrice = 'OurBuyingPrice';
+    PSellPrice = 'OurSellingPrice';
+    PProdTblName = 'Products';
+    PBrandTblName = 'Brands';
+    PBrandBrandName = 'Brand_Name';
+    PSupplierTblName = 'Suppliers';
+    PSupplierIDCol = 'SupplierID';
+    PSupplierNameCol = 'CompanyName';
 
 type
   TProductSearchDisplayEvent = procedure (DisplayMsg : String) of object;
@@ -20,7 +33,7 @@ type
   TProductdBSearch = class(TFrame)
     dsFindProducts: TDataSource;
     pnlHolder: TbsSkinGroupBox;
-    btnSearch: TbsSkinSpeedButton;
+    btnSearch1: TbsSkinSpeedButton;
     txtSearchText: TbsSkinEdit;
     grdProducts: TbsSkinDBGrid;
     bsSkinScrollBar1: TbsSkinScrollBar;
@@ -35,14 +48,12 @@ type
     DataSource2: TDataSource;
     bsSkinMemo1: TbsSkinMemo;
     Label4: TLabel;
-    Shape1: TShape;
     Chart1: TChart;
     Series1: TPieSeries;
     mnuProductOps: TbsSkinPopupMenu;
     mnuRelayed: TMenuItem;
     btnBack: TbsSkinSpeedButton;
-    AddtoaCustomerQuote1: TMenuItem;
-    AddtoaCustomerInvoice1: TMenuItem;
+    mnuAddtoCustomerQuote: TMenuItem;
     btnTasks: TbsSkinMenuSpeedButton;
     mnuMaintain: TbsSkinPopupMenu;
     mnuUpdateSellPrices: TMenuItem;
@@ -59,7 +70,12 @@ type
     mnuNotRelayed: TMenuItem;
     N2: TMenuItem;
     dlgConfig: TbsSkinMessage;
-    procedure btnSearchClick(Sender: TObject);
+    mnuGetPrices: TMenuItem;
+    btnSearch: TbsSkinButton;
+    ImageList1: TImageList;
+    bsSkinPopupMenu1: TbsSkinPopupMenu;
+    LoadPicturefromfile1: TMenuItem;
+    dlgOpenPicture: TbsSkinOpenPictureDialog;
     procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure txtSearchTextKeyPress(Sender: TObject; var Key: Char);
     procedure Label2Click(Sender: TObject);
@@ -71,6 +87,8 @@ type
     procedure btnBackClick(Sender: TObject);
     procedure mnuRemoveSupplierClick(Sender: TObject);
     procedure mnuRelayedClick(Sender: TObject);
+    procedure mnuGetPricesClick(Sender: TObject);
+    procedure btnSearchClick(Sender: TObject);
   private
     { Private declarations }
     fSkinData: TbsSkinData;
@@ -79,6 +97,7 @@ type
     fDocRegistry : GTDDocumentRegistry;
     fProductDetails : TProductDetails;
     fOnDisplayMessage : TProductSearchDisplayEvent;
+    fGetPriceUpdates : TCollectPricelistFrame;
 
     fdbType : Integer;   //   DBTYPE_ADO   = 1;     DBTYPE_MYSQL = 2;     DBTYPE_IB    = 3;
     fdbItemCountText,
@@ -105,6 +124,7 @@ type
     property SkinData: TbsSkinData read fSkinData write SetSkinData;
     property DocumentRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
     property OnDisplayMessage : TProductSearchDisplayEvent read fOnDisplayMessage write fOnDisplayMessage;
+    property ProductDetails : TProductDetails read fProductDetails;
   end;
 
 implementation
@@ -112,18 +132,6 @@ implementation
 {$R *.DFM}
 uses DelphiUtils,FastStrings,FastStringFuncs;
 
-const
-    PLU_Col = 'VendorProductID';
-    PName_Col = 'ProductName';
-    PDesc_Col = 'ProductDescription';
-    PCostPrice = 'OurBuyingPrice';
-    PSellPrice = 'OurSellingPrice';
-    PProdTblName = 'Products';
-    PBrandTblName = 'Brands';
-    PBrandBrandName = 'Brand_Name';
-    PSupplierTblName = 'Suppliers';
-    PSupplierIDCol = 'SupplierID';
-    PSupplierNameCol = 'CompanyName';
 
 procedure TProductdBSearch.Initialise;
 var
@@ -171,7 +179,7 @@ begin
     // -- Setup the product details component
     if not Assigned(fProductDetails) then
     begin
-      fProductDetails := TProductDetails.Create(Self);
+      fProductDetails := TProductDetails.Create(Parent);
       with fProductDetails do
       begin
         Top    := grdProducts.Top;
@@ -186,6 +194,22 @@ begin
     end;
 
     lblItemsCount.Caption :='';
+
+    if not Assigned(fGetPriceUpdates) then
+    begin
+      fGetPriceUpdates := TCollectPricelistFrame.Create(Self);
+      with fGetPriceUpdates do
+      begin
+        Parent := Self;
+        Top := txtSearchText.Top;
+        Left := txtSearchText.Left;
+        Width := grdProducts.Width;
+        Height := grdProducts.Height + (grdProducts.Top - txtSearchText.Top);
+        Visible := False;
+      end;
+      fGetPriceUpdates.SkinData := SkinData;
+      fGetPriceUpdates.DocRegistry := fDocRegistry;
+    end;
 
     CountItemsInProductDatabase;
 
@@ -366,6 +390,8 @@ begin
   dlgSelectValues.CtrlSkinData := Value;
   dlgConfig.SkinData := Value;
   dlgConfig.CtrlSkinData := Value;
+  dlgOpenPicture.SkinData := Value;
+  dlgOpenPicture.CtrlSkinData := Value;
   // -- Save for later
   fSkinData := Value;
 end;
@@ -1086,6 +1112,12 @@ begin
     Exit;
   end;
 
+  if fGetPriceUpdates.Visible then
+  begin
+    fGetPriceUpdates.Visible := False;
+    lblItemsCount.Visible := True;
+  end;
+
   // -- Here we are checking to see if the product display grid is showing
   if not Chart1.Visible then
   begin
@@ -1097,6 +1129,7 @@ begin
     DisplayMessage(fdbItemCountText);
     Exit;
   end;
+
 
 end;
 
@@ -1262,7 +1295,6 @@ begin
 
 end;
 
-
 procedure TProductdBSearch.mnuRelayedClick(Sender: TObject);
 begin
   // --
@@ -1275,6 +1307,29 @@ begin
 
     fProductDetails.nbkProductInfo.ActivePage := fProductDetails.tbsRelay;
 
+  end;
+end;
+
+
+procedure TProductdBSearch.mnuGetPricesClick(Sender: TObject);
+begin
+  Chart1.Visible := False;
+  grdProducts.Visible := False;
+  fGetPriceUpdates.Visible := True;
+  btnTasks.Visible := False;
+  btnBack.Visible := True;
+  lblItemsCount.Visible := False;
+
+  // -- Let everything repaint
+  Application.ProcessMessages;
+
+  // -- Do all the database loading stuff
+  try
+    Screen.Cursor := crHourglass;
+
+    fGetPriceUpdates.Prepare;
+  finally
+    Screen.Cursor := crDefault;
   end;
 end;
 

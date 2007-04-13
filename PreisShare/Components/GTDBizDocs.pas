@@ -682,7 +682,7 @@ function AsCurrency(Val : Double; CountryCode : String = ''):String;
 function AsSQLDateTime(anyDate : TDateTime):String;
 function AsSQLDate(anyDate : TDateTime):String;
 function Parse(var StringToParse : String; const delims : String):String;
-function EncodeSQLString(S : String):String;
+function EncodeSQLString(S : String; const MaxFieldWidth : Integer = 255):String;
 function EncodeStringField(ElementName, s : String):String;
 function EncodeBooleanField(ElementName : String; v : Boolean):String;
 function EncodeDateTimeField(ElementName : String; aTime : TDateTime):String;
@@ -1406,10 +1406,12 @@ var
 implementation
 
 {$IFNDEF LINUX}
-uses DelphiUtils,DECUtil,IdHashCRC,JpegUtilities;
+uses DelphiUtils,DECUtil,IdHashCRC,JpegUtilities,
+FastStrings,FastStringFuncs;
 {$ELSE}
 uses DelphiUtils,IdHashCRC;
 {$ENDIF}
+
 // ----------------------------------------------------------------------------
 constructor GTDBizDoc.Create(AOwner: TComponent);
 begin
@@ -11155,22 +11157,28 @@ begin
 end;
 //---------------------------------------------------------------------------
 // -- Function to encode a value as an SQL string
-function EncodeSQLString(S : String):String;
+function EncodeSQLString(S : String; const MaxFieldWidth : Integer):String;
 var
     i : Integer;
-    t : String;
+    t,v : String;
     c : Char;
 begin
+    // -- Check the length of the string
+    if Length(S) > MaxFieldWidth then
+      V := LeftStr(S,MaxFieldWidth)
+    else
+      v := S;
+
     t := '';
-    for i := 1 to Length(s) do
+    for i := 1 to Length(V) do
     begin
-        c := S[i];
+        c := v[i];
         if (c = '''') then
             t := t + ''''''
         else
             t := t + c;
     end;
-	Result := '''' + t + '''';
+    Result := '''' + t + '''';
 end;
 //---------------------------------------------------------------------------
 // -- Function to determine if a string is made from numbers

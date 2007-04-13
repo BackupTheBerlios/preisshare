@@ -311,11 +311,15 @@ begin //FExecute
   begin
     FCreateProcessError := TCreateProcessError.Create(string(app_spawn)
       + ' doesn''t exist.');
-    raise FCreateProcessError;
+//    raise FCreateProcessError;
     CloseHandle(newstdin);
     CloseHandle(newstdout);
     CloseHandle(read_stdout);
     CloseHandle(write_stdin);
+
+    if Assigned(FOnTerminated) then
+      FOnTerminated(FOwner);
+
     Exit;
   end;
 
@@ -488,6 +492,7 @@ begin
   FMaxTimeAfterBeginning := mtab;
   FMaxTimeAfterLastOutput := mtalo;
   FPriority := p;
+  FFinishWinHandle := fwh;
   inherited Create(False);
 end;
 

@@ -1071,9 +1071,9 @@ begin
 
       Report('Show','Complete');
 
-    end;
+      Result := True;
 
-    Result := True;
+    end;
 
     finally
       iData.Free;

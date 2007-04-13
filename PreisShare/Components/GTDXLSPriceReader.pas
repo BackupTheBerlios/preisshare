@@ -8,7 +8,7 @@ uses
   bsSkinShellCtrls,GTDTextToPricefile, GTDBizDocs, GTDTraderSelectPanel, Mask, bsDialogs, ComCtrls,
   bsSkinTabs, Buttons, ExcelXP, Variants,
   GTDUpdateSummary, GTDProductDBUpdate, GTDSupplierPriceParams,
-  PricelistExport, jpeg, ExtCtrls;
+  PricelistExport, jpeg, ExtCtrls, Registry;
 
 
 type
@@ -123,6 +123,20 @@ implementation
 
 {$R *.DFM}
 uses ComObj, ActiveX;
+
+  function IS_OXP_Installed: Boolean;
+  var
+    Reg: TRegistry;
+  begin
+    Reg := TRegistry.Create;
+    try
+      Reg.RootKey := HKEY_LOCAL_MACHINE;
+      Result      := Reg.KeyExists('SOFTWARE\MICROSOFT\Office\10.0\Registration');
+    finally
+      Reg.CloseKey;
+      Reg.Free;
+    end;
+  end;
 
 function TGTDXLStoPL.Initialise:Boolean;
 begin
@@ -241,6 +255,8 @@ begin
 end;
 
 function TGTDXLStoPL.OpenPriceSpreadsheet(const XLSFileName : String):Boolean;
+
+
 begin
     // -- Check that the file exists
     if not FileExists(xlsFileName) then
@@ -259,18 +275,24 @@ begin
     end;
 
     // -- Connect and open the sheet
-    {$IFDEF VER100}
-      // -- Delphi 5
-      WkBk.ConnectTo(ExcelApplication1.Workbooks.Open(XLSFilename,EmptyParam,1,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,lcid));
-    {$ENDIF}
-    {$IFDEF VER150}
-      // -- Delphi 7
-      WkBk.ConnectTo(ExcelApplication1.Workbooks.Open(XLSFilename,EmptyParam,1,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,lcid));
-    {$ENDIF}
-    WS.ConnectTo(WkBk.Worksheets[1] as _Worksheet);
+    if IS_OXP_Installed then
+    begin
+      {$IFDEF VER100}
+        // -- Delphi 5
+        WkBk.ConnectTo(ExcelApplication1.Workbooks.Open(XLSFilename,EmptyParam,1,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,lcid));
+      {$ENDIF}
+      {$IFDEF VER150}
+        // -- Delphi 7
+        WkBk.ConnectTo(ExcelApplication1.Workbooks.Open(XLSFilename,EmptyParam,1,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,EmptyParam,lcid));
+      {$ENDIF}
+      WS.ConnectTo(WkBk.Worksheets[1] as _Worksheet);
 
-    Result := True;
-
+      Result := True;
+    end
+    else begin
+      plcvt.ReportMessage('Report','Office XP is not installed');
+      Result := False;
+    end;
 end;
 
 procedure TGTDXLStoPL.bsSkinSpeedButton4Click(Sender: TObject);
@@ -525,12 +547,18 @@ var
 
     function CheckExcelIsRunning:Boolean; // -- Connect/setup stuff
     begin
+      if IS_OXP_Installed then
+      begin
         if (lcid = 0) then
         begin
             lcid := GetUserDefaultLCID;
             ExcelApplication1.AutoConnect := True;
             ExcelApplication1.Visible[lcid]:=True;
+            Result := True;
         end;
+      end
+      else
+        Result := False;
     end;
 
 

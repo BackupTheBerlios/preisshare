@@ -203,11 +203,35 @@ begin
 end;
 //---------------------------------------------------------------------------
 function TGTDTaskPanel.Start:Boolean;
+var
+  d : String;
+  FilesFound : Boolean;
+  sr : TSearchRec;
 begin
-
-    // -- First thing we must do is to check that the primary file exists
-    if (fmainfile <> '') and (not FileExists(fMainfile)) then
+    if (Pos('*',fmainfile) <> 0) or (Pos('?',fmainfile) <> 0) then
     begin
+      d := fWorkDir;
+      FilesFound := False;
+
+      // -- Wildcard add of files
+      if FindFirst(d + '\' + fMainFile, faAnyFile, sr) = 0 then
+      repeat
+
+        if (FileExists(d + '\' + sr.Name)) then
+        begin
+          FilesFound := True;
+        end;
+
+      until FindNext(sr) <> 0;
+      FindClose(sr);
+
+    end
+    else
+       filesFound := FileExists(fMainfile);
+
+    if not FilesFound then
+    begin
+        // -- First thing we must do is to check that the primary file exists
         Report('Show','Skipping Processing Set ' + fTaskName + '. File ' + fMainfile + ' not found');
         Report('Show','Skipped.');
 
@@ -254,7 +278,8 @@ function TGTDTaskPanel.StartEmailDespatch:Boolean;
 
     function SetupEmailer:Boolean;
     var
-       s,e,d : String;
+       s,e,d,f : String;
+       sr : TSearchRec;
     begin
         if not Assigned(DocumentRegistry) then
         begin
@@ -348,16 +373,34 @@ function TGTDTaskPanel.StartEmailDespatch:Boolean;
         SmtpCli1.EmailFiles.Clear;
         // -- Add all existing files
         repeat
-            e := Parse(s,#13);
-            if (e <> '') then
+            f := Parse(s,#13);
+            if (f <> '') then
             begin
-                if (FileExists(d + e)) then
-                    SmtpCli1.EmailFiles.Add(d + e)
+              if (Pos('*',f) <> 0) or (Pos('?',f) <> 0) then
+              begin
+                // -- Wildcard add of files
+                if FindFirst(d + '\' + f, faAnyFile, sr) = 0 then
+                repeat
+
+                  if (FileExists(d + '\' + sr.Name)) then
+                  begin
+                    Report('Show',' - Adding ' + d + '\' + sr.Name);
+                    SmtpCli1.EmailFiles.Add(d + '\' + sr.Name);
+                  end;
+
+                until FindNext(sr) <> 0;
+                FindClose(sr);
+              end
+              else begin
+                // -- Here we have a single file
+                if (FileExists(d + f)) then
+                    SmtpCli1.EmailFiles.Add(d + f)
                 else
-                    Report('Warning','File not found ' + d + e);
+                    Report('Warning','File not found ' + d + f);
+              end;
             end;
 
-        until e = '';
+        until f = '';
 
     end;
 
@@ -468,7 +511,7 @@ end;
 procedure TGTDTaskPanel.DosCommandTerminated(Sender: TObject);
 begin
     Report('Show',fProcessName + ' task finished.');
-    PostMessage(Handle,	GTTM_START_SEND,0,0);
+    PostMessage(Handle,GTTM_START_SEND,0,0);
 end;
 //---------------------------------------------------------------------------
 procedure TGTDTaskPanel.bsSkinSpeedButton1Click(Sender: TObject);

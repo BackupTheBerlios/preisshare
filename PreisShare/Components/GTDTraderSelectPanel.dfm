@@ -34,12 +34,40 @@ object pnlTraderGet: TpnlTraderGet
     Spacing = 2
     Caption = 'bsSkinPanel1'
     Align = alClient
-    object bsSkinLabel1: TbsSkinLabel
+    object grdScroll: TbsSkinScrollBar
+      Left = 356
+      Top = 52
+      Width = 19
+      Height = 165
+      TabOrder = 3
+      Visible = False
+      SkinDataName = 'vscrollbar'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 19
+      DefaultHeight = 0
+      UseSkinFont = True
+      Both = False
+      BothMarkerWidth = 19
+      BothSkinDataName = 'bothhscrollbar'
+      CanFocused = False
+      Kind = sbVertical
+      PageSize = 0
+      Min = 0
+      Max = 100
+      Position = 0
+      SmallChange = 1
+      LargeChange = 1
+    end
+    object lblEnterTraderName: TbsSkinLabel
       Left = 8
       Top = 8
       Width = 257
       Height = 16
-      TabOrder = 3
+      TabOrder = 2
       SkinDataName = 'label'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -83,12 +111,13 @@ object pnlTraderGet: TpnlTraderGet
     object bsSkinDBGrid1: TbsSkinDBGrid
       Left = 8
       Top = 52
-      Width = 369
+      Width = 349
       Height = 165
-      TabOrder = 1
+      TabOrder = 4
       SkinDataName = 'grid'
       UseSkinFont = True
       UseSkinCellHeight = True
+      VScrollBar = grdScroll
       GridLineColor = clWindowText
       DefaultCellHeight = 20
       UseColumnsFont = False
@@ -97,7 +126,7 @@ object pnlTraderGet: TpnlTraderGet
       SaveMultiSelection = False
       PickListBoxSkinDataName = 'listbox'
       PickListBoxCaptionMode = False
-      DataSource = DataSource1
+      DataSource = dsSource
       Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgConfirmDelete, dgCancelOnExit]
       ReadOnly = True
       TitleFont.Charset = DEFAULT_CHARSET
@@ -109,7 +138,7 @@ object pnlTraderGet: TpnlTraderGet
     end
     object txtEnterTraderName: TbsSkinEdit
       Left = 8
-      Top = 22
+      Top = 24
       Width = 257
       Height = 20
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -128,16 +157,16 @@ object pnlTraderGet: TpnlTraderGet
       Font.Name = 'Arial'
       Font.Style = []
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 7
       OnButtonClick = txtEnterTraderNameButtonClick
       OnKeyPress = txtEnterTraderNameKeyPress
     end
     object pnlNewTrader: TbsSkinGroupBox
       Left = 8
       Top = 52
-      Width = 369
+      Width = 370
       Height = 173
-      TabOrder = 2
+      TabOrder = 6
       Visible = False
       SkinDataName = 'groupbox'
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -231,7 +260,7 @@ object pnlTraderGet: TpnlTraderGet
         Top = 45
         Width = 113
         Height = 17
-        TabOrder = 3
+        TabOrder = 5
         SkinDataName = 'label'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -250,7 +279,7 @@ object pnlTraderGet: TpnlTraderGet
         Top = 62
         Width = 113
         Height = 20
-        TabOrder = 4
+        TabOrder = 6
         SkinDataName = 'combobox'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -297,7 +326,7 @@ object pnlTraderGet: TpnlTraderGet
         Top = 106
         Width = 113
         Height = 20
-        TabOrder = 5
+        TabOrder = 7
         SkinDataName = 'combobox'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -346,7 +375,7 @@ object pnlTraderGet: TpnlTraderGet
         Top = 89
         Width = 113
         Height = 17
-        TabOrder = 6
+        TabOrder = 8
         SkinDataName = 'label'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -365,7 +394,7 @@ object pnlTraderGet: TpnlTraderGet
         Top = 89
         Width = 233
         Height = 17
-        TabOrder = 7
+        TabOrder = 3
         SkinDataName = 'label'
         DefaultFont.Charset = DEFAULT_CHARSET
         DefaultFont.Color = clWindowText
@@ -400,7 +429,7 @@ object pnlTraderGet: TpnlTraderGet
         Font.Name = 'Arial'
         Font.Style = []
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 4
       end
       object txtShortname: TbsSkinEdit
         Left = 8
@@ -450,7 +479,7 @@ object pnlTraderGet: TpnlTraderGet
       Top = 8
       Width = 101
       Height = 17
-      TabOrder = 5
+      TabOrder = 1
       SkinDataName = 'label'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -466,10 +495,10 @@ object pnlTraderGet: TpnlTraderGet
     end
     object cbxCustomerType: TbsSkinComboBox
       Left = 276
-      Top = 22
+      Top = 24
       Width = 101
       Height = 20
-      TabOrder = 6
+      TabOrder = 5
       SkinDataName = 'combobox'
       DefaultFont.Charset = DEFAULT_CHARSET
       DefaultFont.Color = clWindowText
@@ -482,7 +511,7 @@ object pnlTraderGet: TpnlTraderGet
       AlphaBlend = False
       AlphaBlendValue = 0
       AlphaBlendAnimation = False
-      HideSelection = True
+      HideSelection = False
       AutoComplete = True
       ListBoxUseSkinFont = True
       ListBoxUseSkinItemHeight = True
@@ -501,10 +530,11 @@ object pnlTraderGet: TpnlTraderGet
       ListBoxDefaultItemHeight = 20
       ListBoxCaptionAlignment = taLeftJustify
       TabStop = True
+      Text = 'New'
       Items.Strings = (
         'Existing'
         'New')
-      ItemIndex = -1
+      ItemIndex = 1
       DropDownCount = 8
       HorizontalExtent = False
       Font.Charset = DEFAULT_CHARSET
@@ -517,7 +547,7 @@ object pnlTraderGet: TpnlTraderGet
       OnChange = cbxCustomerTypeChange
     end
   end
-  object DataSource1: TDataSource
+  object dsSource: TDataSource
     Left = 36
     Top = 68
   end

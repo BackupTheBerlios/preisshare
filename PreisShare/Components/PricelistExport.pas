@@ -61,6 +61,8 @@ const
     }
     RECORDDATA_IN_SUBITEM_INDEX = 4;
     CATEGORYINDEX_IN_SUBITEM_INDEX = 5;
+
+
 type
   TTradalogImportTypes = (tit1Table1Group_csv,
     tit1Level1Table_csv,
@@ -361,7 +363,12 @@ type
   end;
 
 implementation
-uses bde;
+
+uses bde,FastStrings,FastStringFuncs;
+
+const
+    MaxCodeWidth = 20;
+    MaxNameWidth = 80;
 
 {$R *.DFM}
 
@@ -1931,9 +1938,9 @@ begin
                     s := ItemOutputFieldMappings[xc];
 
                     if s = PRICELIST_EXPORTMAP_PRODUCT_NAME then
-                        qs := qs + EncodeSQLString(ItemProductName) + ', '
+                        qs := qs + EncodeSQLString(ItemProductName,MaxNameWidth) + ', '
                     else if s = PRICELIST_EXPORTMAP_PRODUCT_CODE then
-                        qs := qs + EncodeSQLString(ItemProductCode) + ', '
+                        qs := qs + EncodeSQLString(ItemProductCode,MaxCodeWidth) + ', '
                     else if s = PRICELIST_EXPORTMAP_PRODUCT_LIST then
                         qs := qs + EncodeSQLString(FloatToStr(pricelistListPrice)) + ', '
                     else if s = PRICELIST_EXPORTMAP_PRODUCT_ACTUAL then
