@@ -122,12 +122,6 @@ object frmQuote: TfrmQuote
       SkinDataName = 'stdlabel'
       Caption = 'No Picture'
     end
-    object imgPicture: TImage
-      Left = 13
-      Top = 33
-      Width = 162
-      Height = 104
-    end
     object bsSkinLabel2: TbsSkinLabel
       Left = 12
       Top = 148
@@ -428,8 +422,8 @@ object frmQuote: TfrmQuote
         28FE28F0B88E1E3D560BB353EFEE8E1E64D116771E66999FF50BAFC8FE4679DE
         2FF123485646EC12810050032F187653242401FFD9}
     end
-    object bsSkinTextLabel1: TbsSkinTextLabel
-      Left = 20
+    object xplEditProducts: TbsSkinTextLabel
+      Left = 32
       Top = 204
       Width = 117
       Height = 52
@@ -444,6 +438,45 @@ object frmQuote: TfrmQuote
       DefaultFont.Name = 'MS Sans Serif'
       DefaultFont.Style = []
       SkinDataName = 'stdlabel'
+    end
+    object xplKeyClient: TbsSkinTextLabel
+      Left = 32
+      Top = 252
+      Width = 113
+      Height = 78
+      UseSkinFont = True
+      Lines.Strings = (
+        'Now key the name and'
+        'address of the client or'
+        'prospect that you would'
+        'like to appear on the '
+        'Quote.')
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinDataName = 'stdlabel'
+      Visible = False
+    end
+    object xplEmail: TbsSkinTextLabel
+      Left = 108
+      Top = 219
+      Width = 124
+      Height = 65
+      UseSkinFont = True
+      Lines.Strings = (
+        'Now set the email address'
+        'subject and body like you'
+        'would in a normal email'
+        'message.')
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = -11
+      DefaultFont.Name = 'MS Sans Serif'
+      DefaultFont.Style = []
+      SkinDataName = 'stdlabel'
+      Visible = False
     end
   end
   object grpPreview: TbsSkinGroupBox
@@ -475,7 +508,7 @@ object frmQuote: TfrmQuote
     RollUpState = False
     NumGlyphs = 1
     Spacing = 2
-    Caption = 'grpPreview'
+    Caption = 'Email Details'
     object bsSkinStdLabel2: TbsSkinStdLabel
       Left = 8
       Top = 32
@@ -727,12 +760,12 @@ object frmQuote: TfrmQuote
     Left = 140
     Top = 8
   end
-  object XMLDocument1: TXMLDocument
-    Left = 360
-    Top = 8
+  object XMLQuote: TXMLDocument
+    Left = 240
+    Top = 4
     DOMVendorDesc = 'MSXML'
   end
-  object icsEmailer: TSmtpCli
+  object SmtpEmail: TSmtpCli
     Tag = 0
     LocalAddr = '0.0.0.0'
     Port = 'smtp'
@@ -740,8 +773,311 @@ object frmQuote: TfrmQuote
     CharSet = 'iso-8859-1'
     ContentType = smtpPlainText
     OwnHeaders = False
-    OnRequestDone = icsEmailerRequestDone
-    Left = 380
-    Top = 356
+    OnCommand = SmtpEmailCommand
+    OnResponse = SmtpEmailResponse
+    OnRequestDone = SmtpEmailRequestDone
+    Left = 324
+    Top = 8
+  end
+  object DataSource1: TDataSource
+    Left = 504
+    Top = 8
+  end
+  object xmlTransformation: TXMLDocument
+    XML.Strings = (
+      '<?xml version='#39'1.0'#39' encoding='#39'utf-8'#39'?>'
+      
+        '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/' +
+        'XSL/Transform">'
+      '<xsl:output method="html" encoding="windows-1252"/>'
+      '<xsl:template match="/">'
+      #9'<html><head>'
+      '<title/>'
+      '</head>'
+      '  <body dir="ltr" lang="en-US">'
+      '  <p style="MARGIN-BOTTOM: 0cm">  <br/> </p>'
+      ''
+      
+        '  <table FRAME="VOID" CELLSPACING="0" COLS="7" RULES="GROUPS" BO' +
+        'RDER="0">'
+      '    <TR>'
+      
+        #9'<TD WIDTH="48" HEIGHT="28" ALIGN="LEFT"><FONT FACE="Impact" SIZ' +
+        'E="4"><BR/></FONT></TD>'
+      
+        #9'<TD COLSPAN="7" WIDTH="686" ALIGN="LEFT" BGCOLOR="#333333"><FON' +
+        'T FACE="Impact" SIZE="4" COLOR="#FFFFFF"><xsl:value-of select="Q' +
+        'uotation/SellerParty/Organisation_Name"/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD COLSPAN="4" ALIGN="LEFT" BGCOLOR="#E6E6FF"><xsl:value-of se' +
+        'lect="Quotation/SellerParty/Address_Line_1"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD COLSPAN="4" ALIGN="LEFT" BGCOLOR="#E6E6FF"><xsl:value-of se' +
+        'lect="Quotation/SellerParty/Suburb_Town"/><xsl:value-of select="' +
+        'Quotation/SellerParty/State_Region"/><xsl:value-of select="Quota' +
+        'tion/SellerParty/Zip_Postcode"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD COLSPAN="4" ALIGN="LEFT" BGCOLOR="#E6E6FF">Telephone : <xsl' +
+        ':value-of select="Quotation/SellerParty/Telephone"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD COLSPAN="4" ALIGN="LEFT" BGCOLOR="#E6E6FF"><xsl:value-of se' +
+        'lect="Quotation/SellerParty/Other_Information"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="47" ALIGN="LEFT" BGCOLOR="#333333"><FONT FACE="Time' +
+        's New Roman"><BR/></FONT></TD>'
+      
+        #9'<TD COLSPAN="2" ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Aria' +
+        'l Black" SIZE="5">Quotation</FONT></TD>'
+      
+        #9'<TD COLSPAN="2" ALIGN="RIGHT" BGCOLOR="#B3B3B3"><FONT FACE="Ari' +
+        'al Black" SIZE="6">#8185</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Times New Roman"' +
+        '><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Times New Roman"' +
+        '><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF">Name:</TD>'
+      
+        #9'<TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#E6E6FF"><xsl:value-of se' +
+        'lect="Quotation/BuyerParty/Contact_Name"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF"><BR/></TD>'
+      
+        #9'<TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#E6E6FF"><xsl:value-of se' +
+        'lect="Quotation/BuyerParty/Address_Line_1"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF"><BR/></TD>'
+      
+        #9'<TD COLSPAN="3" ALIGN="LEFT" BGCOLOR="#E6E6FF"><xsl:value-of se' +
+        'lect="Quotation/BuyerParty/Suburb_Town"/><xsl:value-of select="Q' +
+        'uotation/BuyerParty/State_Region"/><xsl:value-of select="Quotati' +
+        'on/BuyerParty/Zip_Postcode"/></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT><' +
+        '/TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR="' +
+        '#FFFFFF">Salesperson</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR="' +
+        '#FFFFFF">Date</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR="' +
+        '#FFFFFF">Valid Till</FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="19" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF"><FONT FACE="Verdana"><xsl:va' +
+        'lue-of select="Quotation/Header_Information/Sales_Person"/></FON' +
+        'T></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF" SDVAL="39179" SDNUM="1033;0;' +
+        'MM/DD/YY"><FONT FACE="Verdana"><xsl:value-of select="Quotation/H' +
+        'eader_Information/Delivery_Date"/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#E6E6FF" SDVAL="39206" SDNUM="1033;0;' +
+        'MM/DD/YY"><FONT FACE="Verdana"><xsl:value-of select="Quotation/H' +
+        'eader_Information/Valid_Until"/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="18" ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT><' +
+        '/TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR="' +
+        '#FFFFFF">Product Code</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR="' +
+        '#FFFFFF">Description</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#000000"><FONT FACE="Verdana"><BR/></' +
+        'FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR=' +
+        '"#FFFFFF">Quantity</FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR=' +
+        '"#FFFFFF">Rate</FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" BGCOLOR="#000000"><FONT FACE="Verdana" COLOR=' +
+        '"#FFFFFF">Amount</FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="19" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" SDNUM="1033;0;[$$-409]#,##0.00;[RED]-[$$-409]' +
+        '#,##0.00"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" SDNUM="1033;0;[$$-409]#,##0.00;[RED]-[$$-409]' +
+        '#,##0.00"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="20" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT"><FONT FACE="Verdana" SIZE="3"><xsl:value-of se' +
+        'lect="Quotation/Line_Item_List/Line_Item/PLU"/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT"><FONT FACE="Verdana" SIZE="3"><xsl:value-of se' +
+        'lect="Quotation/Line_Item_List/Line_Item/Name"/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT"><FONT FACE="Verdana" SIZE="3"><BR/></FONT></TD' +
+        '>'
+      
+        #9'<TD ALIGN="RIGHT" SDVAL="1" SDNUM="1033;"><FONT FACE="Verdana" ' +
+        'SIZE="3"><xsl:value-of select="Quotation/Line_Item_List/Line_Ite' +
+        'm/Quantity"/></FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" SDVAL="165" SDNUM="1033;0;[$$-409]#,##0.00;[R' +
+        'ED]-[$$-409]#,##0.00"><FONT FACE="Verdana" SIZE="3"><xsl:value-o' +
+        'f select="Quotation/Line_Item_List/Line_Item/Rate"/></FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" SDVAL="165" SDNUM="1033;0;[$$-409]#,##0.00;[R' +
+        'ED]-[$$-409]#,##0.00"><FONT FACE="Verdana" SIZE="3"><xsl:value-o' +
+        'f select="Quotation/Line_Item_List/Line_Item/Amount"/></FONT></T' +
+        'D>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="19" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" SDNUM="1033;0;[$$-409]#,##0.00;[RED]-[$$-409]' +
+        '#,##0.00"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" SDNUM="1033;0;[$$-409]#,##0.00;[RED]-[$$-409]' +
+        '#,##0.00"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        '        <TD HEIGHT="19" ALIGN="LEFT"><FONT FACE="Times New Roman' +
+        '"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      #9'<TD ALIGN="LEFT"><FONT FACE="Verdana"><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="CENTER" BGCOLOR="#E6E6E6" SDNUM="1033;0;[$$-409]#,##' +
+        '0.00;[RED]-[$$-409]#,##0.00"><FONT FACE="Verdana">Total GST</FON' +
+        'T></TD>'
+      
+        #9'<TD ALIGN="RIGHT" BGCOLOR="#E6E6E6" SDVAL="16.5" SDNUM="1033;0;' +
+        '[$$-409]#,##0.00;[RED]-[$$-409]#,##0.00"><FONT FACE="Verdana">$<' +
+        'xsl:value-of select="Quotation/Header_Information/Total_Tax"/></' +
+        'FONT></TD>'
+      '    </TR>'
+      '    <TR>'
+      
+        #9'<TD HEIGHT="32" ALIGN="LEFT"><FONT FACE="Times New Roman"><BR/>' +
+        '</FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Times New Roman"' +
+        '><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Times New Roman"' +
+        '><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Times New Roman"' +
+        '><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="LEFT" BGCOLOR="#0099FF"><FONT FACE="Times New Roman"' +
+        '><BR/></FONT></TD>'
+      
+        #9'<TD ALIGN="CENTER" BGCOLOR="#B3B3B3"><FONT FACE="Verdana" SIZE=' +
+        '"3">Total</FONT></TD>'
+      
+        #9'<TD ALIGN="RIGHT" BGCOLOR="#333333" SDVAL="165" SDNUM="1033;0;[' +
+        '$$-409]#,##0.00;[RED]-[$$-409]#,##0.00"><FONT FACE="Verdana" SIZ' +
+        'E="4" COLOR="#FFFFFF">$<xsl:value-of select="Quotation/Header_In' +
+        'formation/Total_Amount"/></FONT></TD>'
+      '    </TR>'
+      #9
+      '  </table>'
+      '  <p><br/><br/>'#9'</p>'
+      '</body>'
+      '</html>'
+      '</xsl:template>'
+      '</xsl:stylesheet>')
+    Left = 272
+    Top = 4
+    DOMVendorDesc = 'MSXML'
   end
 end
