@@ -334,6 +334,7 @@ begin
 
     try
 
+        grdProducts.Visible := True;
         Chart1.Visible := False;
         bsSkinScrollBar1.Visible := True;
         btnBack.Visible := True;
@@ -1127,6 +1128,7 @@ begin
     btnBack.Visible := False;
     lblItemsCount.Left := btnBack.Left;
     DisplayMessage(fdbItemCountText);
+    txtSearchText.SetFocus;
     Exit;
   end;
 

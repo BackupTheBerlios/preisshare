@@ -34,7 +34,7 @@ object CollectPricelistFrame: TCollectPricelistFrame
     Caption = 'pnlBackground'
     Align = alClient
     object btnAdd: TbsSkinSpeedButton
-      Left = 8
+      Left = 72
       Top = 8
       Width = 41
       Height = 25
@@ -91,7 +91,7 @@ object CollectPricelistFrame: TCollectPricelistFrame
       OnClick = btnAddClick
     end
     object btnGet: TbsSkinSpeedButton
-      Left = 56
+      Left = 8
       Top = 8
       Width = 53
       Height = 25
@@ -114,7 +114,7 @@ object CollectPricelistFrame: TCollectPricelistFrame
       AllowAllUp = False
       Down = False
       GroupIndex = 0
-      Caption = 'Get'
+      Caption = 'Go'
       ShowCaption = True
       Glyph.Data = {
         36030000424D3603000000000000360000002800000010000000100000000100

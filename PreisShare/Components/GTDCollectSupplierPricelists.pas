@@ -47,11 +47,11 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure btnSampleFeedsClick(Sender: TObject);
     procedure otlFeedsClick(Sender: TObject);
-    procedure btnGetClick(Sender: TObject);
     procedure HttpCli1DocEnd(Sender: TObject);
     procedure lstColumnMapDblClick(Sender: TObject);
     procedure btnSaveCfgClick(Sender: TObject);
     procedure HttpCli1SocketError(Sender: TObject);
+    procedure btnGetClick(Sender: TObject);
   private
     { Private declarations }
     fDocRegistry : GTDDocumentRegistry;
@@ -76,7 +76,8 @@ type
 
     procedure SetSkinData(Value: TbsSkinData);
 
-    function Run:Boolean;
+    function Run_All:Boolean;
+    function Run_Selected:Boolean;
     function Prepare:Boolean;
 
     procedure TraderSelectedClick(Sender: TObject);
@@ -376,7 +377,17 @@ begin
 
 end;
 
-function TCollectPricelistFrame.Run:Boolean;
+function TCollectPricelistFrame.Run_Selected:Boolean;
+begin
+  LineData := '';
+
+  HttpCli1.Url := txtURL.Text;
+  HttpCli1.GetAsync;
+
+  Busy(True);
+end;
+
+function TCollectPricelistFrame.Run_All:Boolean;
 begin
 end;
 
@@ -563,18 +574,6 @@ begin
 
 end;
 
-procedure TCollectPricelistFrame.btnGetClick(Sender: TObject);
-begin
-
-  LineData := '';
-
-  HttpCli1.Url := txtURL.Text;
-  HttpCli1.GetAsync;
-
-  Busy(True);
-
-end;
-
 procedure TCollectPricelistFrame.ShowPLMessage(msgType, msgDescription : String);
 begin
   lblProgress.Caption := msgDescription;
@@ -736,6 +735,18 @@ end;
 procedure TCollectPricelistFrame.HttpCli1SocketError(Sender: TObject);
 begin
   Busy(False);
+end;
+
+procedure TCollectPricelistFrame.btnGetClick(Sender: TObject);
+begin
+  if otlFeeds.Selected.Level = 0 then
+  begin
+    Run_All;
+  end
+  else if otlFeeds.Selected.Level = 1 then
+  begin
+    Run_Selected;
+  end;
 end;
 
 end.

@@ -117,6 +117,7 @@ type
 implementation
 
 {$R *.DFM}
+uses FastStrings, FastStringFuncs;
 
 //---------------------------------------------------------------------------
 function TGTDTaskPanel.Load(const TaskName : String):Boolean;
@@ -548,7 +549,9 @@ end;
 //---------------------------------------------------------------------------
 procedure TGTDTaskPanel.ProcessCleanup(var aMsg : TMsg);
 var
-    f, fl : String;
+    f, fl,d : String;
+    sr : TSearchRec;
+    FilesFound : Boolean;
 begin
     Report('Show','Cleaning up.');
 
@@ -562,12 +565,37 @@ begin
             // -- Prepend the working directory
             if (fWorkDir <> '') then
             begin
-                f := fWorkDir + f;
+                if RightStr(fWorkDir,1) <> '\' then
+                  f := fWorkDir + '\' + f
+                else
+                  f := fWorkDir + f;
             end;
 
-            // -- Delete the file
-            if FileExists(f) then
-                DeleteFile(f);
+            if (Pos('*',f) <> 0) or (Pos('?',f) <> 0) then
+            begin
+              if RightStr(fWorkDir,1) <> '\' then
+                d := fWorkDir + '\'
+              else
+                d := fWorkDir;
+
+              // -- Wildcard add of files
+              if FindFirst(d + fMainFile, faAnyFile, sr) = 0 then
+              repeat
+
+                if (FileExists(d + sr.Name)) then
+                begin
+                  DeleteFile(d + sr.Name);
+                end;
+
+              until FindNext(sr) <> 0;
+              FindClose(sr);
+
+            end
+            else
+
+              // -- Delete the file
+              if FileExists(f) then
+                  DeleteFile(f);
         end;
     end;
 
@@ -680,7 +708,7 @@ begin
             Report('ERROR','Error ' + IntToStr(ErrorCode) + ' encountered');
         end;
 
-        PostMessage(Handle,GTTM_CLEANUP	,0,0);
+        PostMessage(Handle,GTTM_CLEANUP,0,0);
 
      end;
 end;

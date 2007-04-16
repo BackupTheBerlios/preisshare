@@ -552,6 +552,8 @@ published
 		function GetState:String;
 		function GetPostcode:String;
 		function GetCountryCode:String;
+		function GetTelephone:String;
+		function GetOtherInformation:String;
 
         // -- Multi-lingual multicountry address line build
         procedure BuildSingleAddressLine(var Line : String);
@@ -736,6 +738,9 @@ function SaveRegistryString(SectionName,ElementName : String; ValueStr : String)
 {$IFNDEF LINUX}
 function LoadUserSkinForm(SkinData : TbsSkinData):Boolean;
 {$ENDIF}
+
+// -- Function to remove spaces so that they work as xml tags
+function AsXMLTag(const aString : String):String;
 
 const
 	gtKeyPath                   = 'Software\PreisShare\';
@@ -6077,6 +6082,21 @@ begin
 	if GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_COUNTRYCODE,s) then
 		Result := s;
 end;
+function GTDDocumentRegistry.GetTelephone:String;
+var
+	s : String;
+begin
+	if GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_TELEPHONE,s) then
+		Result := s;
+end;
+function GTDDocumentRegistry.GetOtherInformation:String;
+var
+	s : String;
+begin
+	if GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_OTHER_INFO,s) then
+		Result := s;
+end;
+
 // ----------------------------------------------------------------------------
 procedure GTDDocumentRegistry.BuildSingleAddressLine(var Line : String);
 var
@@ -11891,6 +11911,14 @@ begin
         SkinData.StoredSkin.Filename := 'D:\Skins\Ampix3\skin.ini';
 
 
+end;
+// -- Function to remove spaces so that they work as xml tags
+function AsXMLTag(const aString : String):String;
+var
+  s : String;
+begin
+  s := FastReplace(aString,' ','_');
+  Result := s;
 end;
 
 //---------------------------------------------------------------------------
