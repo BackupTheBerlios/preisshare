@@ -60,6 +60,40 @@ object frmMain: TfrmMain
     SessionName = 'Default'
     Trader_ID = 0
   end
+  object lsvTrolley: TListView
+    Left = 96
+    Top = 184
+    Width = 417
+    Height = 150
+    Columns = <
+      item
+        Caption = 'Code'
+      end
+      item
+        Caption = 'Name'
+      end
+      item
+        Caption = 'Description'
+      end
+      item
+        Caption = 'Quantity'
+      end
+      item
+        Caption = 'Rate'
+      end
+      item
+        Caption = 'Amount'
+      end
+      item
+        Caption = 'Tax'
+      end
+      item
+        Caption = 'Picture'
+      end>
+    TabOrder = 2
+    ViewStyle = vsReport
+    Visible = False
+  end
   object bsBusinessSkinForm1: TbsBusinessSkinForm
     ClientWidth = 0
     ClientHeight = 0

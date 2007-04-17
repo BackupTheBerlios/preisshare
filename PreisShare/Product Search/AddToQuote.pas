@@ -7,7 +7,8 @@ uses
   Dialogs, BusinessSkinForm, bsSkinCtrls,
   GTDTraderSelectPanel, StdCtrls, bsSkinBoxCtrls, Mask, ExtCtrls, jpeg,
   xmldom, XMLIntf, OleCtrls, SHDocVw, msxmldom, XMLDoc, ShellAPI, OleCtnrs,
-  SmtpProt, EDBImage, DB, GTDBizDocs, GTDBizLinks;
+  SmtpProt, EDBImage, DB, GTDBizDocs, GTDBizLinks,
+  bsMessages,ComCtrls;
 
 type
   TfrmQuote = class(TForm)
@@ -27,7 +28,7 @@ type
     xplEditProducts: TbsSkinTextLabel;
     XMLQuote: TXMLDocument;
     bvlPicture: TbsSkinBevel;
-    bsSkinStdLabel1: TbsSkinStdLabel;
+    lblImageName: TbsSkinStdLabel;
     grpPreview: TbsSkinGroupBox;
     mmoLog: TbsSkinMemo2;
     bsSkinLabel3: TbsSkinLabel;
@@ -44,6 +45,12 @@ type
     xplKeyClient: TbsSkinTextLabel;
     xplEmail: TbsSkinTextLabel;
     xmlTransformation: TXMLDocument;
+    tfrLog: TMemo;
+    bsSkinMessage1: TbsSkinMessage;
+    btnMore: TbsSkinButton;
+    txtPLU: TbsSkinEdit;
+    bsSkinLabel4: TbsSkinLabel;
+    txtQuantity: TbsSkinMaskEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnNextClick(Sender: TObject);
@@ -53,6 +60,8 @@ type
     procedure btnSendClick(Sender: TObject);
     procedure SmtpEmailCommand(Sender: TObject; Msg: String);
     procedure SmtpEmailResponse(Sender: TObject; Msg: String);
+    procedure SmtpEmailRcptToError(Sender: TObject; ErrorCode: Word;
+      RcptNameIdx: Integer; var Action: TSmtpRcptToErrorAction);
   private
     { Private declarations }
     fProductImage : TEDBImage;
@@ -68,7 +77,10 @@ type
     procedure Report(msgCode, Description : String);
     procedure Email;
 
+    procedure Busy(TrueOrFalse : Boolean);
+
     procedure QuoteFromData;
+    
     procedure BuildHTMLQuoteText;
     
   end;
@@ -144,12 +156,19 @@ var
   s : String;
 begin
   // -- Copy accross the default field values
+  txtPLU.Text := frmMain.productDB.qryFindProducts.FieldByName(PLU_Col).AsString;
   txtProductName.Text := frmMain.productDB.qryFindProducts.FieldByName(PName_Col).AsString;
   txtDescription.Text := frmMain.productDB.qryFindProducts.FieldByName(PDesc_Col).AsString;
   txtProductAmount.Text := frmMain.productDB.qryFindProducts.FieldByName(PSellPrice).AsString;
 
   // -- Copy the product image if any
   fProductImage.DataField := 'Picture';
+
+  if not Assigned(fProductImage.Picture) then
+    lblImageName.Caption := 'No Picture'
+  else
+    // -- Make up an imagename
+    lblImageName.Caption := FloatToStr(Now) + '.jpg';
 
   xplEditProducts.Visible := True;
   xplKeyClient.Visible := False;
@@ -159,7 +178,7 @@ begin
   if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_DISPLAYNAME,s) then
         txtOriginator.Text := s;
   txtSubject.Text := 'Quotation';
-  
+
   // -- Clear out the following fields
   mmoLog.Lines.Clear;
   mmoBodyText.Lines.Clear;
@@ -167,21 +186,41 @@ begin
   myClient.Visible := False;
   pnlProductInfo.Visible := True;
 
-  txtRecipient.Enabled := True;
-  txtOriginator.Enabled := True;
-  txtSubject.Enabled := True;
-  mmoBodyText.Enabled := True;
-  mmoLog.Enabled := True;
-  btnSend.Enabled := True;
+  Busy(False);
 
   btnNext.Visible := True;
 
 end;
 
 procedure TfrmQuote.btnNextClick(Sender: TObject);
+var
+  newItem : TListItem;
+  amt : Double;
 begin
   if pnlProductInfo.Visible then
   begin
+
+    amt := StrToFloat(txtQuantity.Text) * StrToFloat(txtProductAmount.Text);
+
+    // -- Add these products to the trolley
+    newItem := frmMain.lsvTrolley.Items.Add;
+
+    newItem.Caption := txtPLU.Text;
+    newItem.SubItems.Add(txtProductName.Text);
+    newItem.SubItems.Add(txtDescription.Text);
+    newItem.SubItems.Add(txtQuantity.Text);
+    newItem.SubItems.Add(txtProductAmount.Text);
+    newItem.SubItems.Add(FloatToStr(amt));
+    newItem.SubItems.Add(FloatToStr(amt * 0.10));
+    if Assigned(fProductImage.Picture) then
+    begin
+      newItem.SubItems.Add(lblImageName.Caption);
+      fProductImage.Picture.SaveToFile(lblImageName.Caption);
+    end
+    else
+      // -- Blank image name
+      newItem.SubItems.Add('');
+
     xplEditProducts.Visible := False;
     xplKeyClient.Visible := True;
     xplEmail.Visible := False;
@@ -240,21 +279,6 @@ end;
 procedure TfrmQuote.SmtpEmailRequestDone(Sender: TObject;
   RqType: TSmtpRequest; ErrorCode: Word);
 
-  procedure EnableControls;
-  begin
-    // -- Disable the UI controls
-    txtRecipient.Enabled := True;
-    txtOriginator.Enabled := True;
-    txtSubject.Enabled := True;
-    mmoBodyText.Enabled := True;
-    mmoLog.Enabled := True;
-    btnSend.Enabled := True;
-    btnClose.Enabled := True;
-
-    Screen.Cursor := crDefault;
-
-  end;
-
 var
   xc : Integer;
 begin
@@ -278,8 +302,6 @@ begin
 
         SmtpEmail.Quit;
 
-//        CleanupInvoices;
-
      end
      else if (RqType = smtpQuit) and (ErrorCode = 0) then
      begin
@@ -291,7 +313,7 @@ begin
 //        if (txtAttachment.Text <> '')and FileExists(txtAttachment.Text) then
 //            DeleteFile(txtAttachment.Text)
 
-        EnableControls;
+        Busy(False);
 
      end
      else if (ErrorCode <> 0) then
@@ -317,7 +339,13 @@ begin
             Report('Show','Error ' + IntToStr(ErrorCode) + ' encountered');
         end;
 
-        EnableControls;
+        // -- Add the session log into the display
+        for xc := 0 to tfrLog.Lines.Count -1 do
+        begin
+          mmoLog.Lines.Add(tfrLog.Lines[xc]);
+        end;
+
+        Busy(False);
 
      end;
 
@@ -346,6 +374,20 @@ begin
   if not Assigned(frmMain.DocRegistry) then
     Exit;
 
+  // -- Add some elementory validation
+  if txtRecipient.Text = '' then
+  begin
+    bsSkinMessage1.MessageDlg('No email address specified',mtError,[mbOk],0);
+    Exit;
+  end;
+
+  // -- Add some elementory validation
+  if Pos('@',txtRecipient.Text) = 0 then
+  begin
+    bsSkinMessage1.MessageDlg('This doesn''t appear to be a valid email address.',mtError,[mbOk],0);
+    Exit;
+  end;
+
   // -- Load the appropriate configuration record
   if not frmMain.DocRegistry.GetSettingString(GTD_REG_NOD_GENERAL,GTD_REG_USER_EMAIL,s) then
   begin
@@ -360,24 +402,32 @@ begin
     else
         SmtpEmail.Host := '';
 
+    if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_SMTP_PORT,s) then
+        SmtpEmail.Port := s;
+    if s = '' then
+        SmtpEmail.Port := '25';
+
     if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_LOGINREQ,s) then
     begin
-        if (s = 'True') then
-        begin
-            SmtpEmail.AuthType  := smtpAuthLogin;
+      if (s = 'True') or (s = 'Auto') then
+      begin
+          if (s = 'True') then
+            SmtpEmail.AuthType  := smtpAuthLogin
+          else if (s = 'Auto') then
+            SmtpEmail.AuthType  := smtpAuthAutoSelect;
 
-            if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_USERNAME,s) then
-                SmtpEmail.UserName := s
-            else
-                SmtpEmail.UserName := '';
+          if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_USERNAME,s) then
+              SmtpEmail.UserName := s
+          else
+              SmtpEmail.UserName := '';
 
-            if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_PASSWORD,s) then
-                SmtpEmail.Password := s
-            else
-                SmtpEmail.Password := '';
-        end
-        else
-            SmtpEmail.AuthType  := smtpAuthNone;
+          if frmMain.DocRegistry.GetSettingMemoString('/Settings',GTD_REG_EMAIL_PASSWORD,s) then
+              SmtpEmail.Password := s
+          else
+              SmtpEmail.Password := '';
+      end
+      else
+          SmtpEmail.AuthType  := smtpAuthNone;
     end
     else
         SmtpEmail.AuthType  := smtpAuthNone;
@@ -392,20 +442,12 @@ begin
     end
     else
         SmtpEmail.HdrFrom := '';
-    end;
+  end;
 
   BuildHTMLQuoteText;
 
   // -- Disable the UI controls
-  txtRecipient.Enabled := False;
-  txtOriginator.Enabled := False;
-  txtSubject.Enabled := False;
-  mmoBodyText.Enabled := False;
-  mmoLog.Enabled := False;
-  btnSend.Enabled := False;
-//  btnClose.Enabled := False;
-
-  Screen.Cursor := crHourglass;
+  Busy(True);
 
   // -- Attach the attachments
   SmtpEmail.EmailFiles.Clear;
@@ -424,8 +466,8 @@ begin
 
   SmtpEmail.HdrSubject := txtSubject.Text;
   SmtpEmail.HdrFrom    := txtOriginator.Text;
+  SmtpEmail.HdrSender  := txtOriginator.Text;
   SmtpEmail.FromName   := txtOriginator.Text;
-
 
   // SmtpEmail.MailMessage.Assign(mmoBodyText.Lines);
 
@@ -440,40 +482,49 @@ begin
 
   // -- Now connect to the server
   try
-  SmtpEmail.Connect;
+    SmtpEmail.Connect;
   except
-   txtRecipient.Enabled := True;
-   txtOriginator.Enabled := True;
-   txtSubject.Enabled := True;
-   mmoBodyText.Enabled := True;
-   mmoLog.Enabled := True;
-   btnSend.Enabled := True;
-   Report('Show','Unable to connect');
-   Screen.Cursor := crDefault;
+    Busy(False);
+    Report('Show','Unable to connect');
   end;
 
 end;
 
 procedure TfrmQuote.BuildHTMLQuoteText;
 var
+  xc : Integer;
   s : WideString;
   topnode,
   SellerInfo,
   BuyerInfo,
-  HeaderInfo : IXMLNode;
+  HeaderInfo,
+  LineItems,
+  LineItem : IXMLNode;
 begin
-//  iDoc := NewXMLDocument;
-//  iDoc.Active := True;
+  fQuotetotal := 0;
+  fQuoteTax := 0;
+  for xc := 0 to frmMain.lsvTrolley.Items.Count - 1 do
+  begin
+    // -- Add the total
+    if frmMain.lsvTrolley.Items[xc].SubItems[4] <> '' then
+      fQuotetotal := fQuotetotal + StrToFloat(frmMain.lsvTrolley.Items[xc].SubItems[4]);
+    if frmMain.lsvTrolley.Items[xc].SubItems[5] <> '' then
+      fQuoteTax := fQuoteTax + StrToFloat(frmMain.lsvTrolley.Items[xc].SubItems[5]);
+  end;
 
+  // -- Start building the XML quote document
   XMLQuote.Active := False;
   XMLQuote.XML.Clear;
   XMLQuote.Active := True;
 
+  // -- Create the topmost node
   topnode := XMLQuote.AddChild('Quotation');
 
-  BuyerInfo := topNode.AddChild(STDDOC_BUYER);
-  SellerInfo := topNode.AddChild(STDDOC_SELLER);
-  HeaderInfo := topNode.AddChild('Header_Information'{STDDOC_HDR});
+  // -- Now add these subnodes
+  BuyerInfo := topNode.AddChild(AsXMLTag(STDDOC_BUYER));
+  SellerInfo := topNode.AddChild(AsXMLTag(STDDOC_SELLER));
+  HeaderInfo := topNode.AddChild(AsXMLTag(STDDOC_HDR));
+  LineItems := topNode.AddChild(AsXMLTag(STDDOC_LINE_ITEMS));
 
   with HeaderInfo do
   begin
@@ -481,11 +532,11 @@ begin
     ChildValues[STDDOC_HDR_ELE_TITLE] := 'Quotation ' + IntToStr(fQuoteNumber); //       = 'Document_Title';
     ChildValues[STDDOC_HDR_ELE_REF_NUM] := IntToStr(fQuoteNumber); //     = 'Document_Number';
     ChildValues[STDDOC_HDR_ELE_DATE] := DateToStr(Now); //        = 'Document_Date';
-	   ChildValues[STDDOC_HDR_ELE_TOTAL_AMOUNT] := FloatToStr(fQuoteTotal); //= 'Document_Total';       // -- 10%, 12%
-	   ChildValues[STDDOC_HDR_ELE_TAX_AMOUNT] := FloatToStr(fQuoteTotal); //  = 'Document_Tax';            // -- 10%, 12%
-	   ChildValues[STDDOC_HDR_ELE_SALES_PERSON] := ''; //= 'Sales_Person';
-	   ChildValues[STDDOC_HDR_ELE_CONTACT] := ''; //     = 'Contact';
-	   ChildValues[STDDOC_HDR_ELE_TAX_MODE] := STDDOC_CONST_TAX_MODE_INC; //    = 'Tax_Mode';           // -- Inclusive, Exclusive
+    ChildValues[STDDOC_HDR_ELE_TOTAL_AMOUNT] := FloatToStr(fQuoteTotal); //= 'Document_Total';       // -- 10%, 12%
+    ChildValues[STDDOC_HDR_ELE_TAX_AMOUNT] := FloatToStr(fQuoteTax); //  = 'Document_Tax';            // -- 10%, 12%
+    ChildValues[STDDOC_HDR_ELE_SALES_PERSON] := ''; //= 'Sales_Person';
+    ChildValues[STDDOC_HDR_ELE_CONTACT] := ''; //     = 'Contact';
+    ChildValues[STDDOC_HDR_ELE_TAX_MODE] := STDDOC_CONST_TAX_MODE_INC; //    = 'Tax_Mode';           // -- Inclusive, Exclusive
     ChildValues[STDDOC_HDR_ELE_TAX_NAME] := 'GST'; //    = 'Tax_Name';           // -- GST, VAT etc
     ChildValues[STDDOC_HDR_ELE_TAX_RATE] := '10'; //    = 'Tax_Rate';           // -- 10%, 12%
     ChildValues[STDDOC_HDR_ELE_TAX_TOTAL] := FloatToStr(fQuoteTax); //   = 'Tax_Total';          // -- Total for the document
@@ -519,12 +570,53 @@ begin
 
   with BuyerInfo do
   begin
-  
+    ChildValues[STDDOC_ELE_COMPANY_NAME]   := frmMain.DocRegistry.GetCompanyName;
+    ChildValues[STDDOC_ELE_ADDRESS_LINE_1] := frmMain.DocRegistry.GetAddress1;
+    ChildValues[STDDOC_ELE_ADDRESS_LINE_2] := frmMain.DocRegistry.GetAddress2;
+    ChildValues[STDDOC_ELE_TOWN]           := frmMain.DocRegistry.GetCity;
+    ChildValues[STDDOC_ELE_STATE_REGION]   := frmMain.DocRegistry.GetState;
+    ChildValues[STDDOC_ELE_POSTALCODE]     := frmMain.DocRegistry.GetPostcode;
+    ChildValues[STDDOC_ELE_COUNTRYCODE]    := frmMain.DocRegistry.GetCountryCode;
+    ChildValues[STDDOC_ELE_TELEPHONE]      := frmMain.DocRegistry.GetTelephone;
+    ChildValues[STDDOC_ELE_OTHER_INFO]     := frmMain.DocRegistry.GetOtherInformation;
   end;
 
   with SellerInfo do
   begin
+    ChildValues[STDDOC_ELE_COMPANY_NAME]   := frmMain.DocRegistry.GetCompanyName;
+    ChildValues[STDDOC_ELE_ADDRESS_LINE_1] := frmMain.DocRegistry.GetAddress1;
+    ChildValues[STDDOC_ELE_ADDRESS_LINE_2] := frmMain.DocRegistry.GetAddress2;
+    ChildValues[STDDOC_ELE_TOWN]           := frmMain.DocRegistry.GetCity;
+    ChildValues[STDDOC_ELE_STATE_REGION]   := frmMain.DocRegistry.GetState;
+    ChildValues[STDDOC_ELE_POSTALCODE]     := frmMain.DocRegistry.GetPostcode;
+    ChildValues[STDDOC_ELE_COUNTRYCODE]    := frmMain.DocRegistry.GetCountryCode;
+    ChildValues[STDDOC_ELE_TELEPHONE]      := frmMain.DocRegistry.GetTelephone;
+    ChildValues[STDDOC_ELE_OTHER_INFO]     := frmMain.DocRegistry.GetOtherInformation;
+//    ChildValues[STDDOC_ELE_TELEPHONE2]     :=
+//    ChildValues[STDDOC_ELE_EMAIL_ADDRESS]  :=
   end;
+
+  // -- Build all the line items
+  with frmMain.lsvTrolley do
+  begin
+    for xc := 0 to Items.Count -1 do
+    begin
+      LineItem := LineItems.AddChild(AsXMLTag(STDDOC_LINE_ITEM));
+
+      LineItem.ChildValues[STDDOC_ELE_ITEM_CODE]   := Items[xc].Caption;
+      LineItem.ChildValues[STDDOC_ELE_ITEM_NAME]   := Items[xc].SubItems[0];
+      LineItem.ChildValues[STDDOC_ELE_ITEM_DESC]   := Items[xc].SubItems[1];
+      LineItem.ChildValues[STDDOC_ELE_ITEM_QTY]    := Items[xc].SubItems[2];
+      LineItem.ChildValues[STDDOC_ELE_ITEM_RATE]   := Items[xc].SubItems[3];
+      LineItem.ChildValues[STDDOC_ELE_ITEM_AMOUNT] := Items[xc].SubItems[4];
+      LineItem.ChildValues[STDDOC_ELE_ITEM_TAX]    := Items[xc].SubItems[5];
+      LineItem.ChildValues[STDDOC_ELE_ITEM_IMAGE]  := Items[xc].SubItems[6];
+//      LineItem.ChildValues[STDDOC_ELE_ITEM_UNIT]   := ;
+
+    end;
+  end;
+
+  XMLQuote.SaveToFile('Quotation ' + IntToStr(fQuoteNumber) + '.xml');
 
   Report('Show','Building HTML via XML Transformation');
 
@@ -532,13 +624,16 @@ begin
 
   // -- Load the transformation
   XMLTransformation.Active := False;
-//  XMLTransformation.xml.Assign(Memo2.Lines);
+
+  // -- Load up the quotation transformation file if it exists
+  if FileExists('Quotation.xsl') then
+    XMLTransformation.LoadFromFile('Quotation.xsl');
+
   XMLTransformation.Active := True;
 
   // -- Now transform the document
   XMLQuote.Node.TransformNode(xmlTransformation.Node,s);
 
-//  memo3.Text := s;
   SmtpEmail.ContentType := smtpHTML;
   SmtpEmail.MailMessage.Text := s;
 
@@ -546,12 +641,36 @@ end;
 
 procedure TfrmQuote.SmtpEmailCommand(Sender: TObject; Msg: String);
 begin
-  Report('Show',' - Command=' + Msg);
+  tfrLog.Lines.Add('Command >' + Msg);
 end;
 
 procedure TfrmQuote.SmtpEmailResponse(Sender: TObject; Msg: String);
 begin
-  Report('Show',' - Response=' + Msg);
+  tfrLog.Lines.Add('Response <' + Msg);
+end;
+
+procedure TfrmQuote.SmtpEmailRcptToError(Sender: TObject; ErrorCode: Word;
+  RcptNameIdx: Integer; var Action: TSmtpRcptToErrorAction);
+begin
+  Report('Error',SmtpEmail.RcptName[RcptNameIdx] + ' isn''t a valid email address');
+  Action := srteIgnore;
+end;
+
+procedure TfrmQuote.Busy(TrueOrFalse : Boolean);
+begin
+  if TrueOrFalse then
+    Screen.Cursor := crHourglass
+  else
+    Screen.Cursor := crDefault;
+
+  // -- Disable the UI controls
+  txtRecipient.ReadOnly := TrueOrFalse;
+  txtOriginator.ReadOnly := TrueOrFalse;
+  txtSubject.ReadOnly := TrueOrFalse;
+  mmoBodyText.ReadOnly := TrueOrFalse;
+  mmoLog.ReadOnly := TrueOrFalse;
+  btnSend.Enabled := not TrueOrFalse;
+  btnClose.Enabled := not TrueOrFalse;
 
 end;
 

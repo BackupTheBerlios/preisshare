@@ -108,7 +108,7 @@ object frmQuote: TfrmQuote
       SkinDataName = 'bevel'
       DividerMode = False
     end
-    object bsSkinStdLabel1: TbsSkinStdLabel
+    object lblImageName: TbsSkinStdLabel
       Left = 72
       Top = 80
       Width = 50
@@ -234,6 +234,80 @@ object frmQuote: TfrmQuote
       Alignment = taRightJustify
       Caption = 'Sell Price'
       AutoSize = False
+    end
+    object txtPLU: TbsSkinEdit
+      Left = 288
+      Top = 64
+      Width = 65
+      Height = 20
+      Text = 'txtPLU'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      UseSkinFont = True
+      DefaultWidth = 0
+      DefaultHeight = 20
+      ButtonMode = False
+      SkinDataName = 'edit'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = 14
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+      Visible = False
+    end
+    object bsSkinLabel4: TbsSkinLabel
+      Left = 204
+      Top = 96
+      Width = 75
+      Height = 21
+      TabOrder = 6
+      SkinData = frmMain.bsSkinData1
+      SkinDataName = 'label'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      DefaultWidth = 0
+      DefaultHeight = 0
+      UseSkinFont = True
+      BorderStyle = bvFrame
+      Alignment = taRightJustify
+      Caption = 'Quantity'
+      AutoSize = False
+    end
+    object txtQuantity: TbsSkinMaskEdit
+      Left = 204
+      Top = 116
+      Width = 77
+      Height = 20
+      Text = '1'
+      DefaultFont.Charset = DEFAULT_CHARSET
+      DefaultFont.Color = clWindowText
+      DefaultFont.Height = 14
+      DefaultFont.Name = 'Arial'
+      DefaultFont.Style = []
+      UseSkinFont = True
+      DefaultWidth = 0
+      DefaultHeight = 20
+      ButtonMode = False
+      SkinData = frmMain.bsSkinData1
+      SkinDataName = 'edit'
+      Alignment = taRightJustify
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = 14
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 7
+      AutoSize = False
+      BorderStyle = bsNone
     end
   end
   object lblTrader: TbsSkinLabel
@@ -480,7 +554,7 @@ object frmQuote: TfrmQuote
     end
   end
   object grpPreview: TbsSkinGroupBox
-    Left = 8
+    Left = 416
     Top = 16
     Width = 381
     Height = 317
@@ -694,9 +768,9 @@ object frmQuote: TfrmQuote
     end
   end
   object dlgSendProgress: TbsSkinGauge
-    Left = 112
+    Left = 96
     Top = 348
-    Width = 277
+    Width = 293
     Height = 20
     TabOrder = 7
     Visible = False
@@ -717,6 +791,44 @@ object frmQuote: TfrmQuote
     MaxValue = 100
     Value = 50
     Vertical = False
+  end
+  object tfrLog: TMemo
+    Left = 408
+    Top = 312
+    Width = 105
+    Height = 57
+    Lines.Strings = (
+      'tfrLog')
+    TabOrder = 8
+    Visible = False
+  end
+  object btnMore: TbsSkinButton
+    Left = 88
+    Top = 344
+    Width = 75
+    Height = 25
+    TabOrder = 9
+    Visible = False
+    SkinData = frmMain.bsSkinData1
+    SkinDataName = 'button'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultWidth = 0
+    DefaultHeight = 0
+    UseSkinFont = True
+    RepeatMode = False
+    RepeatInterval = 100
+    AllowAllUp = False
+    TabStop = True
+    CanFocused = True
+    Down = False
+    GroupIndex = 0
+    Caption = 'Add More..'
+    NumGlyphs = 1
+    Spacing = 1
   end
   object bsBusinessSkinForm1: TbsBusinessSkinForm
     ClientWidth = 0
@@ -767,16 +879,25 @@ object frmQuote: TfrmQuote
   end
   object SmtpEmail: TSmtpCli
     Tag = 0
+    ShareMode = smtpShareDenyWrite
     LocalAddr = '0.0.0.0'
     Port = 'smtp'
     AuthType = smtpAuthLogin
+    ConfirmReceipt = False
+    HdrPriority = smtpPriorityNone
     CharSet = 'iso-8859-1'
+    SendMode = smtpToSocket
+    DefaultEncoding = smtpEnc7bit
+    Allow8bitChars = True
+    FoldHeaders = False
+    WrapMessageText = False
     ContentType = smtpPlainText
     OwnHeaders = False
     OnCommand = SmtpEmailCommand
     OnResponse = SmtpEmailResponse
+    OnRcptToError = SmtpEmailRcptToError
     OnRequestDone = SmtpEmailRequestDone
-    Left = 324
+    Left = 308
     Top = 8
   end
   object DataSource1: TDataSource
@@ -1079,5 +1200,26 @@ object frmQuote: TfrmQuote
     Left = 272
     Top = 4
     DOMVendorDesc = 'MSXML'
+  end
+  object bsSkinMessage1: TbsSkinMessage
+    AlphaBlend = False
+    AlphaBlendAnimation = False
+    AlphaBlendValue = 200
+    SkinData = frmMain.bsSkinData1
+    ButtonSkinDataName = 'button'
+    MessageLabelSkinDataName = 'stdlabel'
+    DefaultFont.Charset = DEFAULT_CHARSET
+    DefaultFont.Color = clWindowText
+    DefaultFont.Height = 14
+    DefaultFont.Name = 'Arial'
+    DefaultFont.Style = []
+    DefaultButtonFont.Charset = DEFAULT_CHARSET
+    DefaultButtonFont.Color = clWindowText
+    DefaultButtonFont.Height = 14
+    DefaultButtonFont.Name = 'Arial'
+    DefaultButtonFont.Style = []
+    UseSkinFont = True
+    Left = 208
+    Top = 8
   end
 end

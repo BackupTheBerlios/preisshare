@@ -24,6 +24,7 @@ type
     bsCompressedStoredSkin1: TbsCompressedStoredSkin;
     dlgSelectFile: TbsOpenSkinDialog;
     dlgOpenFile: TbsSkinOpenDialog;
+    lsvTrolley: TListView;
     procedure btnSearchClick(Sender: TObject);
     procedure bsSkinButton1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);

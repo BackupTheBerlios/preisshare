@@ -20,7 +20,8 @@ uses
   ColumnParams in 'ColumnParams.pas' {Form1},
   GTDCollectSupplierPricelists in '..\Components\GTDCollectSupplierPricelists.pas' {CollectPricelistFrame: TFrame},
   AddToQuote in 'AddToQuote.pas' {frmQuote},
-  PrintQuoteToPDF in 'PrintQuoteToPDF.pas' {rptPrintQuoteToPDF};
+  PrintQuoteToPDF in 'PrintQuoteToPDF.pas' {rptPrintQuoteToPDF},
+  GTDBizLinks in '..\Components\GTDBizLinks.pas';
 
 {$R *.RES}
 
