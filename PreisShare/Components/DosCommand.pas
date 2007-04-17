@@ -202,7 +202,6 @@ implementation
 type TCharBuffer = array[0..MaxInt - 1] of Char;
 
 //------------------------------------------------------------------------------
-
 constructor TProcessTimer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -211,7 +210,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TProcessTimer.MyTimer(Sender: TObject);
 begin
   Inc(FSinceBeginning);
@@ -219,7 +217,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TProcessTimer.Beginning;
 begin
   Interval := 1000; //time is in sec
@@ -229,21 +226,18 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TProcessTimer.NewOutput;
 begin
   FSinceLastOutput := 0; //a new output has been caught
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TProcessTimer.Ending;
 begin
   Enabled := False; //set the timer off
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TDosThread.FExecute;
 const
   MaxBufSize = 1024;
@@ -467,14 +461,12 @@ begin //FExecute
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TDosThread.Execute;
 begin
   FExecute;
 end;
 
 //------------------------------------------------------------------------------
-
 constructor TDosThread.Create(AOwner: TObject; Cl: string; L: TStringList;
   Ol: TStrings; t: TProcessTimer; mtab, mtalo: Integer; Onl: TNewLineEvent;
   Ot: TNotifyEvent; fwh, p: Integer; ito: Boolean);
@@ -497,7 +489,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 constructor TDosCommand.Create(AOwner: TComponent);
 begin
   inherited;
@@ -512,7 +503,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TDosCommand.SetOutputLines(Value: TStrings);
 begin
   if (FOutputLines <> Value) then
@@ -520,7 +510,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TDosCommand.Execute;
 begin
   if (FCommandLine <> '') then
@@ -536,7 +525,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TDosCommand.Stop;
 begin
   if (FThread <> nil) then
@@ -548,7 +536,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure TDosCommand.SendLine(Value: string; Eol: Boolean);
 const
   EolCh: array[Boolean] of Char = (' ', '_');
@@ -558,7 +545,6 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-
 procedure Register;
 begin
   RegisterComponents('Samples', [TDosCommand]);

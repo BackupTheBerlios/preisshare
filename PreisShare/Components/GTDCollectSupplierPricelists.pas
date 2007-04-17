@@ -374,7 +374,6 @@ begin
     lblSampleFeeds.Visible := True;
   end;
 
-
 end;
 
 function TCollectPricelistFrame.Run_Selected:Boolean;
@@ -389,6 +388,7 @@ end;
 
 function TCollectPricelistFrame.Run_All:Boolean;
 begin
+  MessageDlg('Please select a feed to load from.',mtInformation,[mbOk],0);
 end;
 
 function TCollectPricelistFrame.Prepare:Boolean;
@@ -401,12 +401,13 @@ begin
       Parent := Self;
       Left := 0;
       Top := 30;
-      Visible := False;
       DocRegistry := fDocRegistry;
   //    SkinData := frmMain.bsSkinData1;
-      Init;
     end;
   end;
+
+  mySPD.Visible := False;
+  mySPD.Init;
 
   if not Assigned(myPL) then
   begin
@@ -739,7 +740,11 @@ end;
 
 procedure TCollectPricelistFrame.btnGetClick(Sender: TObject);
 begin
-  if otlFeeds.Selected.Level = 0 then
+  if not Assigned(otlFeeds.Selected) then
+  begin
+    Run_All;
+  end
+  else if otlFeeds.Selected.Level = 0 then
   begin
     Run_All;
   end

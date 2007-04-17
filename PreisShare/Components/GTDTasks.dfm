@@ -345,8 +345,8 @@ object GTDTaskPanel: TGTDTaskPanel
     ContentType = smtpPlainText
     OwnHeaders = False
     OnRequestDone = SmtpCli1RequestDone
-    Left = 4
-    Top = 84
+    Left = 100
+    Top = 20
   end
   object bsSkinMessage1: TbsSkinMessage
     AlphaBlend = False
@@ -369,8 +369,8 @@ object GTDTaskPanel: TGTDTaskPanel
     Top = 16
   end
   object bsSkinPopupMenu1: TbsSkinPopupMenu
-    Left = 36
-    Top = 48
+    Left = 68
+    Top = 16
     object Run1: TMenuItem
       Caption = 'Start'
       OnClick = Run1Click
@@ -387,7 +387,7 @@ object GTDTaskPanel: TGTDTaskPanel
     ProxySettings.ProxyType = fpcmNone
     ProxySettings.Port = 0
     OnAfterClientLogin = ftpClientAfterClientLogin
-    Left = 36
-    Top = 116
+    Left = 132
+    Top = 20
   end
 end

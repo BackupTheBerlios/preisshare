@@ -79,12 +79,12 @@ const
 	GTD_REG_DFLT_QUOTE_DELCHG       = 'Default Quote Delivery Charge';
 	GTD_REG_DFLT_QUOTE_TERMS        = 'Default Quote Terms';
 
-	GTD_REG_EMAIL_HOST              = 'Email Host';
-	GTD_REG_EMAIL_LOGINREQ          = 'Email Login Required';
-	GTD_REG_EMAIL_USERNAME          = 'Email User Name';
-	GTD_REG_EMAIL_PASSWORD          = 'Email Config';
-	GTD_REG_EMAIL_DISPLAYNAME       = 'Email Display Name';
-
+	GTD_REG_EMAIL_HOST              = 'Email_Host';
+	GTD_REG_EMAIL_LOGINREQ          = 'Email_Login_Required';
+	GTD_REG_EMAIL_USERNAME          = 'Email_User_Name';
+	GTD_REG_EMAIL_PASSWORD          = 'Email_Password';
+	GTD_REG_EMAIL_DISPLAYNAME       = 'Email_Display_Name';
+  GTD_REG_SMTP_PORT               = 'SMTP_Port';
 
 //    GTD_DFLT_BIZEXCHANGE            = '192.168.2.20';
 	GTD_DFLT_BIZEXCHANGE            = '220.233.76.153';
