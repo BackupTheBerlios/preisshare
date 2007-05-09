@@ -109,9 +109,9 @@ object frmQuote: TfrmQuote
       DividerMode = False
     end
     object lblImageName: TbsSkinStdLabel
-      Left = 72
+      Left = 24
       Top = 80
-      Width = 50
+      Width = 145
       Height = 13
       UseSkinFont = True
       DefaultFont.Charset = DEFAULT_CHARSET
@@ -120,6 +120,8 @@ object frmQuote: TfrmQuote
       DefaultFont.Name = 'MS Sans Serif'
       DefaultFont.Style = []
       SkinDataName = 'stdlabel'
+      Alignment = taCenter
+      AutoSize = False
       Caption = 'No Picture'
     end
     object bsSkinLabel2: TbsSkinLabel
@@ -332,7 +334,7 @@ object frmQuote: TfrmQuote
   end
   object btnNext: TbsSkinButton
     Left = 8
-    Top = 344
+    Top = 360
     Width = 75
     Height = 25
     TabOrder = 4
@@ -808,7 +810,6 @@ object frmQuote: TfrmQuote
     Width = 75
     Height = 25
     TabOrder = 9
-    Visible = False
     SkinData = frmMain.bsSkinData1
     SkinDataName = 'button'
     DefaultFont.Charset = DEFAULT_CHARSET
@@ -829,6 +830,7 @@ object frmQuote: TfrmQuote
     Caption = 'Add More..'
     NumGlyphs = 1
     Spacing = 1
+    OnClick = btnMoreClick
   end
   object bsBusinessSkinForm1: TbsBusinessSkinForm
     ClientWidth = 0

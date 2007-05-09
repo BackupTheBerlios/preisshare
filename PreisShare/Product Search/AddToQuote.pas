@@ -62,6 +62,7 @@ type
     procedure SmtpEmailResponse(Sender: TObject; Msg: String);
     procedure SmtpEmailRcptToError(Sender: TObject; ErrorCode: Word;
       RcptNameIdx: Integer; var Action: TSmtpRcptToErrorAction);
+    procedure btnMoreClick(Sender: TObject);
   private
     { Private declarations }
     fProductImage : TEDBImage;
@@ -69,6 +70,9 @@ type
     fQuoteNumber : Integer;
     fQuoteTotal,
     fQuoteTax    : Double;
+
+    procedure AddInformationToList;
+    procedure PostCleanup;
 
   public
     { Public declarations }
@@ -80,9 +84,9 @@ type
     procedure Busy(TrueOrFalse : Boolean);
 
     procedure QuoteFromData;
-    
+
     procedure BuildHTMLQuoteText;
-    
+
   end;
 
 var
@@ -144,6 +148,8 @@ begin
   grpPreview.Left := pnlProductInfo.Left;
   grpPreview.Top := pnlProductInfo.Top;
 
+  btnNext.Top := btnSend.Top;
+
 end;
 
 procedure TfrmQuote.btnCloseClick(Sender: TObject);
@@ -189,17 +195,15 @@ begin
   Busy(False);
 
   btnNext.Visible := True;
+  btnMore.Visible := True;
 
 end;
 
-procedure TfrmQuote.btnNextClick(Sender: TObject);
+procedure TfrmQuote.AddInformationToList;
 var
   newItem : TListItem;
   amt : Double;
 begin
-  if pnlProductInfo.Visible then
-  begin
-
     amt := StrToFloat(txtQuantity.Text) * StrToFloat(txtProductAmount.Text);
 
     // -- Add these products to the trolley
@@ -220,6 +224,14 @@ begin
     else
       // -- Blank image name
       newItem.SubItems.Add('');
+end;
+
+procedure TfrmQuote.btnNextClick(Sender: TObject);
+begin
+  if pnlProductInfo.Visible then
+  begin
+
+    AddInformationToList;
 
     xplEditProducts.Visible := False;
     xplKeyClient.Visible := True;
@@ -227,6 +239,9 @@ begin
     pnlProductInfo.Visible := False;
     myClient.Visible := True;
     myClient.SelectProspectClientOrAddNew(1);
+
+    btnMore.Visible := False;
+
   end
   else if myClient.Visible then
   begin
@@ -236,6 +251,7 @@ begin
     myClient.Visible := False;
     grpPreview.Visible := True;
     btnNext.Visible := False;
+    btnMore.Visible := False;
 
     // -- Copy over the client details
     with mmoBodyText.Lines do
@@ -254,7 +270,6 @@ begin
     // --
     txtSubject.Text := 'Quotation';
     txtRecipient.Text := myClient.txtShortname.Text;
-
 
   end
   else if grpPreview.Visible then
@@ -300,6 +315,8 @@ begin
 
         Report('Show','Quotation Mailed Successfully');
 
+        PostCleanup;
+        
         SmtpEmail.Quit;
 
      end
@@ -314,6 +331,8 @@ begin
 //            DeleteFile(txtAttachment.Text)
 
         Busy(False);
+
+        PostCleanup;
 
      end
      else if (ErrorCode <> 0) then
@@ -468,6 +487,8 @@ begin
   SmtpEmail.HdrFrom    := txtOriginator.Text;
   SmtpEmail.HdrSender  := txtOriginator.Text;
   SmtpEmail.FromName   := txtOriginator.Text;
+  SmtpEmail.HdrReturnPath := txtOriginator.Text;
+  SmtpEmail.HdrReplyTo    := txtOriginator.Text;
 
   // SmtpEmail.MailMessage.Assign(mmoBodyText.Lines);
 
@@ -672,6 +693,20 @@ begin
   btnSend.Enabled := not TrueOrFalse;
   btnClose.Enabled := not TrueOrFalse;
 
+end;
+
+procedure TfrmQuote.btnMoreClick(Sender: TObject);
+begin
+  AddInformationToList;
+
+  // -- Here we close up
+  Close;
+end;
+
+procedure TfrmQuote.PostCleanup;
+begin
+  // -- This will clear all the items
+  frmMain.lsvTrolley.Items.Clear;
 end;
 
 end.
