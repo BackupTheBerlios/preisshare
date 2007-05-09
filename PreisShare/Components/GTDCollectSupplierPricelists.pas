@@ -8,8 +8,12 @@ uses
   bsMessages,bsSkinData, bsSkinMenus, Menus, bsDialogs, Mask, DB, DBTables,
   GTDBizDocs,GTDTraderSelectPanel, PricelistExport, GTDPricelists, ExtCtrls, TeeProcs, TeEngine, Chart,
   jpeg, ImgList,HTTPApp;
-type
-  TCollectPricelistFrame = class(TFrame)
+
+const
+  CM_DOALLFEEDS = WM_APP + 50;
+  CM_DONEXTFEED = WM_APP + 51;
+
+  type TCollectPricelistFrame = class(TFrame)
     HttpCli1: THttpCli;
     pnlBackground: TbsSkinPanel;
     btnAdd: TbsSkinSpeedButton;
@@ -86,6 +90,9 @@ type
     function LoadPricelistFile(FileName : String):Boolean;
 
     procedure ShowPLMessage(msgType, msgDescription : String);
+
+    procedure ProcessStartFeed(var aMsg : TMsg); message CM_DOALLFEEDS;
+    procedure ProcessNextFeed(var aMsg : TMsg); message CM_DONEXTFEED;
 
   published
 
@@ -286,8 +293,8 @@ begin
   WeekNode.ImageIndex := 2;
   MonthNode := otlFeeds.Items.Add(nil,'Monthly');
   MonthNode.ImageIndex := 3;
-//  FileNode := otlFeeds.Items.Add(nil,'File:');
-//  MonthNode.ImageIndex := 4;
+  FileNode := otlFeeds.Items.Add(nil,'File');
+  MonthNode.ImageIndex := 4;
 
   // -- Select all traders from the trader table
   with qrySources do
@@ -387,8 +394,15 @@ begin
 end;
 
 function TCollectPricelistFrame.Run_All:Boolean;
+var
+  xc : Integer;
 begin
   MessageDlg('Please select a feed to load from.',mtInformation,[mbOk],0);
+
+  for xc := 0 to otlFeeds.Items.Count do
+  begin
+    otlFeeds.Items.Item[xc];
+  end;
 end;
 
 function TCollectPricelistFrame.Prepare:Boolean;
@@ -399,13 +413,15 @@ begin
     with mySPD do
     begin
       Parent := Self;
-      Left := 0;
-      Top := 30;
+      Left := otlFeeds.Left;
+      Top := otlFeeds.Top;
       DocRegistry := fDocRegistry;
-  //    SkinData := frmMain.bsSkinData1;
     end;
   end;
 
+  // -- Set the size coordinates properly
+  mySPD.Height := Self.Height - (mySPD.Top);
+  mySPD.Width := Self.Width - (2 * mySPD.Left);
   mySPD.Visible := False;
   mySPD.Init;
 
@@ -752,6 +768,14 @@ begin
   begin
     Run_Selected;
   end;
+end;
+
+procedure TCollectPricelistFrame.ProcessStartFeed(var aMsg : TMsg);
+begin
+end;
+
+procedure TCollectPricelistFrame.ProcessNextFeed(var aMsg : TMsg); 
+begin
 end;
 
 end.

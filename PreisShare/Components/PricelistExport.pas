@@ -152,6 +152,7 @@ type
     procedure imgRemovedClick(Sender: TObject);
     procedure imgDetailsClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
 
   protected
 	{ Protected declarations }
@@ -2832,6 +2833,16 @@ begin
   // -- Retrieve the standard discount
   SupplierDiscountPercentage := 0;
   fDocRegistry.GetTraderSettingNumber('/Supplier Discounts','Standard_Discount',SupplierDiscountPercentage);
+
+end;
+
+procedure TGTDPricelistExportFrame.FrameResize(Sender: TObject);
+begin
+  // --
+  mmoSQL.Width := Self.Width - (2 * mmoSQL.Left);
+  mmoProgress.Width := Self.Width - (2 * mmoProgress.Left);
+  lsvItems.Width := Self.Width - (2 * lsvItems.Left);
+//  btnCancel.Left := Self.Width - btnCancel.Width - (2 * btnCancel.Left);
 
 end;
 

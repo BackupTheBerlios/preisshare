@@ -368,7 +368,11 @@ function TGTDTaskPanel.StartEmailDespatch:Boolean;
         end;
 
         // -- Attach all the files
-        d := fWorkDir;
+        if RightStr(fWorkDir,1) <> '\' then
+          d := fWorkDir + '\'
+        else
+          d := fWorkDir;
+
         s := fFileList;
 
         SmtpCli1.EmailFiles.Clear;
@@ -380,13 +384,13 @@ function TGTDTaskPanel.StartEmailDespatch:Boolean;
               if (Pos('*',f) <> 0) or (Pos('?',f) <> 0) then
               begin
                 // -- Wildcard add of files
-                if FindFirst(d + '\' + f, faAnyFile, sr) = 0 then
+                if FindFirst(d + f, faAnyFile, sr) = 0 then
                 repeat
 
-                  if (FileExists(d + '\' + sr.Name)) then
+                  if (FileExists(d + sr.Name)) then
                   begin
                     Report('Show',' - Adding ' + d + '\' + sr.Name);
-                    SmtpCli1.EmailFiles.Add(d + '\' + sr.Name);
+                    SmtpCli1.EmailFiles.Add(d + sr.Name);
                   end;
 
                 until FindNext(sr) <> 0;
@@ -484,7 +488,24 @@ begin
 end;
 //---------------------------------------------------------------------------
 procedure TGTDTaskPanel.Report(const Msgtype : String; Const Description : String);
+const
+  logname = 'Task Log.txt';
+var
+  f: TextFile;
 begin
+    AssignFile(f, logname);
+
+    // -- Create the file if it doesn't exist
+    if not FileExists(logname) then
+      ReWrite(f);
+
+    Append(f);
+    Writeln(f, DateTimeToStr(Now) + Chr(9) + MsgType + Chr(9) + Description);
+
+    { insert code here that would require a Flush before closing the file }
+    Flush(f);  { ensures that the text was actually written to file }
+    CloseFile(f);
+
     if lstCheckList.Visible then
     begin
         if not bsSkinGauge1.ShowProgressText then
@@ -500,7 +521,7 @@ begin
         mmoReport.Lines.Clear
     else
         mmoReport.Lines.Add(Description);
-
+                              
 end;
 //---------------------------------------------------------------------------
 procedure TGTDTaskPanel.DosCommandNewLine(Sender: TObject;
@@ -555,6 +576,10 @@ var
 begin
     Report('Show','Cleaning up.');
 
+    // -- Delete the file
+    if FileExists(fMainFile) then
+        DeleteFile(fMainFile);
+
     // -- Do a file cleanup
     if (fFileList <> '') then
     begin
@@ -598,6 +623,7 @@ begin
                   DeleteFile(f);
         end;
     end;
+
 
     Report('Show','Completed.');
 

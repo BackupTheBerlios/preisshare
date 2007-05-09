@@ -4,6 +4,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
   Width = 576
   Height = 378
   TabOrder = 0
+  OnResize = FrameResize
   object pnlBackGround: TbsSkinPanel
     Left = 0
     Top = 0
