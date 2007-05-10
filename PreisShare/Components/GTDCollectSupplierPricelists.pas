@@ -7,11 +7,12 @@ uses
   Dialogs, ComCtrls, bsSkinCtrls, StdCtrls, bsSkinBoxCtrls, HttpProt,
   bsMessages,bsSkinData, bsSkinMenus, Menus, bsDialogs, Mask, DB, DBTables,
   GTDBizDocs,GTDTraderSelectPanel, PricelistExport, GTDPricelists, ExtCtrls, TeeProcs, TeEngine, Chart,
-  jpeg, ImgList,HTTPApp;
+  jpeg, ImgList, HTTPApp;
 
 const
   CM_DOALLFEEDS = WM_APP + 50;
   CM_DONEXTFEED = WM_APP + 51;
+  CM_SETUPSAMPLEFEEDS = WM_APP + 52;
 
   type TCollectPricelistFrame = class(TFrame)
     HttpCli1: THttpCli;
@@ -49,18 +50,20 @@ const
       Len: Integer);
     procedure btnAddClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
-    procedure btnSampleFeedsClick(Sender: TObject);
     procedure otlFeedsClick(Sender: TObject);
     procedure HttpCli1DocEnd(Sender: TObject);
     procedure lstColumnMapDblClick(Sender: TObject);
     procedure btnSaveCfgClick(Sender: TObject);
     procedure HttpCli1SocketError(Sender: TObject);
     procedure btnGetClick(Sender: TObject);
+    procedure btnSampleFeedsClick(Sender: TObject);
   private
     { Private declarations }
     fDocRegistry : GTDDocumentRegistry;
     fSkinData   : TbsSkinData;
     fTraderDetails : TpnlTraderGet;
+
+    fProcessAll : Boolean;
 
     mySPD : TGTDPricelistExportFrame;
     myPL : GTDPricelist;
@@ -93,6 +96,7 @@ const
 
     procedure ProcessStartFeed(var aMsg : TMsg); message CM_DOALLFEEDS;
     procedure ProcessNextFeed(var aMsg : TMsg); message CM_DONEXTFEED;
+    procedure SetupSampleFeeds(var aMsg : TMsg); message CM_SETUPSAMPLEFEEDS;
 
   published
 
@@ -397,12 +401,10 @@ function TCollectPricelistFrame.Run_All:Boolean;
 var
   xc : Integer;
 begin
-  MessageDlg('Please select a feed to load from.',mtInformation,[mbOk],0);
+  fProcessAll := True;
+  otlFeeds.Selected := otlFeeds.Items[0];
 
-  for xc := 0 to otlFeeds.Items.Count do
-  begin
-    otlFeeds.Items.Item[xc];
-  end;
+  Run_Selected;
 end;
 
 function TCollectPricelistFrame.Prepare:Boolean;
@@ -420,9 +422,9 @@ begin
   end;
 
   // -- Set the size coordinates properly
+  mySPD.Visible := False;
   mySPD.Height := Self.Height - (mySPD.Top);
   mySPD.Width := Self.Width - (2 * mySPD.Left);
-  mySPD.Visible := False;
   mySPD.Init;
 
   if not Assigned(myPL) then
@@ -473,14 +475,44 @@ begin
   end;
 end;
 
-procedure TCollectPricelistFrame.btnSampleFeedsClick(Sender: TObject);
+procedure TCollectPricelistFrame.SetupSampleFeeds(var aMsg : TMsg); 
 begin
   // -- Setup some sample feeds in the system
   AddDailyCSVPricelistFeed('I-Tech','http://www.i-tech.com.au/products/Products.csv','Product ID=PLU;Name=Name;Category=<Product Group>;Price=Actual_Price');
+  AddDailyCSVPricelistFeed('SoftwareBox','http://www.softwarebox.de/shop/products.csv','productid=PLU;name=Name;brand=;offerid=;category=<Product Group>;description=Description;price=Actual_Price;image=;url=;availability=;shipping=;special=');
+  AddDailyCSVPricelistFeed('ABit','hhtp://www.abit.com.au/computer-system/Products.csv','');
+  AddDailyCSVPricelistFeed('Sotel','http://www.sotel.de/products.csv','');
+  AddDailyCSVPricelistFeed('comnations','http://www.comnations.de/products.csv','');
+  AddDailyCSVPricelistFeed('IBuy','www.ibuy.com.au/buy/products.csv','');
+  AddDailyCSVPricelistFeed('MyChams','http://www.mycharms.de/products.csv','');
+  AddDailyCSVPricelistFeed('Cleverwerben','http://www.clever-werben.info/shop/elmar_products.php','');
+  AddDailyCSVPricelistFeed('arkana23','http://www.arkana23.de/elmar_products.php','');
+  AddDailyCSVPricelistFeed('erfolgsshop','http://www.erfolgsshop.de/elmar_products.php','');
+  AddDailyCSVPricelistFeed('triologic','http://bekleidungskammer.de/elmar_products.php','');
+  AddDailyCSVPricelistFeed('bauey','http://www.bauey.de/elmar_products.php','');
+  AddDailyCSVPricelistFeed('homemedia4u','http://www.homemedia4u.com/catalog/elmar_products.php','');
+  AddDailyCSVPricelistFeed('sold2u','http://www.sold2u.de/elmar_products.php','');
+  AddDailyCSVPricelistFeed('mwv-computer','http://www.mwv-computer.eu/elmar_products.php','');
+
+  // http://www.special-media.de/shopinfo.xml
+  AddDailyCSVPricelistFeed('special-media','http://www.special-media.de/export/produktexport.txt','');
+
+  // http://www.kochs-online-shop.de/shopinfo.xml
+  AddDailyCSVPricelistFeed('kochs','http://www.kochs-online-shop.de/elmar_products.php','');
+
+  // http://www.runmarkt.de/shopinfo.xml
+  AddDailyCSVPricelistFeed('runmarkt','http://www.runmarkt.de/elmar_products.php','');
+
+  // http://www.csb-battery.eu/shopinfo.xml
+  AddDailyCSVPricelistFeed('csb-battery','http://www.csb-battery.eu/elmar_products.php','');
+
+  // http://aurora-store.com/shopinfo.xml
+  AddDailyCSVPricelistFeed('aurora-store','http://aurora-store.com/export/preisauskunft.csv','');
+
+  // http://www.gz-computer.de/shopinfo.xml
 
   // -- Refresh the display
   BuildCollectionList;
-
 end;
 
 procedure TCollectPricelistFrame.AddDailyCSVPricelistFeed(CompanyName,URL,ColumnMappings : String);
@@ -504,6 +536,9 @@ begin
     fDocRegistry.SaveTraderSettingString(PL_COLLECT_NODE,PL_COLLECT_MECHANISM,PL_COLLECT_MECH_HTTP,False);
     fDocRegistry.SaveTraderSettingString(PL_COLLECT_NODE,PL_COLLECT_HTTP_LOCATION,URL,False);
     fDocRegistry.SaveTraderSettingString(PL_COLLECT_NODE,PL_COLLECT_FORMAT,PL_COLLECT_CSV,True);
+
+    myPL.SaveCustomerSpecifiedCSVFieldMap(fDocRegistry,fDocRegistry.Traders.FieldByName(GTD_DB_COL_TRADER_ID).AsInteger,ColumnMappings);
+
   end;
 
 end;
@@ -712,6 +747,10 @@ begin
     if Assigned(lstColumnMap.Selected) then;
 
     lstColumnMap.Selected.SubItems[0] := dlgFields.SelectValues[r];
+
+    // -- Display the save button
+    btnSaveCfg.Visible := True;
+    
   end;
 end;
 
@@ -772,10 +811,24 @@ end;
 
 procedure TCollectPricelistFrame.ProcessStartFeed(var aMsg : TMsg);
 begin
+  Run_All;
 end;
 
-procedure TCollectPricelistFrame.ProcessNextFeed(var aMsg : TMsg); 
+procedure TCollectPricelistFrame.ProcessNextFeed(var aMsg : TMsg);
 begin
+  if otlFeeds.Selected.Index < otlFeeds.Items.Count then
+  begin
+    otlFeeds.Selected := otlFeeds.Items[otlFeeds.Selected.Index + 1];
+
+    Run_Selected;
+
+  end;
+
+end;
+
+procedure TCollectPricelistFrame.btnSampleFeedsClick(Sender: TObject);
+begin
+  PostMessage(Handle,CM_SETUPSAMPLEFEEDS,0,0);
 end;
 
 end.

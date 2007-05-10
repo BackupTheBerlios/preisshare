@@ -521,7 +521,7 @@ object GTDPricelistExportFrame: TGTDPricelistExportFrame
       Vertical = False
     end
     object btnCancel: TbsSkinButton
-      Left = 484
+      Left = 396
       Top = 162
       Width = 85
       Height = 23

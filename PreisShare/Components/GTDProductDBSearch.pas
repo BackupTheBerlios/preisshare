@@ -125,12 +125,13 @@ type
     property DocumentRegistry : GTDDocumentRegistry read fDocRegistry write fDocRegistry;
     property OnDisplayMessage : TProductSearchDisplayEvent read fOnDisplayMessage write fOnDisplayMessage;
     property ProductDetails : TProductDetails read fProductDetails;
+    property CollectPricelists : TCollectPricelistFrame read fGetPriceUpdates;
   end;
 
 implementation
 
 {$R *.DFM}
-uses DelphiUtils,FastStrings,FastStringFuncs;
+uses DelphiUtils,FastStrings,FastStringFuncs, Main;
 
 
 procedure TProductdBSearch.Initialise;
@@ -216,9 +217,24 @@ begin
 end;
 
 procedure TProductdBSearch.CountItemsInProductDatabase;
-var
+
+  procedure Ask2SetupSampleData;
+  begin
+    if mrYes = dlgConfig.MessageDlg('You currently have no data in your product ' +
+                                 'database. ' + Chr(13) + Chr(13) + 'Would you like to download some sample data ' +
+                                 'to see how PreisShare works ? ' + Chr(13) + Chr(13) +
+                                 'You can easily remove this data later.',mtConfirmation,[mbYes,mbCancel],0) then
+    begin
+      // -- Send a message to request sample feeds be setup
+      PostMessage(frmMain.productDB.CollectPricelists.Handle,CM_SETUPSAMPLEFEEDS,0,0);
+    end;
+
+  end;
+
+  var
     ItemsInDB : Integer;
     ShortCompanyName,w1,w2 : String;
+
 begin
     Chart1.SeriesList[0].Clear;
 
@@ -265,6 +281,11 @@ begin
         DisplayMessage(fdbItemCountText);
 
         Active := False;
+
+        if (ItemsInDB = 0) then
+        begin
+          Ask2SetupSampleData;
+        end;
     end;
 
 end;

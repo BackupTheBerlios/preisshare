@@ -2840,10 +2840,11 @@ procedure TGTDPricelistExportFrame.FrameResize(Sender: TObject);
 begin
   // --
   mmoSQL.Width := Self.Width - (2 * mmoSQL.Left);
+  mmoSQL.Height := Self.Height - mmoSQL.Top - 20;
+   
   mmoProgress.Width := Self.Width - (2 * mmoProgress.Left);
   lsvItems.Width := Self.Width - (2 * lsvItems.Left);
 //  btnCancel.Left := Self.Width - btnCancel.Width - (2 * btnCancel.Left);
-
 end;
 
 end.
