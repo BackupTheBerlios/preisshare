@@ -28,6 +28,7 @@ const
     GTTM_ERRSTART   = WM_APP + 308;
     GTTM_RUNNEXT    = WM_APP + 309;
     GTTM_FTPEVENT   = WM_APP + 310;
+    GTTM_STARTJOB   = WM_APP + 311;
 type
   TGTDTaskPanel = class(TFrame)
     DosCommand: TDosCommand;
@@ -47,10 +48,10 @@ type
     btnShowDetails: TbsSkinSpeedButton;
     btnProcess: TbsSkinButton;
     ftpClient: TIdFTP;
+    sysTimer: TTimer;
     procedure DosCommandNewLine(Sender: TObject; NewLine: String;
       OutputType: TOutputType);
     procedure DosCommandTerminated(Sender: TObject);
-    procedure bsSkinSpeedButton1Click(Sender: TObject);
     procedure bsSkinSpeedButton2Click(Sender: TObject);
     procedure bsSkinSpeedButton3Click(Sender: TObject);
     procedure SmtpCli1RequestDone(Sender: TObject; RqType: TSmtpRequest;
@@ -68,6 +69,7 @@ type
     procedure ftpClientAfterClientLogin(Sender: TObject);
     procedure ftpClientWork(Sender: TObject; AWorkMode: TWorkMode;
       const AWorkCount: Integer);
+    procedure sysTimerTimer(Sender: TObject);
   private
     { Private declarations }
     fTaskName,
@@ -111,6 +113,17 @@ type
     procedure ProcessRunNext(var aMsg : TMsg); message GTTM_RUNNEXT;
     procedure ProcessFTP(var aMsg : TMsg); message GTTM_FTPEVENT;
     procedure DisplayJobList;
+
+    procedure EnableJobTimer(Enabled : Boolean);
+    procedure CheckForJobsToRun;
+    function  CheckToRunJob(ProcessJobName : String):Boolean;
+    procedure SetToRunMonthly(ProcessJobName : String; DayNumber, HourValue : Integer);
+    procedure SetToRunWeekly(ProcessJobName : String; DayNumber, HourValue : Integer);
+    procedure SetToRunDaily(ProcessJobName : String; HourValue : Integer);
+    procedure SetToRunHourly(ProcessJobName : String; MinuteValue : Integer);
+    procedure SetToRunMinutely(ProcessJobName : String; SecondValue : Integer);
+
+    procedure RegisterJobWindow(ProcessJobName : String; WindowHandle : HWND);
 
   end;
 
@@ -536,11 +549,6 @@ begin
     PostMessage(Handle,GTTM_START_SEND,0,0);
 end;
 //---------------------------------------------------------------------------
-procedure TGTDTaskPanel.bsSkinSpeedButton1Click(Sender: TObject);
-begin
-
-end;
-//---------------------------------------------------------------------------
 procedure TGTDTaskPanel.bsSkinSpeedButton2Click(Sender: TObject);
 begin
     DosCommand.Stop;
@@ -935,6 +943,65 @@ procedure TGTDTaskPanel.ftpClientWork(Sender: TObject;
   AWorkMode: TWorkMode; const AWorkCount: Integer);
 begin
 //    Report('Show','Uploading ' + IntToStr(AWorkCount) + '%');
+end;
+
+procedure TGTDTaskPanel.sysTimerTimer(Sender: TObject);
+begin
+  // -- Fire off the timer
+  Report('Show','Checking for jobs to run');
+
+  CheckForJobsToRun;
+
+  // -- Now figure out if there is something to run
+  {
+  CheckForJobsToRun;
+  CheckToRunJob('processjob','nrma');
+  SetToRunMonthly('processjob','nrma',1,8.00);
+  SetToRunWeekly('processjob','nrma',1,8.00);
+  SetToRunDaily('processjob','nrma',8.00);
+  SetToRunHourly('processjob','nrma',30);
+  SetToRunMinutely('processjob','nrma',30);
+
+  RegisterJobWindow('nrma',Handle,WM_STARTJOB);
+  }
+end;
+
+procedure TGTDTaskPanel.EnableJobTimer(Enabled : Boolean);
+begin
+  sysTimer.Enabled := Enabled;
+end;
+
+procedure TGTDTaskPanel.CheckForJobsToRun;
+begin
+  RunAll;
+end;
+
+function  TGTDTaskPanel.CheckToRunJob(ProcessJobName : String):Boolean;
+begin
+end;
+
+procedure TGTDTaskPanel.SetToRunMonthly(ProcessJobName : String; DayNumber, HourValue : Integer);
+begin
+end;
+
+procedure TGTDTaskPanel.SetToRunWeekly(ProcessJobName : String; DayNumber, HourValue : Integer);
+begin
+end;
+
+procedure TGTDTaskPanel.SetToRunDaily(ProcessJobName : String; HourValue : Integer);
+begin
+end;
+
+procedure TGTDTaskPanel.SetToRunHourly(ProcessJobName : String; MinuteValue : Integer);
+begin
+end;
+
+procedure TGTDTaskPanel.SetToRunMinutely(ProcessJobName : String; SecondValue : Integer);
+begin
+end;
+
+procedure TGTDTaskPanel.RegisterJobWindow(ProcessJobName : String; WindowHandle : HWND);
+begin
 end;
 
 end.

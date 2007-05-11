@@ -33,7 +33,6 @@ object GTDTaskPanel: TGTDTaskPanel
     ShowCaption = True
     NumGlyphs = 1
     Spacing = 1
-    OnClick = bsSkinSpeedButton1Click
   end
   object bsSkinSpeedButton2: TbsSkinSpeedButton
     Left = 364
@@ -389,5 +388,11 @@ object GTDTaskPanel: TGTDTaskPanel
     OnAfterClientLogin = ftpClientAfterClientLogin
     Left = 132
     Top = 20
+  end
+  object sysTimer: TTimer
+    Interval = 5000
+    OnTimer = sysTimerTimer
+    Left = 200
+    Top = 16
   end
 end
