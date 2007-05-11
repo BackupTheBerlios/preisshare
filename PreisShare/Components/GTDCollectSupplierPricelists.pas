@@ -12,7 +12,8 @@ uses
 const
   CM_DOALLFEEDS = WM_APP + 50;
   CM_DONEXTFEED = WM_APP + 51;
-  CM_SETUPSAMPLEFEEDS = WM_APP + 52;
+  CM_FEEDSFINISHED = WM_APP + 52;
+  CM_SETUPSAMPLEFEEDS = WM_APP + 53;
 
   type TCollectPricelistFrame = class(TFrame)
     HttpCli1: THttpCli;
@@ -65,6 +66,8 @@ const
 
     fProcessAll : Boolean;
 
+    fRunningItem : Integer;
+
     mySPD : TGTDPricelistExportFrame;
     myPL : GTDPricelist;
 
@@ -77,6 +80,8 @@ const
     function LoadTrader(Trader_Id : Integer):Integer;
 
     procedure Busy(YesOrNo : Boolean);
+
+    procedure ExportComplete(Sender: TObject);
 
   public
     { Public declarations }
@@ -97,6 +102,7 @@ const
     procedure ProcessStartFeed(var aMsg : TMsg); message CM_DOALLFEEDS;
     procedure ProcessNextFeed(var aMsg : TMsg); message CM_DONEXTFEED;
     procedure SetupSampleFeeds(var aMsg : TMsg); message CM_SETUPSAMPLEFEEDS;
+    procedure ProcessCleanup(var aMsg : TMsg); message CM_FEEDSFINISHED;
 
   published
 
@@ -402,9 +408,11 @@ var
   xc : Integer;
 begin
   fProcessAll := True;
-  otlFeeds.Selected := otlFeeds.Items[0];
 
-  Run_Selected;
+  fRunningItem := 0;
+
+  PostMessage(Handle,CM_DONEXTFEED,0,0);
+
 end;
 
 function TCollectPricelistFrame.Prepare:Boolean;
@@ -418,6 +426,7 @@ begin
       Left := otlFeeds.Left;
       Top := otlFeeds.Top;
       DocRegistry := fDocRegistry;
+      OnComplete := ExportComplete;
     end;
   end;
 
@@ -654,9 +663,14 @@ begin
     cfDelim := #9
   else if (FastPos(FL,',',Length(FL),1,1) <> 0) then
     cfDelim := ','
-  else
-    Exit;
+  else begin
 
+    // -- Move onto the next feed if there is one
+    PostMessage(Handle,CM_DONEXTFEED,0,0);
+
+    Exit;
+  end;
+  
   // -- Parse all the fields and load them
   if lstColumnMap.Items.Count = 0 then
   begin
@@ -693,6 +707,12 @@ begin
       mySPD.SkinData := fSkinData;
       Application.ProcessMessages;
       mySPD.Run;
+    end
+    else begin
+    
+      // -- Move onto the next feed if there is one
+      PostMessage(Handle,CM_DONEXTFEED,0,0);
+
     end;
   end;
 
@@ -805,30 +825,66 @@ begin
   end
   else if otlFeeds.Selected.Level = 1 then
   begin
+    fProcessAll := False;
+
+    LoadTrader(Integer(otlFeeds.Selected.Data));
+    
     Run_Selected;
   end;
 end;
 
 procedure TCollectPricelistFrame.ProcessStartFeed(var aMsg : TMsg);
 begin
+  grpCollection.Visible := False;
+  pnlFeedSettings.Visible := True;
+
   Run_All;
 end;
 
 procedure TCollectPricelistFrame.ProcessNextFeed(var aMsg : TMsg);
+var
+  xc : Integer;
 begin
-  if otlFeeds.Selected.Index < otlFeeds.Items.Count then
+
+  // -- If only running one then stop now
+  if not fProcessAll then
+     PostMessage(Handle,CM_FEEDSFINISHED,0,0);
+
+  Inc(fRunningItem);
+  if fRunningItem < otlFeeds.Items.Count then
   begin
-    otlFeeds.Selected := otlFeeds.Items[otlFeeds.Selected.Index + 1];
+    otlFeeds.Selected := otlFeeds.Items[fRunningItem];
+
+    // -- Skip to the next entry
+    while (otlFeeds.Selected.Level = 0) and (fRunningItem < otlFeeds.Items.Count) do
+    begin
+      otlFeeds.Selected := otlFeeds.Items[fRunningItem];
+      Inc(fRunningItem)
+    end;
+
+    LoadTrader(Integer(otlFeeds.Selected.Data));
 
     Run_Selected;
+  end
+  else
+    PostMessage(Handle,CM_FEEDSFINISHED,0,0);
+end;
 
-  end;
-
+procedure TCollectPricelistFrame.ProcessCleanup(var aMsg : TMsg);
+begin
 end;
 
 procedure TCollectPricelistFrame.btnSampleFeedsClick(Sender: TObject);
 begin
   PostMessage(Handle,CM_SETUPSAMPLEFEEDS,0,0);
+end;
+
+procedure TCollectPricelistFrame.ExportComplete(Sender: TObject);
+begin
+
+  mySPD.Visible := False;
+  
+  PostMessage(Handle,CM_DONEXTFEED,0,0);
 end;
 
 end.

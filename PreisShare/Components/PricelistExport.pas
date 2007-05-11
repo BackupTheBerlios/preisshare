@@ -182,6 +182,8 @@ type
 
     fShowSQL : Boolean;
 
+    fOnComplete : TNotifyEvent;
+    
     dbType,                         // -- Type of database 'Ado', MySQL etc...
 
   	txtBDEAlias,
@@ -360,6 +362,8 @@ type
     property Actual_Charges : Double read fActualCharges write fActualCharges;
     property Actual_TaxPercentage : Double read fActualTax_pc write fActualTax_pc;
     property Actual_DWSPriceFormula : TStrings read fDWSActualPriceCalcFormula write fDWSActualPriceCalcFormula;
+
+    property OnComplete : TNotifyEvent read fOnComplete write fOnComplete;
 
   end;
 
@@ -2068,7 +2072,10 @@ begin
   		ReportMessage((IntToStr(txtNewCount.Tag) + ' Record(s) to be Added  '));  //show log message for No of new records likely to be added to  Access table   from Listview data
 	  	ReportMessage((IntToStr(txtRisesCount.Tag + txtFallsCount.Tag + txtChangedCount.Tag) + ' Record(s) to be Updated  '));  //show log message for No of records likely to be updated in  Access table   from Listview data
   		ReportMessage((IntToStr(txtSteadyCount.Tag) + ' Record(s) Steady  '));  //show log message for No of records likely to be updated in  Access table   from Listview data
-	  end
+	  end;
+
+    if Assigned(fOnComplete) then
+      fOnComplete(Self);    
 end;
 // ----------------------------------------------------------------------------
 // -- for deleting a table.Presemtly this is not being called any where

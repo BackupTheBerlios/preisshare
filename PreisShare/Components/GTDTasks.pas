@@ -29,6 +29,9 @@ const
     GTTM_RUNNEXT    = WM_APP + 309;
     GTTM_FTPEVENT   = WM_APP + 310;
     GTTM_STARTJOB   = WM_APP + 311;
+    GTTM_IDLE       = WM_APP + 312;
+    GTTM_RUNNING    = WM_APP + 313;
+    GTTM_SENDING    = WM_APP + 314;
 type
   TGTDTaskPanel = class(TFrame)
     DosCommand: TDosCommand;
@@ -81,6 +84,8 @@ type
     fTestEmailDest,
     fMainFile    : String;
 
+    fStatusWindow : HWND;
+
     fSkinData   : TbsSkinData;
 
     currentDisplayItem : TListItem;
@@ -124,6 +129,7 @@ type
     procedure SetToRunMinutely(ProcessJobName : String; SecondValue : Integer);
 
     procedure RegisterJobWindow(ProcessJobName : String; WindowHandle : HWND);
+    procedure RegisterStatusWindow(WindowHandle : HWND);
 
   end;
 
@@ -263,6 +269,10 @@ begin
     begin
         Report('Show','Starting ' + fProcessName);
 
+        // -- Notify that you are running
+        if (fStatusWindow <> 0) then
+           PostMessage(fStatusWindow,GTTM_RUNNING,0,0);
+
         try
         // -- Setup the process component
         DosCommand.CommandLine := fProcessName;
@@ -275,9 +285,13 @@ begin
           end;
         end;
     end
-    else
-        PostMessage(Handle,	GTTM_START_SEND,0,0);
+    else begin
+        PostMessage(Handle,GTTM_START_SEND,0,0);
 
+        // -- Notify that you are busy
+        if (fStatusWindow <> 0) then
+           PostMessage(fStatusWindow,GTTM_SENDING,0,0);
+    end;
 end;
 //---------------------------------------------------------------------------
 function TGTDTaskPanel.Stop:Boolean;
@@ -656,12 +670,18 @@ begin
             p := lstCheckList.Selected.SubItems[0];
             if Load(p) then
                 Start
-            else
+            else begin
                 Screen.Cursor := crDefault;
-        end
-        else
-            Screen.Cursor := crDefault;
+                if (fStatusWindow <> 0) then
+                  PostMessage(fStatusWindow,GTTM_IDLE,0,0);
+            end;
 
+        end
+        else begin
+            Screen.Cursor := crDefault;
+            if (fStatusWindow <> 0) then
+              PostMessage(fStatusWindow,GTTM_IDLE,0,0);
+        end;
     end;
 end;
 
@@ -1002,6 +1022,11 @@ end;
 
 procedure TGTDTaskPanel.RegisterJobWindow(ProcessJobName : String; WindowHandle : HWND);
 begin
+end;
+
+procedure TGTDTaskPanel.RegisterStatusWindow(WindowHandle : HWND);
+begin
+    fStatusWindow := WindowHandle;
 end;
 
 end.

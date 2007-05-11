@@ -9,6 +9,9 @@ uses
   Grids, DBGrids, ADODB, FMTBcd, SqlExpr, GTDBizDocs, bsDialogs,
   bsSkinShellCtrls, GTDPricelists, GTDCollectSupplierPricelists;
 
+const
+  CM_STARTUPCHECKS = WM_APP + 50;
+
 type
   TfrmMain = class(TForm)
     bsBusinessSkinForm1: TbsBusinessSkinForm;
@@ -41,13 +44,13 @@ type
     { Public declarations }
     productDB : TProductdBSearch;
 
-//    procedure Search;
-
     OurPriceList : GTDPricelist;
     OurRelayList : GTDBizDoc;
 
     procedure UpdateSellPrices(Sender : TObject);
     procedure AddItemToQuote(Sender: TObject);
+
+    procedure StartupChecks(var aMsg : TMsg); message CM_STARTUPCHECKS;
 
   end;
 
@@ -172,6 +175,9 @@ begin
     // -- Manually load the skindata
     dlgOpenFile.SkinData := bsSkinData1;
     dlgOpenFile.CtrlSkinData := bsSkinData1;
+
+    // -- Do startup checks
+    PostMessage(Handle,CM_STARTUPCHECKS,0,0);
 end;
 
 procedure TfrmMain.DocRegistryClick(Sender: TObject);
@@ -273,6 +279,28 @@ begin
     // -- Now save the column settings
     productDB.SaveColumnDefinitions;
   end;
+end;
+
+procedure TfrmMain.StartupChecks(var aMsg : TMsg);
+
+  procedure Ask2DownloadTodaysPrices;
+  begin
+    if mrYes = bsSkinMessage1.MessageDlg('Would you like to download prices for today now ?',mtConfirmation,[mbYes,mbCancel],0) then
+    begin
+
+      // -- Get the component to display and load everything 
+      productDB.mnuGetPricesClick(Self);
+
+      // -- Issue the command to download all feeds
+      PostMessage(productDB.CollectPricelists.Handle,CM_DOALLFEEDS,0,0);
+    end;
+  end;
+
+begin
+
+  // -- Download todays prices
+  Ask2DownloadTodaysPrices;
+
 end;
 
 end.
