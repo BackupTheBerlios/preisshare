@@ -397,10 +397,10 @@ function TCollectPricelistFrame.Run_Selected:Boolean;
 begin
   LineData := '';
 
+  Busy(True);
+
   HttpCli1.Url := txtURL.Text;
   HttpCli1.GetAsync;
-
-  Busy(True);
 end;
 
 function TCollectPricelistFrame.Run_All:Boolean;
@@ -489,7 +489,7 @@ begin
   // -- Setup some sample feeds in the system
   AddDailyCSVPricelistFeed('I-Tech','http://www.i-tech.com.au/products/Products.csv','Product ID=PLU;Name=Name;Category=<Product Group>;Price=Actual_Price');
   AddDailyCSVPricelistFeed('SoftwareBox','http://www.softwarebox.de/shop/products.csv','productid=PLU;name=Name;brand=;offerid=;category=<Product Group>;description=Description;price=Actual_Price;image=;url=;availability=;shipping=;special=');
-  AddDailyCSVPricelistFeed('ABit','hhtp://www.abit.com.au/computer-system/Products.csv','');
+  AddDailyCSVPricelistFeed('ABit','http://www.abit.com.au/computer-system/Products.csv','');
   AddDailyCSVPricelistFeed('Sotel','http://www.sotel.de/products.csv','');
   AddDailyCSVPricelistFeed('comnations','http://www.comnations.de/products.csv','');
   AddDailyCSVPricelistFeed('IBuy','www.ibuy.com.au/buy/products.csv','');
@@ -565,6 +565,9 @@ begin
 
   if otlFeeds.Selected.Level = 1 then
   begin
+
+    fProcessAll := False;
+
     GrpCollection.Visible := False;
     pnlFeedSettings.Visible := True;
 
@@ -670,7 +673,7 @@ begin
 
     Exit;
   end;
-  
+
   // -- Parse all the fields and load them
   if lstColumnMap.Items.Count = 0 then
   begin
@@ -686,6 +689,10 @@ begin
         li.SubItems.Add('');
       end;
     end;
+
+    // -- Move onto the next feed if there is one
+    PostMessage(Handle,CM_DONEXTFEED,0,0);
+
   end
   else begin
 
@@ -711,12 +718,10 @@ begin
       mySPD.Run;
 
     end
-    else begin
-
+    else
       // -- Move onto the next feed if there is one
       PostMessage(Handle,CM_DONEXTFEED,0,0);
 
-    end;
   end;
 
 end;
@@ -861,7 +866,10 @@ begin
 
   // -- If only running one then stop now
   if not fProcessAll then
+  begin
      PostMessage(Handle,CM_FEEDSFINISHED,0,0);
+     Exit;
+  end;
 
   Inc(fRunningItem);
   if fRunningItem < otlFeeds.Items.Count then

@@ -1045,7 +1045,8 @@ end;
 function TGTDTaskPanel.OkToRunFromSchedule:Boolean;
 var
   v,fr : String;
-  hh,mm,ss,ms,xc : Word;
+  hh,mm,ss,ms,xc,
+  h1,m1 : Word;
   nr,lr : TDateTime;
 begin
     // -- Determine if the task is scheduled
@@ -1088,29 +1089,41 @@ begin
 
     end
     // -- Do a time check on daily jobs
-    else if (fr = 'Daily') then
+    else if (UpperCase(fr) = Uppercase('Daily')) then
     begin
-      // --
-      if DateOf(lr) < DateOf(Now) then
+
+      Result := False;
+
+      // -- If it has run today then exit
+      if (DateOf(lr) = Today) then
+        Exit;
+
+      // -- Decode the time now
+      DecodeTime(Now,hh,mm,ss,ms);
+
+      // -- Decode the time of the last run
+      DecodeTime(lr,h1,m1,ss,ms);
+
+      // -- Hasn't been run today
+      DocumentRegistry.GetSettingMemoString('/schedule','time',v);
+
+      xc := Pos(':',v);
+      if (xc <> 0) then
       begin
-        // -- Hasn't been run today
-        DocumentRegistry.GetSettingMemoString('/schedule','time',v);
+        h1 := StrToInt(LeftStr(v,xc-1));
+        m1 := StrToInt(RightStr(v,Length(v)-xc));
 
-        xc := Pos(':',v);
-        if (xc <> 0) then
+        // -- We can see if this job is ready to run
+        if ((h1 = hh) and (m1 = m1) and (DayOf(lr) <> Today)) then
         begin
-          hh := StrToInt(LeftStr(v,xc));
-          mm := StrToInt(RightStr(v,Length(v)-xc));
-          nr := DateOf(Now) + EncodeTime(hh, mm, 0, 0);
 
-          // -- We can see if this job is ready to run
-          if (nr <= Now) then
-            Result := True;
+          DocumentRegistry.SaveSettingMemoDateTime('/schedule','last_run',Now);
 
+          // -- Mark this entry as ready to run
+          Result := True;
         end;
-      end
-      else
-        Result := False;
+
+      end;
 
     end
     else if (fr = 'Weekly') then

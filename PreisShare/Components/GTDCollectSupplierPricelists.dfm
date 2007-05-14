@@ -464,7 +464,7 @@ object CollectPricelistFrame: TCollectPricelistFrame
       end
     end
     object grpCollection: TbsSkinGroupBox
-      Left = 416
+      Left = 176
       Top = 40
       Width = 381
       Height = 289
