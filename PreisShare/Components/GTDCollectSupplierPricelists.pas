@@ -705,11 +705,14 @@ begin
       mySPD.Pricelist := myPL;
       mySPD.LoadTraderSettings(tid);
       mySPD.SkinData := fSkinData;
+
       Application.ProcessMessages;
+
       mySPD.Run;
+
     end
     else begin
-    
+
       // -- Move onto the next feed if there is one
       PostMessage(Handle,CM_DONEXTFEED,0,0);
 
@@ -805,6 +808,16 @@ begin
   otlFeeds.Enabled := not YesOrNo;
   txtUrl.Enabled := not YesOrNo;
   lstColumnMap.Enabled := not YesOrNo;
+
+  if Assigned(otlFeeds.Selected) then
+  begin
+    if YesOrNo then
+      otlFeeds.Selected.StateIndex := 5
+    else
+      otlFeeds.Selected.StateIndex := 4;
+
+  end;
+
 
 end;
 

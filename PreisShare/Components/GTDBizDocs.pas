@@ -249,8 +249,9 @@ type
     function SetNumberElement(Const NodePath, ElementName : String; ElementValue : Double):Boolean;
     function SetIntegerElement(Const NodePath, ElementName : String; ElementValue : Integer):Boolean;
     function SetBooleanElement(Const NodePath, ElementName : String; ElementValue : Boolean):Boolean;
-	function SetDateElement(Const NodePath, ElementName : String; ElementValue : TDateTime):Boolean;
-	function SetMultiLineTStrings(Const NodePath, ElementName : String; ElementValue : TStrings):Boolean;
+    function SetDateElement(Const NodePath, ElementName : String; ElementValue : TDateTime):Boolean;
+    function SetDateTimeElement(Const NodePath, ElementName : String; ElementValue : TDateTime):Boolean;
+    function SetMultiLineTStrings(Const NodePath, ElementName : String; ElementValue : TStrings):Boolean;
 
 	// -- These functions are for converting images to/from base64
     function EncodeBase64(InputData: PChar; InputLen: Integer; var OutputString:string):Byte;
@@ -576,9 +577,11 @@ published
     //    the current configuration record
     function GetSettingMemoString(NodePath, ElementName : String; var ValueStr : String):Boolean;
     function GetSettingMemoInt(NodePath, ElementName : String; var ValueInt : Integer):Boolean;
+    function GetSettingMemoDateTime(NodePath, ElementName : String; var ValueDateTime : TDateTime):Boolean;
     function GetSettingMemoBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
     function SaveSettingMemoString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
     function SaveSettingMemoInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean = True):Boolean;
+    function SaveSettingMemoDateTime(NodePath, ElementName : String; ValueDateTime : TDateTime; FinalSave : Boolean = True):Boolean;
 
     //    Retrieve a list of all available items into a list for a given section
     function GetSettingItemList(SectionName : String; ElementNames : TStrings):Boolean;
@@ -2956,7 +2959,7 @@ begin
 
     if aNode.LoadFromDocument(Self,NodePath,True) then
     begin
-        Value := aNode.ReadDateField(ElementName,Value);
+        Value := aNode.ReadDateTimeField(ElementName,Value);
         Result := True;
 	end;
 
@@ -3257,6 +3260,21 @@ begin
     // -- Convert the vale to a string
     s := FormatDateTime(GTD_DATESTAMPFORMAT,ElementValue);
 
+    Result := SetBasicElement(NodePath, ElementName,s,ECML_DATE_SUFFIX);
+end;
+// ----------------------------------------------------------------------------
+function GTDBizDoc.SetDateTimeElement(Const NodePath, ElementName : String; ElementValue : TDateTime):Boolean;
+var
+    s : String;
+begin
+    // -- Convert the vale to a string
+    s := FormatDateTime(GTD_DATETIMESTAMPFORMAT,ElementValue);
+
+    // -- Insert the T character
+    if s[11] = ' ' then
+      s[11] := 'T';
+
+    // -- Now write it
     Result := SetBasicElement(NodePath, ElementName,s,ECML_DATE_SUFFIX);
 end;
 // ----------------------------------------------------------------------------
@@ -7242,8 +7260,50 @@ begin
 
 end;
 //---------------------------------------------------------------------------
-function GTDDocumentRegistry.GetSettingMemoBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
+function GTDDocumentRegistry.GetSettingMemoDateTime(NodePath, ElementName : String; var ValueDateTime : TDateTime):Boolean;
+var
+    tempDoc : GTDBizDoc;
 begin
+	Result := False;
+
+	// -- This function only works when the table is open
+	if not fSysValTbl.Active then
+	begin
+        Exit;
+	end;
+
+    tempDoc := GTDBizDoc.Create(Self);
+
+    //	myMemo := TMemoField(FieldByName('KEYTEXT'));
+    tempDoc.XML.Assign(TMemoField(fSysValTbl.FieldByName('KEYTEXT')));
+
+    Result := tempDoc.ReadDateTimeElement(NodePath, ElementName, ValueDateTime);
+
+    tempDoc.Destroy;
+
+end;
+//---------------------------------------------------------------------------
+function GTDDocumentRegistry.GetSettingMemoBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
+var
+    tempDoc : GTDBizDoc;
+begin
+	Result := False;
+
+	// -- This function only works when the table is open
+	if not fSysValTbl.Active then
+	begin
+        Exit;
+	end;
+
+    tempDoc := GTDBizDoc.Create(Self);
+
+    //	myMemo := TMemoField(FieldByName('KEYTEXT'));
+    tempDoc.XML.Assign(TMemoField(fSysValTbl.FieldByName('KEYTEXT')));
+
+    Result := tempDoc.ReadBoolElement(NodePath, ElementName, Value);
+
+    tempDoc.Destroy;
+
 end;
 //---------------------------------------------------------------------------
 function GTDDocumentRegistry.SaveSettingMemoString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean):Boolean;
@@ -7316,6 +7376,41 @@ begin
     if FinalSave then
         fSysValTbl.Post;
 
+end;
+//---------------------------------------------------------------------------
+function GTDDocumentRegistry.SaveSettingMemoDateTime(NodePath, ElementName : String; ValueDateTime : TDateTime; FinalSave : Boolean):Boolean;
+var
+    tempDoc : GTDBizDoc;
+begin
+	Result := False;
+
+	// -- This function only works when the table is open
+	if not fSysValTbl.Active then
+	begin
+        Exit;
+	end;
+
+    // -- Put the record into Edit mode
+	if not (fSysValTbl.State in [dsEdit]) then
+    begin
+        fSysValTbl.Edit;
+    end;
+    tempDoc := GTDBizDoc.Create(Self);
+
+    // -- Read the whole memo into memory
+    tempDoc.XML.Assign(TMemoField(fSysValTbl.FieldByName('KEYTEXT')));
+
+    // -- Change the required element
+    Result := tempDoc.SetDateTimeElement(NodePath, ElementName, ValueDateTime);
+
+    // -- Write the whole thing back
+    TMemoField(fSysValTbl.FieldByName('KEYTEXT')).Assign(tempDoc.XML);
+
+    tempDoc.Destroy;
+
+    // -- If the record must be saved then do so
+    if FinalSave then
+        fSysValTbl.Post;
 end;
 //---------------------------------------------------------------------------
 //

@@ -84,6 +84,8 @@ type
     fTestEmailDest,
     fMainFile    : String;
 
+    fJobList : TStringList;
+
     fStatusWindow : HWND;
 
     fSkinData   : TbsSkinData;
@@ -93,6 +95,8 @@ type
     runningItemNumber : Integer;
 
     procedure SetSkinData(newSkin : TbsSkinData);
+
+    function OkToRunFromSchedule:Boolean;
 
   published
 
@@ -136,7 +140,7 @@ type
 implementation
 
 {$R *.DFM}
-uses FastStrings, FastStringFuncs;
+uses FastStrings, FastStringFuncs,DateUtils;
 
 //---------------------------------------------------------------------------
 function TGTDTaskPanel.Load(const TaskName : String):Boolean;
@@ -155,6 +159,9 @@ begin
         Report('Error','Unable to load configuration. Job details not found');
         Exit;
     end;
+
+    if not OkToRunFromSchedule then
+      Exit;
 
     // -- Find the task name in the current list
     currentDisplayItem := nil;
@@ -1022,11 +1029,98 @@ end;
 
 procedure TGTDTaskPanel.RegisterJobWindow(ProcessJobName : String; WindowHandle : HWND);
 begin
+  if not Assigned(fJobList) then
+    fJobList := TStringList.Create;
+
+  // -- Add the job
+  fJobList.AddObject(ProcessJobName,TObject(WindowHandle));
+
 end;
 
 procedure TGTDTaskPanel.RegisterStatusWindow(WindowHandle : HWND);
 begin
     fStatusWindow := WindowHandle;
+end;
+
+function TGTDTaskPanel.OkToRunFromSchedule:Boolean;
+var
+  v,fr : String;
+  hh,mm,ss,ms,xc : Word;
+  nr,lr : TDateTime;
+begin
+    // -- Determine if the task is scheduled
+    DocumentRegistry.GetSettingMemoString('/schedule','frequency',fr);
+
+    // -- Get the last time the job was run
+    lr := 0;
+    DocumentRegistry.GetSettingMemoDateTime('/schedule','last_run',lr);
+
+    if (UpperCase(fr) = UpperCase('Minutely')) then
+    begin
+      // -- This only runs at the changeover
+      if (lr = 0) or (DateOf(lr) < Today) then
+      begin
+        DocumentRegistry.SaveSettingMemoDateTime('/schedule','last_run',Now);
+        Result := True
+      end
+      else begin
+
+        Result := False;
+
+        // -- Decode the time now
+        DecodeTime(Now,hh,mm,ss,ms);
+
+        // -- Decode the time of the last run
+        DecodeTime(lr,hh,xc,ss,ms);
+
+        // -- If it is not the same minute then run
+        if (xc <> mm) then
+        begin
+
+          DocumentRegistry.SaveSettingMemoDateTime('/schedule','last_run',Now);
+
+          // -- Mark this entry as ready to run
+          Result := True;
+
+        end;
+
+      end;
+
+    end
+    // -- Do a time check on daily jobs
+    else if (fr = 'Daily') then
+    begin
+      // --
+      if DateOf(lr) < DateOf(Now) then
+      begin
+        // -- Hasn't been run today
+        DocumentRegistry.GetSettingMemoString('/schedule','time',v);
+
+        xc := Pos(':',v);
+        if (xc <> 0) then
+        begin
+          hh := StrToInt(LeftStr(v,xc));
+          mm := StrToInt(RightStr(v,Length(v)-xc));
+          nr := DateOf(Now) + EncodeTime(hh, mm, 0, 0);
+
+          // -- We can see if this job is ready to run
+          if (nr <= Now) then
+            Result := True;
+
+        end;
+      end
+      else
+        Result := False;
+
+    end
+    else if (fr = 'Weekly') then
+      nr := DateOf(lr) + 7
+    else if (fr = 'Monthly') then
+    begin
+      nr := DateOf(lr) + 31;
+
+    end;
+
 end;
 
 end.
