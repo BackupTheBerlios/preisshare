@@ -59,7 +59,7 @@ var
 
 implementation
 
-uses SpreadSheetImport, UpdateSellPrices, ColumnParams, AddToQuote;
+uses SpreadSheetImport, UpdateSellPrices, ColumnParams, AddToQuote, DateUtils;
 
 {$R *.DFM}
 
@@ -284,15 +284,33 @@ end;
 procedure TfrmMain.StartupChecks(var aMsg : TMsg);
 
   procedure Ask2DownloadTodaysPrices;
+  var
+    lr : TDateTime;
+    s : String;
   begin
-    if mrYes = bsSkinMessage1.MessageDlg('Would you like to download prices for today now ?',mtConfirmation,[mbYes,mbCancel],0) then
+
+    if DocRegistry.GetSettingString('Product Search','Settings',s) then
     begin
 
-      // -- Get the component to display and load everything 
-      productDB.mnuGetPricesClick(Self);
+      // --
+      lr := 0;
+      DocRegistry.GetSettingMemoDateTime('/Price Download','last_run',lr);
 
-      // -- Issue the command to download all feeds
-      PostMessage(productDB.CollectPricelists.Handle,CM_DOALLFEEDS,0,0);
+      DocRegistry.SaveSettingMemoDateTime('/Price Download','last_run',Now);
+
+      // -- This only runs at the changeover
+      if (lr = 0) or (DateOf(lr) < Today) then
+      begin
+        if mrYes = bsSkinMessage1.MessageDlg('Would you like to download prices for today now ?',mtConfirmation,[mbYes,mbCancel],0) then
+        begin
+
+          // -- Get the component to display and load everything
+          productDB.mnuGetPricesClick(Self);
+
+          // -- Issue the command to download all feeds
+          PostMessage(productDB.CollectPricelists.Handle,CM_DOALLFEEDS,0,0);
+        end;
+      end;
     end;
   end;
 
