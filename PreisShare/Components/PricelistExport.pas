@@ -1818,6 +1818,10 @@ begin
         mmoSQL.SendToBack;
     end;
 
+    // -- It worked to here so now time to show some buttons
+    btnShowSQL.Visible := False;
+    btnShowData.Visible := False;
+
     if CheckingByProductCode then
         // -- Select the code lookup in preference to name lookups
         CheckingByProductName := False;

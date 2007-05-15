@@ -105,9 +105,9 @@ type
     fLikeChar : String;
 
     procedure SetSkinData(Value: TbsSkinData);
-    procedure CountItemsInProductDatabase;
     procedure DisplayMessage(DisplayText : String);
     procedure RefreshQueryData;
+    procedure CountItemsInProductDatabase;
 
   public
     { Public declarations }
@@ -1138,6 +1138,10 @@ begin
   begin
     fGetPriceUpdates.Visible := False;
     lblItemsCount.Visible := True;
+
+    // -- Refresh the display after doing the update
+    CountItemsInProductDatabase;
+
   end;
 
   // -- Here we are checking to see if the product display grid is showing
