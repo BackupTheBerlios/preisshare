@@ -84,6 +84,8 @@ type
     fTestEmailDest,
     fMainFile    : String;
 
+    fRunningManual : Boolean;
+
     fJobList : TStringList;
 
     fStatusWindow : HWND;
@@ -160,8 +162,19 @@ begin
         Exit;
     end;
 
-    if not OkToRunFromSchedule then
-      Exit;
+    if fRunningManual then
+    begin
+      // -- Exclude Scheduled jobs from the manual run
+      DocumentRegistry.GetSettingMemoString('/schedule','frequency',s);
+      if Pos(Uppercase(s),'MINUTELY/HOURLY/WEEKLY/DAILY/MONTHLY') <> 0 then
+        Exit;
+    end
+    else begin
+      // -- Running from schedular, means running manually
+      if not OkToRunFromSchedule then
+        // -- Not ready to run this now from the schedule
+        Exit;
+    end;
 
     // -- Find the task name in the current list
     currentDisplayItem := nil;
@@ -172,17 +185,6 @@ begin
             currentDisplayItem := lstCheckList.Items[xc];
             break;
         end;
-
-//    if DocumentRegistry.GetSettingMemoString('/process settings','mainfile',s) then
-//        txtProFilename.Text := s
-//    else
-//        txtProFilename.Text := '';
-//
-//    if DocumentRegistry.GetSettingMemoString('/process settings','working-directory',s) then
-//        txtWorkingDirectory.Text := s
-//    else
-//        txtWorkingDirectory.Text := '';
-//
 
     // -- Initialisation
     fTaskName := TaskName;
@@ -594,7 +596,7 @@ begin
     else if (fFTPTemplate <> '') then
         StartFTPDespatch
     else
-        PostMessage(Handle,GTTM_CLEANUP	,0,0);
+        PostMessage(Handle,GTTM_CLEANUP,0,0);
 end;
 //---------------------------------------------------------------------------
 procedure TGTDTaskPanel.ProcessCleanup(var aMsg : TMsg);
@@ -656,6 +658,8 @@ begin
 
     Report('Show','Completed.');
 
+    Screen.Cursor := crDefault;
+
     PostMessage(Handle,GTTM_RUNNEXT,0,0);
 
 end;
@@ -678,9 +682,8 @@ begin
             if Load(p) then
                 Start
             else begin
-                Screen.Cursor := crDefault;
-                if (fStatusWindow <> 0) then
-                  PostMessage(fStatusWindow,GTTM_IDLE,0,0);
+                // -- Advance to the next entry and try running that
+                PostMessage(Handle,GTTM_RUNNEXT,0,0);
             end;
 
         end
@@ -688,7 +691,14 @@ begin
             Screen.Cursor := crDefault;
             if (fStatusWindow <> 0) then
               PostMessage(fStatusWindow,GTTM_IDLE,0,0);
+
+            runningAll := False;
         end;
+    end
+    else begin
+      Screen.Cursor := crDefault;
+      if (fStatusWindow <> 0) then
+          PostMessage(fStatusWindow,GTTM_IDLE,0,0);
     end;
 end;
 
@@ -866,8 +876,12 @@ begin
 
         p := anItem.SubItems[0];
         if Load(p) then
-            Start;
-    end;
+            Start
+        else
+            PostMessage(Handle,GTTM_RUNNEXT,0,0);
+    end
+    else
+      Screen.Cursor := crDefault;
 end;
 
 procedure TGTDTaskPanel.Run1Click(Sender: TObject);
@@ -885,6 +899,10 @@ end;
 
 procedure TGTDTaskPanel.btnProcessClick(Sender: TObject);
 begin
+    // -- Toggle to manual operation. Excludes all jobs
+    //    that are configured to run from the schedular.
+    fRunningManual := True;
+
     RunAll;
 end;
 
@@ -910,7 +928,6 @@ end;
 procedure TGTDTaskPanel.IdFTPClientAfterClientLogin(Sender: TObject);
 begin
     PostMessage(Handle,GTTM_FTPEVENT,0,0);
-
 end;
 
 procedure TGTDTaskPanel.FTPClientDisplay(Sender: TObject; var Msg: String);
@@ -975,22 +992,16 @@ end;
 procedure TGTDTaskPanel.sysTimerTimer(Sender: TObject);
 begin
   // -- Fire off the timer
-  Report('Show','Checking for jobs to run');
+  // Report('Show','Checking for jobs to run');
+
+  // -- Skip this if already running something
+  if runningAll then
+    Exit;
+
+  fRunningManual := False;
 
   CheckForJobsToRun;
 
-  // -- Now figure out if there is something to run
-  {
-  CheckForJobsToRun;
-  CheckToRunJob('processjob','nrma');
-  SetToRunMonthly('processjob','nrma',1,8.00);
-  SetToRunWeekly('processjob','nrma',1,8.00);
-  SetToRunDaily('processjob','nrma',8.00);
-  SetToRunHourly('processjob','nrma',30);
-  SetToRunMinutely('processjob','nrma',30);
-
-  RegisterJobWindow('nrma',Handle,WM_STARTJOB);
-  }
 end;
 
 procedure TGTDTaskPanel.EnableJobTimer(Enabled : Boolean);
@@ -1131,8 +1142,10 @@ begin
     else if (fr = 'Monthly') then
     begin
       nr := DateOf(lr) + 31;
-
-    end;
+    end
+    else
+      // --
+      Result := False;
 
 end;
 
