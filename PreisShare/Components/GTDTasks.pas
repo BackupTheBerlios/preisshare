@@ -1067,7 +1067,7 @@ begin
     lr := 0;
     DocumentRegistry.GetSettingMemoDateTime('/schedule','last_run',lr);
 
-    if (UpperCase(fr) = UpperCase('Minutely')) then
+    if (AnsiCompareText(fr,'Minutely')=0) then
     begin
       // -- This only runs at the changeover
       if (lr = 0) or (DateOf(lr) < Today) then
@@ -1100,7 +1100,7 @@ begin
 
     end
     // -- Do a time check on daily jobs
-    else if (UpperCase(fr) = Uppercase('Daily')) then
+    else if (AnsiCompareText(fr,'Daily')=0) then
     begin
 
       Result := False;
@@ -1125,7 +1125,7 @@ begin
         m1 := StrToInt(RightStr(v,Length(v)-xc));
 
         // -- We can see if this job is ready to run
-        if ((h1 = hh) and (m1 = m1) and (DayOf(lr) <> Today)) then
+        if ((h1 = hh) and (m1 = mm) and (DayOf(lr) <> Today)) then
         begin
 
           DocumentRegistry.SaveSettingMemoDateTime('/schedule','last_run',Now);
@@ -1137,11 +1137,47 @@ begin
       end;
 
     end
-    else if (fr = 'Weekly') then
-      nr := DateOf(lr) + 7
-    else if (fr = 'Monthly') then
+    else if (AnsiCompareText(fr,'Hourly') = 0) then
     begin
-      nr := DateOf(lr) + 31;
+      Result := False;
+
+      // -- Decode the time now
+      DecodeTime(Now,hh,mm,ss,ms);
+
+      // -- Decode the time of the last run
+      DecodeTime(lr,h1,m1,ss,ms);
+
+      // -- If it has run today then exit
+      if (HourOf(lr) = HourOf(now)) and (DayOf(lr) = DayOf(Now)) then
+        Exit;
+
+      // -- Hasn't been run this hour
+      DocumentRegistry.GetSettingMemoString('/schedule','time',v);
+
+      xc := Pos(':',v);
+      if (xc <> 0) then
+        m1 := StrToInt(RightStr(v,Length(v)-xc))
+      else
+        m1 := StrToInt(v);
+
+      // -- We can see if this job is ready to run
+      if (mm = m1) then
+      begin
+
+        DocumentRegistry.SaveSettingMemoDateTime('/schedule','last_run',Now);
+
+        // -- Mark this entry as ready to run
+        Result := True;
+      end;
+
+    end
+    else if (AnsiCompareText(fr,'Weekly') = 0) then
+    begin
+      // -- Not implemented
+    end
+    else if (AnsiCompareText(fr,'Monthly') = 0) then
+    begin
+      // -- Not implemented
     end
     else
       // --

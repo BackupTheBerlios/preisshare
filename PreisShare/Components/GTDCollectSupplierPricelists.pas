@@ -58,6 +58,7 @@ const
     procedure HttpCli1SocketError(Sender: TObject);
     procedure btnGetClick(Sender: TObject);
     procedure btnSampleFeedsClick(Sender: TObject);
+    procedure btnProcessClick(Sender: TObject);
   private
     { Private declarations }
     fDocRegistry : GTDDocumentRegistry;
@@ -487,18 +488,19 @@ end;
 procedure TCollectPricelistFrame.SetupSampleFeeds(var aMsg : TMsg); 
 begin
   // -- Setup some sample feeds in the system
+
+  // -- Australia
   AddDailyCSVPricelistFeed('I-Tech','http://www.i-tech.com.au/products/Products.csv','Product ID=PLU;Name=Name;Category=<Product Group>;Price=Actual_Price');
-  AddDailyCSVPricelistFeed('SoftwareBox','http://www.softwarebox.de/shop/products.csv','productid=PLU;name=Name;brand=;offerid=;category=<Product Group>;description=Description;price=Actual_Price;image=;url=;availability=;shipping=;special=');
   AddDailyCSVPricelistFeed('ABit','http://www.abit.com.au/computer-system/Products.csv','');
+
+  // -- Germany
+  AddDailyCSVPricelistFeed('SoftwareBox','http://www.softwarebox.de/shop/products.csv','productid=PLU;name=Name;brand=;offerid=;category=<Product Group>;description=Description;price=Actual_Price;image=;url=;availability=;shipping=;special=');
   AddDailyCSVPricelistFeed('Sotel','http://www.sotel.de/products.csv','');
   AddDailyCSVPricelistFeed('comnations','http://www.comnations.de/products.csv','');
   AddDailyCSVPricelistFeed('IBuy','www.ibuy.com.au/buy/products.csv','');
   AddDailyCSVPricelistFeed('MyChams','http://www.mycharms.de/products.csv','');
-  AddDailyCSVPricelistFeed('Cleverwerben','http://www.clever-werben.info/shop/elmar_products.php','');
-  AddDailyCSVPricelistFeed('arkana23','http://www.arkana23.de/elmar_products.php','');
   AddDailyCSVPricelistFeed('erfolgsshop','http://www.erfolgsshop.de/elmar_products.php','');
   AddDailyCSVPricelistFeed('triologic','http://bekleidungskammer.de/elmar_products.php','');
-  AddDailyCSVPricelistFeed('bauey','http://www.bauey.de/elmar_products.php','');
   AddDailyCSVPricelistFeed('homemedia4u','http://www.homemedia4u.com/catalog/elmar_products.php','');
   AddDailyCSVPricelistFeed('sold2u','http://www.sold2u.de/elmar_products.php','');
   AddDailyCSVPricelistFeed('mwv-computer','http://www.mwv-computer.eu/elmar_products.php','');
@@ -904,8 +906,13 @@ procedure TCollectPricelistFrame.ExportComplete(Sender: TObject);
 begin
 
   mySPD.Visible := False;
-  
+
   PostMessage(Handle,CM_DONEXTFEED,0,0);
+end;
+
+procedure TCollectPricelistFrame.btnProcessClick(Sender: TObject);
+begin
+    Run_All;
 end;
 
 end.

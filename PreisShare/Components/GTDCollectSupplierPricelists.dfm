@@ -757,6 +757,7 @@ object CollectPricelistFrame: TCollectPricelistFrame
         Caption = 'Run All'
         NumGlyphs = 1
         Spacing = 1
+        OnClick = btnProcessClick
       end
       object barProgress: TbsSkinGauge
         Left = 8

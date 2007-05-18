@@ -7338,7 +7338,10 @@ begin
 
     // -- If the record must be saved then do so
     if FinalSave then
+    begin
         fSysValTbl.Post;
+        DbiSaveChanges(fSysValTbl.Handle);
+    end;
 
 end;
 //---------------------------------------------------------------------------
@@ -7374,7 +7377,10 @@ begin
 
     // -- If the record must be saved then do so
     if FinalSave then
+    begin
         fSysValTbl.Post;
+        DbiSaveChanges(fSysValTbl.Handle);
+    end;
 
 end;
 //---------------------------------------------------------------------------
@@ -7410,7 +7416,10 @@ begin
 
     // -- If the record must be saved then do so
     if FinalSave then
+    begin
         fSysValTbl.Post;
+        DbiSaveChanges(fSysValTbl.Handle);
+    end;
 end;
 //---------------------------------------------------------------------------
 //
