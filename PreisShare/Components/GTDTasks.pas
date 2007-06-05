@@ -23,15 +23,29 @@ uses
   IdTCPClient, IdFTP;
 
 const
+    GTTM_NOTIFY_MESSAGE     = WM_APP + 317;
+      GTTM_STATUS_IDLE        = 0;
+      GTTM_STATUS_STARTING    = 1;
+      GTTM_STATUS_SCHDL_START = 2;
+      GTTM_STATUS_SCHDL_STOP  = 3;
+      GTTM_STATUS_JOB_RUNNING = 4;
+      GTTM_STATUS_JOB_SENDING = 5;
+      GTTM_STATUS_JOB_DONE    = 6;
+
+      GTTM_STATUS_HAVE_RMVBL  = 7;
+      GTTM_STATUS_NO_RMVBL    = 8;
+
+    // -- Public operations
+    GTTM_START = WM_APP + 305;
+
+    // -- Internal operations
     GTTM_START_SEND = WM_APP + 306;
     GTTM_CLEANUP    = WM_APP + 307;
     GTTM_ERRSTART   = WM_APP + 308;
     GTTM_RUNNEXT    = WM_APP + 309;
     GTTM_FTPEVENT   = WM_APP + 310;
     GTTM_STARTJOB   = WM_APP + 311;
-    GTTM_IDLE       = WM_APP + 312;
-    GTTM_RUNNING    = WM_APP + 313;
-    GTTM_SENDING    = WM_APP + 314;
+
 type
   TGTDTaskPanel = class(TFrame)
     DosCommand: TDosCommand;
@@ -93,8 +107,12 @@ type
     fSkinData   : TbsSkinData;
 
     currentDisplayItem : TListItem;
-    runningAll : Boolean;
-    runningItemNumber : Integer;
+    runningAll,         // Run all jobs flag (as opposed to just one job)
+    fDo_Rmvbl_jobs,     // Jobs that exist on the removable drive
+    fDo_Normal_jobs,    // Non-Removable and non-Scheduled jobs
+    fDo_Schdld_jobs     // Scheduled jobs
+                       : Boolean;
+     runningItemNumber : Integer;
 
     procedure SetSkinData(newSkin : TbsSkinData);
 
@@ -104,6 +122,12 @@ type
 
     property SkinData : TbsSkinData read fSkinData write SetSkinData;
     property TestEmailDest : String read fTestEmailDest write fTestEmailDest;
+
+    property Do_Removeable_Jobs : Boolean read fDo_Rmvbl_jobs write fDo_Rmvbl_jobs;
+    property Do_Normal_Jobs : Boolean read fDo_Normal_jobs write fDo_Normal_jobs;
+    property Do_Scheduled_Jobs : Boolean read fDo_Schdld_jobs write fDo_Schdld_jobs;
+
+    property Status_Window_Handle : HWND read fStatusWindow write fStatusWindow;
 
   public
     { Public declarations }
@@ -118,6 +142,9 @@ type
     function StartFTPDespatch:Boolean;
     procedure Report(const Msgtype : String; Const Description : String);
 
+    procedure ProcessStartMessage(var aMsg : TMsg); message GTTM_START;
+
+    // -- Internal stuff
     procedure ProcessNextCommand(var aMsg : TMsg); message GTTM_START_SEND;
     procedure ProcessCleanup(var aMsg : TMsg); message GTTM_CLEANUP;
     procedure ProcessErrorStart(var aMsg : TMsg); message GTTM_ERRSTART;
@@ -137,12 +164,17 @@ type
     procedure RegisterJobWindow(ProcessJobName : String; WindowHandle : HWND);
     procedure RegisterStatusWindow(WindowHandle : HWND);
 
+    function  GetJobCount:Integer;
+
   end;
+
+function DiskInDrive(Drive: Char): Boolean;
 
 implementation
 
 {$R *.DFM}
 uses FastStrings, FastStringFuncs,DateUtils;
+
 
 //---------------------------------------------------------------------------
 function TGTDTaskPanel.Load(const TaskName : String):Boolean;
@@ -162,6 +194,10 @@ begin
         Exit;
     end;
 
+    // -- Send a message saying we are starting on this job
+    if (fStatusWindow <> 0) then
+      PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_JOB_RUNNING,0);
+
     if fRunningManual then
     begin
       // -- Exclude Scheduled jobs from the manual run
@@ -170,6 +206,10 @@ begin
         Exit;
     end
     else begin
+
+      if (fStatusWindow <> 0) then
+        PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_SCHDL_START,0);
+        
       // -- Running from schedular, means running manually
       if not OkToRunFromSchedule then
         // -- Not ready to run this now from the schedule
@@ -197,6 +237,16 @@ begin
     // -- Read values from the configuration
     if DocumentRegistry.GetSettingMemoString('/process settings','mainfile',s) then
         fMainFile := s;
+
+    // -- Here we check whether we should be doing removable jobs
+    if (Pos('A:',UpperCase(fMainFile)) <> 0) or (Pos('A:',UpperCase(fWorkDir)) <> 0) then
+    begin
+      if not fDo_Rmvbl_jobs then
+      begin
+        Report('Show','Skipping Removable job (No Disk) - ' + fTaskName);
+        Exit;
+      end;
+    end;
 
     if DocumentRegistry.GetSettingMemoString('/process settings','send-method',s) then
     begin
@@ -239,11 +289,20 @@ var
 begin
     if (Pos('*',fmainfile) <> 0) or (Pos('?',fmainfile) <> 0) then
     begin
-      d := fWorkDir;
+
+      d := ExtractFilePath(fmainfile);
+
+      if Length(d) = 0 then
+        d := fWorkDir;
+
+      // -- Truncate the path
+      if d[Length(d)]='\' then
+        d := Copy(d,1,Length(d)-1);
+        
       FilesFound := False;
 
       // -- Wildcard add of files
-      if FindFirst(d + '\' + fMainFile, faAnyFile, sr) = 0 then
+      if FindFirst(d + '\' + ExtractFileName(fMainFile), faAnyFile, sr) = 0 then
       repeat
 
         if (FileExists(d + '\' + sr.Name)) then
@@ -261,8 +320,8 @@ begin
     if not FilesFound then
     begin
         // -- First thing we must do is to check that the primary file exists
-        Report('Show','Skipping Processing Set ' + fTaskName + '. File ' + fMainfile + ' not found');
-        Report('Show','Skipped.');
+//        Report('Show','Skipping Processing Set ' + fTaskName + '. File ' + fMainfile + ' not found');
+//        Report('Show','Skipped.');
 
         // -- Now run the next processing set if any
         PostMessage(Handle,GTTM_RUNNEXT,0,0);
@@ -280,7 +339,7 @@ begin
 
         // -- Notify that you are running
         if (fStatusWindow <> 0) then
-           PostMessage(fStatusWindow,GTTM_RUNNING,0,0);
+           PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_JOB_RUNNING,0);
 
         try
         // -- Setup the process component
@@ -299,7 +358,7 @@ begin
 
         // -- Notify that you are busy
         if (fStatusWindow <> 0) then
-           PostMessage(fStatusWindow,GTTM_SENDING,0,0);
+           PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_JOB_SENDING,0);
     end;
 end;
 //---------------------------------------------------------------------------
@@ -607,8 +666,35 @@ var
 begin
     Report('Show','Cleaning up.');
 
-    // -- Delete the file
-    if FileExists(fMainFile) then
+    if (Pos('*',fmainfile) <> 0) or (Pos('?',fmainfile) <> 0) then
+    begin
+
+      d := ExtractFilePath(fmainfile);
+
+      if Length(d) = 0 then
+        d := fWorkDir;
+
+      // -- Truncate the path
+      if d[Length(d)]='\' then
+        d := Copy(d,1,Length(d)-1);
+
+      FilesFound := False;
+
+      // -- Wildcard add of files
+      if FindFirst(d + '\' + ExtractFileName(fMainFile), faAnyFile, sr) = 0 then
+      repeat
+
+        if (FileExists(d + '\' + sr.Name)) then
+        begin
+          DeleteFile(d + '\' + sr.Name);
+        end;
+
+      until FindNext(sr) <> 0;
+      FindClose(sr);
+    end
+    else
+      // -- Single file, Delete the file
+      if FileExists(fMainFile) then
         DeleteFile(fMainFile);
 
     // -- Do a file cleanup
@@ -690,7 +776,10 @@ begin
         else begin
             Screen.Cursor := crDefault;
             if (fStatusWindow <> 0) then
-              PostMessage(fStatusWindow,GTTM_IDLE,0,0);
+              PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_IDLE,0);
+
+            if (fStatusWindow <> 0) and (not fRunningManual) then
+              PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_SCHDL_STOP,0);
 
             runningAll := False;
         end;
@@ -698,7 +787,7 @@ begin
     else begin
       Screen.Cursor := crDefault;
       if (fStatusWindow <> 0) then
-          PostMessage(fStatusWindow,GTTM_IDLE,0,0);
+          PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_IDLE,0);
     end;
 end;
 
@@ -857,6 +946,11 @@ begin
     end;
 end;
 
+procedure TGTDTaskPanel.ProcessStartMessage(var aMsg : TMsg);
+begin
+  RunAll;
+end;
+
 procedure TGTDTaskPanel.RunAll;
 var
     xc : Integer;
@@ -868,6 +962,36 @@ begin
     runningItemNumber := 0;
 
     Screen.Cursor := crHourglass;
+
+    // -- Notify that you are running
+    if (fStatusWindow <> 0) then
+       PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_STARTING,GTTM_STATUS_STARTING);
+
+    // -- Here we check if there is a diskette and if there
+    //    isn't then disable the removeable drive running portion
+    if fRunningManual or fDo_Rmvbl_jobs then
+    begin
+      if DiskInDrive('A') then
+      begin
+        Do_Removeable_Jobs := True;
+        Report('Show','Processing Disk found in Drive A:');
+
+        if (fStatusWindow <> 0) then
+          PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_HAVE_RMVBL,0);
+
+      end
+      else begin
+        Do_Removeable_Jobs := False;
+        Report('Show','No Diskette found in Drive A:');
+
+        if (fStatusWindow <> 0) then
+          PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_NO_RMVBL,0);
+      end;
+    end
+    else
+      // -- If not running manual, make no attempt to do
+      //    jobs on the removable drive.
+      Do_Removeable_Jobs := False;
 
     if lstCheckList.Items.Count <> 0 then
     begin
@@ -1183,6 +1307,34 @@ begin
       // --
       Result := False;
 
+end;
+
+function DiskInDrive(Drive: Char): Boolean;
+var
+  ErrorMode: Word;
+begin
+  { make it upper case }
+  if Drive in ['a'..'z'] then Dec(Drive, $20);
+  { make sure it's a letter }
+  if not (Drive in ['A'..'Z']) then
+    raise EConvertError.Create('Not a valid drive ID');
+  { turn off critical errors }
+  ErrorMode := SetErrorMode(SEM_FailCriticalErrors);
+  try
+    { drive 1 = a, 2 = b, 3 = c, etc. }
+    if DiskSize(Ord(Drive) - $40) = -1 then
+      Result := False
+    else
+      Result := True;
+  finally
+    { Restore old error mode }
+    SetErrorMode(ErrorMode);
+  end;
+end;
+
+function TGTDTaskPanel.GetJobCount:Integer;
+begin
+  Result := lstCheckList.Items.Count;
 end;
 
 end.

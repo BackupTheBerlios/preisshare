@@ -592,6 +592,7 @@ published
     function GetTraderSettingInt(NodePath, ElementName : String; var ValueInt : Integer):Boolean;
     function GetTraderSettingBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
     function GetTraderSettingNumber(NodePath, ElementName : String; var ValueDbl : Double):Boolean;
+    function GetTraderSettingDateTime(NodePath, ElementName : String; var ValueDateTime : TDateTime):Boolean;
     function SaveTraderSettingString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean = True):Boolean;
     function SaveTraderSettingInt(NodePath, ElementName : String; ValueInt : Integer; FinalSave : Boolean = True):Boolean;
     function SaveTraderSettingNumber(NodePath, ElementName : String; ValueDbl : Double; FinalSave : Boolean = True):Boolean;
@@ -7524,6 +7525,28 @@ end;
 //---------------------------------------------------------------------------
 function GTDDocumentRegistry.GetTraderSettingBoolean(NodePath, ElementName : String; var Value : Boolean):Boolean;
 begin
+end;
+//---------------------------------------------------------------------------
+function GTDDocumentRegistry.GetTraderSettingDateTime(NodePath, ElementName : String; var ValueDateTime: TDateTime):Boolean;
+var
+    tempDoc : GTDBizDoc;
+begin
+  Result := False;
+
+  // -- This function only works when the table is open
+  if not fTraderTbl.Active then
+  begin
+    Exit;
+  end;
+
+  tempDoc := GTDBizDoc.Create(Self);
+
+  //	myMemo := TMemoField(FieldByName('SETTINGS'));
+  tempDoc.XML.Assign(TMemoField(fTraderTbl.FieldByName('SETTINGS')));
+
+  Result := tempDoc.ReadDateTimeElement(NodePath, ElementName, ValueDateTime);
+
+  tempDoc.Destroy;
 end;
 //---------------------------------------------------------------------------
 function GTDDocumentRegistry.SaveTraderSettingString(NodePath, ElementName, ValueStr : String; FinalSave : Boolean):Boolean;

@@ -114,7 +114,7 @@ const
 implementation
 
 {$R *.dfm}
-uses FastStrings, FastStringFuncs;
+uses FastStrings, FastStringFuncs,DateUtils;
 
 const
   PL_COLLECT_FORMAT       = 'Collection_Format';
@@ -425,7 +425,7 @@ begin
     begin
       Parent := Self;
       Left := otlFeeds.Left;
-      Top := otlFeeds.Top;
+      Top := btnGet.Top;
       DocRegistry := fDocRegistry;
       OnComplete := ExportComplete;
     end;
@@ -717,7 +717,11 @@ begin
 
       Application.ProcessMessages;
 
-      mySPD.Run;
+      if mySPD.Run then
+      begin
+        // -- Update the configuration
+        fDocRegistry.SaveTraderSettingDateTime(PL_COLLECT_NODE,PL_COLLECT_LAST_RUN,Now);
+      end;
 
     end
     else
@@ -837,18 +841,18 @@ procedure TCollectPricelistFrame.btnGetClick(Sender: TObject);
 begin
   if not Assigned(otlFeeds.Selected) then
   begin
-    Run_All;
+    PostMessage(Handle,CM_DOALLFEEDS,0,0);
   end
   else if otlFeeds.Selected.Level = 0 then
   begin
-    Run_All;
+    PostMessage(Handle,CM_DOALLFEEDS,0,0);
   end
   else if otlFeeds.Selected.Level = 1 then
   begin
     fProcessAll := False;
 
     LoadTrader(Integer(otlFeeds.Selected.Data));
-    
+
     Run_Selected;
   end;
 end;
@@ -864,6 +868,8 @@ end;
 procedure TCollectPricelistFrame.ProcessNextFeed(var aMsg : TMsg);
 var
   xc : Integer;
+  v : String;
+  lr : TDateTime;
 begin
 
   // -- If only running one then stop now
@@ -885,7 +891,32 @@ begin
       Inc(fRunningItem)
     end;
 
+    // -- Load up the configuration
     LoadTrader(Integer(otlFeeds.Selected.Data));
+
+    // -- Don't run it if already run for today
+    fDocRegistry.GetTraderSettingString(PL_COLLECT_NODE,PL_COLLECT_FREQUENCY,v);
+    if v = PL_COLLECT_FREQ_DAILY then
+    begin
+      lr := 0;
+      fDocRegistry.GetTraderSettingDateTime(PL_COLLECT_NODE,PL_COLLECT_LAST_RUN,lr);
+
+      if (DateOf(lr) = Today) and fProcessAll then
+      begin
+        // -- Skip this one because we have already run it today
+        PostMessage(Handle,CM_DONEXTFEED,0,0);
+        Exit;
+      end;
+
+    end
+    else if v = PL_COLLECT_FREQ_FORTNIGHT then
+    begin
+      // -- Not implemented
+    end
+    else if v = PL_COLLECT_FREQ_WEEKLY then
+    begin
+      // -- Not implemented
+    end;
 
     Run_Selected;
   end

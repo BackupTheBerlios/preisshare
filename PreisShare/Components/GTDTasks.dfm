@@ -425,7 +425,7 @@ object GTDTaskPanel: TGTDTaskPanel
     Top = 20
   end
   object sysTimer: TTimer
-    Interval = 5000
+    Interval = 10000
     OnTimer = sysTimerTimer
     Left = 200
     Top = 16
