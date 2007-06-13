@@ -31,9 +31,10 @@ const
       GTTM_STATUS_JOB_RUNNING = 4;
       GTTM_STATUS_JOB_SENDING = 5;
       GTTM_STATUS_JOB_DONE    = 6;
+      GTTM_STATUS_COMPLETE    = 7;
 
-      GTTM_STATUS_HAVE_RMVBL  = 7;
-      GTTM_STATUS_NO_RMVBL    = 8;
+      GTTM_STATUS_HAVE_RMVBL  = 8;
+      GTTM_STATUS_NO_RMVBL    = 9;
 
     // -- Public operations
     GTTM_START = WM_APP + 305;
@@ -742,7 +743,7 @@ begin
     end;
 
 
-    Report('Show','Completed.');
+    Report('Show','Job Completed.');
 
     Screen.Cursor := crDefault;
 
@@ -776,10 +777,13 @@ begin
         else begin
             Screen.Cursor := crDefault;
             if (fStatusWindow <> 0) then
+            begin
+              PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_COMPLETE,0);
               PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_IDLE,0);
 
-            if (fStatusWindow <> 0) and (not fRunningManual) then
-              PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_SCHDL_STOP,0);
+              if not fRunningManual then
+                PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_SCHDL_STOP,0);
+            end;
 
             runningAll := False;
         end;
@@ -787,7 +791,10 @@ begin
     else begin
       Screen.Cursor := crDefault;
       if (fStatusWindow <> 0) then
+      begin
+          PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_COMPLETE,0);
           PostMessage(fStatusWindow,GTTM_NOTIFY_MESSAGE,GTTM_STATUS_IDLE,0);
+      end;
     end;
 end;
 
